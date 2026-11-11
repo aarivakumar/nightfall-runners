@@ -1,0 +1,2771 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><External>null</External><External>nil</External><Item class="Workspace" referent="RBX00000001"><Properties><string name="Name">Workspace</string></Properties></Item><Item class="ReplicatedStorage" referent="RBX00000004"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX00000003"><Properties><string name="Name">Shared</string></Properties><Item class="ModuleScript" referent="RBX00000002"><Properties><string name="Name">Config</string><ProtectedString name="Source"><![CDATA[-- Nightfall Runners :: shared configuration
+-- Tweak these numbers to balance the game.
+
+local Config = {}
+
+-- Round flow ---------------------------------------------------------------
+Config.MinPlayers = 1                -- solo play works (AI hunter)
+Config.IntermissionTime = 20
+Config.RoundTime = 240               -- seconds
+Config.HunterReleaseDelay = 12       -- head start for runaways
+Config.EndingTime = 7
+
+-- Objectives ---------------------------------------------------------------
+Config.KeysToSpawn = 7
+Config.KeysNeeded = 5
+
+-- Hunters ------------------------------------------------------------------
+Config.PlayerHunterMinPlayers = 3    -- with 3+ players one player becomes a Hunter
+Config.ExtraHunterEvery = 70         -- spawn another AI hunter every N seconds
+Config.MaxAIHunters = 3
+Config.HunterPatrolSpeed = 14
+Config.HunterChaseSpeed = 19.5
+Config.HunterEnragedBonus = 2        -- added to chase speed once the exit opens
+Config.FrenzyTime = 45               -- last N seconds: hunters always know where you are
+Config.HunterSightRange = 110
+Config.HunterHearRange = 18          -- always notices you this close (unless hidden)
+Config.HiddenDetectRange = 7         -- hidden players are only found this close
+Config.CatchRadius = 4.5
+Config.PlayerHunterSpeed = 23
+
+-- Movement -----------------------------------------------------------------
+Config.WalkSpeed = 16
+Config.SprintSpeed = 26
+Config.MaxStamina = 100
+Config.StaminaDrain = 24             -- per second while sprinting
+Config.StaminaRegen = 16             -- per second while not sprinting
+Config.SpeedPadBonus = 12
+Config.SpeedPadDuration = 3
+
+-- Rewards (coins) ----------------------------------------------------------
+Config.Rewards = {
+	Key = 15,
+	Escape = 60,
+	Participation = 10,
+	Catch = 25,          -- player hunter per catch
+	HunterWin = 50,      -- player hunter if nobody escapes
+}
+
+-- Upgrades (shop) ----------------------------------------------------------
+Config.Upgrades = {
+	Stamina = { MaxLevel = 5, BaseCost = 100, CostStep = 75, PerLevel = 20, Label = "Lungs", Desc = "+20 max stamina" },
+	Speed = { MaxLevel = 5, BaseCost = 150, CostStep = 100, PerLevel = 1, Label = "Sneakers", Desc = "+1 sprint speed" },
+}
+
+function Config.UpgradeCost(name, currentLevel)
+	local u = Config.Upgrades[name]
+	return u.BaseCost + u.CostStep * currentLevel
+end
+
+-- Map ----------------------------------------------------------------------
+Config.GridSize = 12
+Config.CellSize = 26
+Config.LobbyPosition = Vector3.new(0, 80, -330)
+
+Config.DataStoreName = "NightfallRunners_v1"
+
+return Config
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX0000000A"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX00000009"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX00000005"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[-- Saves coins, wins and upgrades with DataStores.
+-- In Studio: Game Settings > Security > "Enable Studio Access to API Services" to test saving.
+
+local DataStoreService = game:GetService("DataStoreService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local DataService = {}
+
+local store = nil
+pcall(function()
+	store = DataStoreService:GetDataStore(Config.DataStoreName)
+end)
+
+local cache = {} -- [player] = data
+
+local function defaultData()
+	return {
+		Coins = 0,
+		Wins = 0,
+		Catches = 0,
+		Upgrades = { Stamina = 0, Speed = 0 },
+	}
+end
+
+local function key(player)
+	return "u_" .. player.UserId
+end
+
+local function refresh(player)
+	local data = cache[player]
+	if not data then
+		return
+	end
+	local stats = player:FindFirstChild("leaderstats")
+	if stats then
+		stats.Coins.Value = data.Coins
+		stats.Escapes.Value = data.Wins
+	end
+	local up = data.Upgrades
+	player:SetAttribute("StaminaLevel", up.Stamina)
+	player:SetAttribute("SpeedLevel", up.Speed)
+	player:SetAttribute("MaxStamina", Config.MaxStamina + up.Stamina * Config.Upgrades.Stamina.PerLevel)
+	player:SetAttribute("SprintSpeed", Config.SprintSpeed + up.Speed * Config.Upgrades.Speed.PerLevel)
+end
+
+function DataService.Load(player)
+	local stats = Instance.new("Folder")
+	stats.Name = "leaderstats"
+	local coins = Instance.new("IntValue")
+	coins.Name = "Coins"
+	coins.Parent = stats
+	local wins = Instance.new("IntValue")
+	wins.Name = "Escapes"
+	wins.Parent = stats
+	stats.Parent = player
+
+	local data = defaultData()
+	if store then
+		local ok, result = pcall(function()
+			return store:GetAsync(key(player))
+		end)
+		if ok and type(result) == "table" then
+			data.Coins = tonumber(result.Coins) or 0
+			data.Wins = tonumber(result.Wins) or 0
+			data.Catches = tonumber(result.Catches) or 0
+			if type(result.Upgrades) == "table" then
+				data.Upgrades.Stamina = tonumber(result.Upgrades.Stamina) or 0
+				data.Upgrades.Speed = tonumber(result.Upgrades.Speed) or 0
+			end
+		elseif not ok then
+			warn("[DataService] load failed for", player.Name, result)
+		end
+	end
+	cache[player] = data
+	refresh(player)
+end
+
+function DataService.Save(player)
+	local data = cache[player]
+	if not data or not store then
+		return
+	end
+	local ok, err = pcall(function()
+		store:SetAsync(key(player), data)
+	end)
+	if not ok then
+		warn("[DataService] save failed for", player.Name, err)
+	end
+end
+
+function DataService.Release(player)
+	DataService.Save(player)
+	cache[player] = nil
+end
+
+function DataService.AddCoins(player, amount)
+	local data = cache[player]
+	if data then
+		data.Coins += amount
+		refresh(player)
+	end
+end
+
+function DataService.AddWin(player)
+	local data = cache[player]
+	if data then
+		data.Wins += 1
+		refresh(player)
+	end
+end
+
+function DataService.AddCatch(player)
+	local data = cache[player]
+	if data then
+		data.Catches += 1
+	end
+end
+
+function DataService.TryUpgrade(player, name)
+	local data = cache[player]
+	local info = Config.Upgrades[name]
+	if not data or not info then
+		return false, "Unknown upgrade"
+	end
+	local level = data.Upgrades[name]
+	if level >= info.MaxLevel then
+		return false, "Already maxed!"
+	end
+	local cost = Config.UpgradeCost(name, level)
+	if data.Coins < cost then
+		return false, ("Need %d more coins"):format(cost - data.Coins)
+	end
+	data.Coins -= cost
+	data.Upgrades[name] = level + 1
+	refresh(player)
+	return true, ("%s upgraded to level %d!"):format(info.Label, level + 1)
+end
+
+function DataService.SaveAll()
+	for player in pairs(cache) do
+		task.spawn(DataService.Save, player)
+	end
+end
+
+return DataService
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000006"><Properties><string name="Name">HunterAI</string><ProtectedString name="Source"><![CDATA[-- AI Hunter: patrols, spots runaways by sight / sound, chases with pathfinding.
+
+local PathfindingService = game:GetService("PathfindingService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local HunterAI = {}
+HunterAI.__index = HunterAI
+
+local BODY = Color3.fromRGB(18, 16, 22)
+local EYE = Color3.fromRGB(255, 20, 40)
+
+local function makePart(model, name, size, color, material)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.CanCollide = false
+	p.Massless = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Parent = model
+	return p
+end
+
+local function motor(name, part0, part1, c0, c1)
+	local m = Instance.new("Motor6D")
+	m.Name = name
+	m.Part0 = part0
+	m.Part1 = part1
+	m.C0 = c0
+	m.C1 = c1
+	m.Parent = part0
+	return m
+end
+
+local function weld(part0, part1, c0)
+	local w = Instance.new("Weld")
+	w.Part0 = part0
+	w.Part1 = part1
+	w.C0 = c0
+	w.Parent = part1
+	part1.CFrame = part0.CFrame * c0
+end
+
+local function buildRig(spawnCFrame, number)
+	local model = Instance.new("Model")
+	model.Name = "Hunter" .. number
+
+	local root = makePart(model, "HumanoidRootPart", Vector3.new(2, 2, 1), BODY)
+	root.Transparency = 1
+	root.CanCollide = true
+	root.Massless = false
+	root.CFrame = spawnCFrame
+	model.PrimaryPart = root
+
+	local torso = makePart(model, "Torso", Vector3.new(2.6, 3.2, 1.3), BODY)
+	local head = makePart(model, "Head", Vector3.new(1.7, 1.9, 1.7), BODY)
+	local lArm = makePart(model, "Left Arm", Vector3.new(0.8, 3.8, 0.8), BODY)
+	local rArm = makePart(model, "Right Arm", Vector3.new(0.8, 3.8, 0.8), BODY)
+	local lLeg = makePart(model, "Left Leg", Vector3.new(1, 3, 1), BODY)
+	local rLeg = makePart(model, "Right Leg", Vector3.new(1, 3, 1), BODY)
+
+	-- joints (clients animate these locally); place parts to match
+	local function joint(name, p0, p1, c0, c1)
+		motor(name, p0, p1, c0, c1)
+		p1.CFrame = p0.CFrame * c0 * c1:Inverse()
+	end
+	joint("RootJoint", root, torso, CFrame.new(0, 0.5, 0), CFrame.new())
+	joint("Neck", torso, head, CFrame.new(0, 1.6, 0), CFrame.new(0, -1.0, 0))
+	joint("Left Shoulder", torso, lArm, CFrame.new(-1.75, 1.3, 0), CFrame.new(0, 1.6, 0))
+	joint("Right Shoulder", torso, rArm, CFrame.new(1.75, 1.3, 0), CFrame.new(0, 1.6, 0))
+	joint("Left Hip", torso, lLeg, CFrame.new(-0.6, -1.6, 0), CFrame.new(0, 1.5, 0))
+	joint("Right Hip", torso, rLeg, CFrame.new(0.6, -1.6, 0), CFrame.new(0, 1.5, 0))
+
+	-- glowing eyes + grin
+	for _, x in ipairs({ -0.38, 0.38 }) do
+		local eye = makePart(model, "Eye", Vector3.new(0.35, 0.22, 0.1), EYE, Enum.Material.Neon)
+		weld(head, eye, CFrame.new(x, 0.25, -0.86))
+	end
+	local mouth = makePart(model, "Mouth", Vector3.new(0.9, 0.12, 0.1), EYE, Enum.Material.Neon)
+	weld(head, mouth, CFrame.new(0, -0.4, -0.86))
+
+	local light = Instance.new("PointLight")
+	light.Color = EYE
+	light.Range = 18
+	light.Brightness = 3
+	light.Parent = head
+
+	local humanoid = Instance.new("Humanoid")
+	humanoid.RigType = Enum.HumanoidRigType.R15 -- uses HipHeight with a custom rig
+	humanoid.HipHeight = 3.1
+	humanoid.WalkSpeed = Config.HunterPatrolSpeed
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+	humanoid.BreakJointsOnDeath = false
+	humanoid.MaxHealth = math.huge
+	humanoid.Health = math.huge
+	humanoid.Parent = model
+
+	return model, humanoid, root
+end
+
+local count = 0
+
+-- params: SpawnCFrame, Parent, GetTargets() -> { {Player, Root, Hidden} }, OnCatch(player), PatrolPoints
+function HunterAI.new(params)
+	count += 1
+	local self = setmetatable({}, HunterAI)
+	self.Model, self.Humanoid, self.Root = buildRig(params.SpawnCFrame, count)
+	self.Root.Anchored = true
+	self.Model.Parent = params.Parent
+
+	self.GetTargets = params.GetTargets
+	self.OnCatch = params.OnCatch
+	self.PatrolPoints = params.PatrolPoints
+	self.Rng = Random.new()
+
+	self.Path = PathfindingService:CreatePath({
+		AgentRadius = 2.5,
+		AgentHeight = 7,
+		AgentCanJump = true,
+		WaypointSpacing = 6,
+	})
+	self.Waypoints = nil
+	self.WpIndex = 0
+	self.Goal = nil
+	self.LastPathTime = 0
+	self.LastKnown = nil
+	self.PatrolGoal = nil
+	self.Chasing = false
+	self.Enraged = false
+	self.Frenzy = false
+	self.Active = false
+	self.Destroyed = false
+	return self
+end
+
+function HunterAI:Release()
+	if self.Active or self.Destroyed then
+		return
+	end
+	self.Active = true
+	self.Root.Anchored = false
+	pcall(function()
+		self.Root:SetNetworkOwner(nil)
+	end)
+	task.spawn(function()
+		self:_loop()
+	end)
+end
+
+function HunterAI:SetEnraged(on)
+	self.Enraged = on
+end
+
+function HunterAI:SetFrenzy(on)
+	self.Frenzy = on
+end
+
+function HunterAI:Destroy()
+	self.Destroyed = true
+	self.Active = false
+	if self.Model then
+		self.Model:Destroy()
+	end
+end
+
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+function HunterAI:_canSee(targetRoot)
+	local origin = self.Root.Position + Vector3.new(0, 2.5, 0)
+	local dir = targetRoot.Position - origin
+	if dir.Magnitude > Config.HunterSightRange then
+		return false
+	end
+	rayParams.FilterDescendantsInstances = { self.Model, targetRoot.Parent, workspace:FindFirstChild("Hunters") }
+	local hit = workspace:Raycast(origin, dir, rayParams)
+	if hit and hit.Instance and hit.Instance.Parent and hit.Instance.Parent:FindFirstChildOfClass("Humanoid") then
+		hit = nil -- another character in the way doesn't block sight
+	end
+	return hit == nil
+end
+
+function HunterAI:_pickTarget(targets)
+	local best, bestDist = nil, math.huge
+	local myPos = self.Root.Position
+	for _, t in ipairs(targets) do
+		local d = (t.Root.Position - myPos).Magnitude
+		local detected
+		if t.Hidden then
+			detected = d <= Config.HiddenDetectRange
+		elseif self.Frenzy then
+			detected = true
+		else
+			detected = d <= Config.HunterHearRange or self:_canSee(t.Root)
+		end
+		if detected and d < bestDist then
+			best, bestDist = t, d
+		end
+	end
+	return best, bestDist
+end
+
+function HunterAI:_computePath(goal)
+	self.LastPathTime = os.clock()
+	self.Goal = goal
+	local ok = pcall(function()
+		self.Path:ComputeAsync(self.Root.Position, goal)
+	end)
+	if ok and self.Path.Status == Enum.PathStatus.Success then
+		self.Waypoints = self.Path:GetWaypoints()
+		self.WpIndex = math.min(2, #self.Waypoints)
+	else
+		self.Waypoints = nil
+	end
+end
+
+function HunterAI:_followPath()
+	local wps = self.Waypoints
+	if not wps then
+		return false
+	end
+	local wp = wps[self.WpIndex]
+	while wp do
+		local flat = (wp.Position - self.Root.Position) * Vector3.new(1, 0, 1)
+		if flat.Magnitude < 3 then
+			self.WpIndex += 1
+			wp = wps[self.WpIndex]
+		else
+			break
+		end
+	end
+	if not wp then
+		self.Waypoints = nil
+		return false
+	end
+	if wp.Action == Enum.PathWaypointAction.Jump then
+		self.Humanoid.Jump = true
+	end
+	self.Humanoid:MoveTo(wp.Position)
+	return true
+end
+
+function HunterAI:_newPatrolGoal(targets)
+	-- Bias patrols toward runaways so the hunter keeps up the pressure
+	if #targets > 0 and self.Rng:NextNumber() < 0.55 then
+		local t = targets[self.Rng:NextInteger(1, #targets)]
+		local offset = Vector3.new(self.Rng:NextNumber(-35, 35), 0, self.Rng:NextNumber(-35, 35))
+		local nearest, nd = nil, math.huge
+		for _, p in ipairs(self.PatrolPoints) do
+			local d = (p - (t.Root.Position + offset)).Magnitude
+			if d < nd then
+				nearest, nd = p, d
+			end
+		end
+		return nearest
+	end
+	return self.PatrolPoints[self.Rng:NextInteger(1, #self.PatrolPoints)]
+end
+
+function HunterAI:_loop()
+	local lastPos = self.Root.Position
+	local lastStuckCheck = os.clock()
+	local stuckStrikes = 0
+
+	while self.Active and not self.Destroyed and self.Model.Parent do
+		local targets = self.GetTargets()
+
+		-- catch check
+		for _, t in ipairs(targets) do
+			if (t.Root.Position - self.Root.Position).Magnitude <= Config.CatchRadius then
+				self.OnCatch(t.Player)
+			end
+		end
+
+		local target, dist = self:_pickTarget(targets)
+		local chaseSpeed = Config.HunterChaseSpeed + (self.Enraged and Config.HunterEnragedBonus or 0)
+
+		if target then
+			self.Chasing = true
+			self.LastKnown = target.Root.Position
+			self.Humanoid.WalkSpeed = chaseSpeed
+			local heightDiff = math.abs(target.Root.Position.Y - self.Root.Position.Y)
+			if dist < 40 and heightDiff < 4 and self:_canSee(target.Root) then
+				-- straight at them
+				self.Waypoints = nil
+				self.Humanoid:MoveTo(target.Root.Position + target.Root.AssemblyLinearVelocity * 0.15)
+			else
+				if not self.Waypoints or os.clock() - self.LastPathTime > 0.5
+					or (self.Goal and (self.Goal - target.Root.Position).Magnitude > 8) then
+					self:_computePath(target.Root.Position)
+				end
+				if not self:_followPath() then
+					self.Humanoid:MoveTo(target.Root.Position)
+				end
+			end
+		elseif self.LastKnown then
+			-- investigate last known position
+			self.Chasing = false
+			self.Humanoid.WalkSpeed = chaseSpeed - 2
+			if not self.Waypoints or (self.Goal and (self.Goal - self.LastKnown).Magnitude > 2) then
+				self:_computePath(self.LastKnown)
+			end
+			if not self:_followPath() or (self.Root.Position - self.LastKnown).Magnitude < 5 then
+				self.LastKnown = nil
+				self.Waypoints = nil
+			end
+		else
+			self.Chasing = false
+			self.Humanoid.WalkSpeed = Config.HunterPatrolSpeed + (self.Enraged and 2 or 0)
+			if not self.PatrolGoal or (self.Root.Position - self.PatrolGoal).Magnitude < 6 then
+				self.PatrolGoal = self:_newPatrolGoal(targets)
+				self.Waypoints = nil
+			end
+			if not self.Waypoints then
+				self:_computePath(self.PatrolGoal)
+				if not self.Waypoints then
+					self.PatrolGoal = nil
+				end
+			end
+			self:_followPath()
+		end
+
+		self.Model:SetAttribute("Chasing", self.Chasing)
+
+		-- stuck detection
+		if os.clock() - lastStuckCheck > 1.2 then
+			local moved = (self.Root.Position - lastPos).Magnitude
+			if moved < 1.5 then
+				stuckStrikes += 1
+				self.Humanoid.Jump = true
+				self.Waypoints = nil
+				if stuckStrikes >= 4 then
+					self.PatrolGoal = nil
+					self.LastKnown = nil
+					stuckStrikes = 0
+				end
+			else
+				stuckStrikes = 0
+			end
+			lastPos = self.Root.Position
+			lastStuckCheck = os.clock()
+		end
+
+		-- fell out of the world? bring it back
+		if self.Root.Position.Y < -30 and #self.PatrolPoints > 0 then
+			self.Model:PivotTo(CFrame.new(self.PatrolPoints[1] + Vector3.new(0, 6, 0)))
+		end
+
+		task.wait(0.1)
+	end
+end
+
+return HunterAI
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000007"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[-- Nightfall Runners :: main server game loop
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+local TweenService = game:GetService("TweenService")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared:WaitForChild("Config"))
+local MapBuilder = require(script.Parent:WaitForChild("MapBuilder"))
+local HunterAI = require(script.Parent:WaitForChild("HunterAI"))
+local DataService = require(script.Parent:WaitForChild("DataService"))
+
+---------------------------------------------------------------------------
+-- Remotes + replicated game state
+---------------------------------------------------------------------------
+local Remotes = Instance.new("Folder")
+Remotes.Name = "Remotes"
+local NotifyEvent = Instance.new("RemoteEvent")
+NotifyEvent.Name = "Notify"
+NotifyEvent.Parent = Remotes
+local SplashEvent = Instance.new("RemoteEvent")
+SplashEvent.Name = "Splash"
+SplashEvent.Parent = Remotes
+local EffectEvent = Instance.new("RemoteEvent")
+EffectEvent.Name = "Effect"
+EffectEvent.Parent = Remotes
+local BuyUpgrade = Instance.new("RemoteFunction")
+BuyUpgrade.Name = "BuyUpgrade"
+BuyUpgrade.Parent = Remotes
+Remotes.Parent = ReplicatedStorage
+
+local GameState = Instance.new("Configuration")
+GameState.Name = "GameState"
+GameState:SetAttribute("Phase", "Waiting")
+GameState:SetAttribute("TimeLeft", 0)
+GameState:SetAttribute("KeysCollected", 0)
+GameState:SetAttribute("KeysNeeded", Config.KeysNeeded)
+GameState:SetAttribute("ExitOpen", false)
+GameState:SetAttribute("RunawaysLeft", 0)
+GameState:SetAttribute("HunterReleased", false)
+GameState.Parent = ReplicatedStorage
+
+local Hunters = Instance.new("Folder")
+Hunters.Name = "Hunters"
+Hunters.Parent = workspace
+
+---------------------------------------------------------------------------
+-- Atmosphere
+---------------------------------------------------------------------------
+Lighting.ClockTime = 20.6
+Lighting.Brightness = 1.6
+Lighting.Ambient = Color3.fromRGB(70, 60, 100)
+Lighting.OutdoorAmbient = Color3.fromRGB(95, 85, 130)
+Lighting.EnvironmentDiffuseScale = 0.4
+Lighting.EnvironmentSpecularScale = 0.6
+pcall(function()
+	Lighting.Technology = Enum.Technology.Future
+end)
+local atmosphere = Instance.new("Atmosphere")
+atmosphere.Density = 0.38
+atmosphere.Offset = 0.1
+atmosphere.Color = Color3.fromRGB(120, 100, 170)
+atmosphere.Decay = Color3.fromRGB(60, 40, 90)
+atmosphere.Glare = 0
+atmosphere.Haze = 1.5
+atmosphere.Parent = Lighting
+local bloom = Instance.new("BloomEffect")
+bloom.Intensity = 0.6
+bloom.Size = 28
+bloom.Threshold = 1.6
+bloom.Parent = Lighting
+local cc = Instance.new("ColorCorrectionEffect")
+cc.Contrast = 0.1
+cc.Saturation = 0.15
+cc.TintColor = Color3.fromRGB(240, 235, 255)
+cc.Parent = Lighting
+
+local _, lobbySpawn = MapBuilder.BuildLobby(workspace)
+
+---------------------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------------------
+local function notify(target, text, color)
+	color = color or Color3.fromRGB(255, 255, 255)
+	if target then
+		NotifyEvent:FireClient(target, text, color)
+	else
+		NotifyEvent:FireAllClients(text, color)
+	end
+end
+
+local function splash(target, title, subtitle, color)
+	if target then
+		SplashEvent:FireClient(target, title, subtitle, color)
+	else
+		SplashEvent:FireAllClients(title, subtitle, color)
+	end
+end
+
+local function getRoot(player)
+	local char = player.Character
+	if not char then
+		return nil
+	end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum or hum.Health <= 0 then
+		return nil
+	end
+	return char:FindFirstChild("HumanoidRootPart"), hum
+end
+
+local function setRole(player, role)
+	player:SetAttribute("Role", role)
+end
+
+local function sendToLobby(player)
+	if player.Parent then
+		player:LoadCharacter()
+	end
+end
+
+---------------------------------------------------------------------------
+-- Round state
+---------------------------------------------------------------------------
+local round = nil -- table while a round is running
+
+local function runawayTargets()
+	local list = {}
+	if not round then
+		return list
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player:GetAttribute("Role") == "Runaway" then
+			local root = getRoot(player)
+			if root then
+				table.insert(list, {
+					Player = player,
+					Root = root,
+					Hidden = player:GetAttribute("Hidden") == true,
+				})
+			end
+		end
+	end
+	return list
+end
+
+local function catchPlayer(player, byPlayer)
+	if not round or player:GetAttribute("Role") ~= "Runaway" then
+		return
+	end
+	setRole(player, "Caught")
+	player:SetAttribute("Hidden", false)
+	table.insert(round.Caught, player)
+
+	local root, hum = getRoot(player)
+	if hum then
+		hum.WalkSpeed = 0
+		hum.JumpPower = 0
+		hum.JumpHeight = 0
+	end
+	if root then
+		EffectEvent:FireAllClients("Caught", root.Position)
+	end
+
+	if byPlayer then
+		DataService.AddCoins(byPlayer, Config.Rewards.Catch)
+		DataService.AddCatch(byPlayer)
+		notify(byPlayer, ("+%d coins for catching %s!"):format(Config.Rewards.Catch, player.DisplayName), Color3.fromRGB(255, 120, 120))
+	end
+	notify(nil, ("💀 %s was caught!"):format(player.DisplayName), Color3.fromRGB(255, 90, 90))
+	splash(player, "CAUGHT!", "Spectate your friends from the lobby", Color3.fromRGB(255, 60, 60))
+
+	task.delay(2.5, function()
+		if player:GetAttribute("Role") == "Caught" then
+			sendToLobby(player)
+		end
+	end)
+end
+
+local function escapePlayer(player)
+	if not round or not round.ExitOpen or player:GetAttribute("Role") ~= "Runaway" then
+		return
+	end
+	setRole(player, "Escaped")
+	player:SetAttribute("Hidden", false)
+	table.insert(round.Escaped, player)
+	DataService.AddCoins(player, Config.Rewards.Escape)
+	DataService.AddWin(player)
+	notify(nil, ("🏁 %s ESCAPED!"):format(player.DisplayName), Color3.fromRGB(120, 255, 140))
+	splash(player, "YOU ESCAPED!", ("+%d coins"):format(Config.Rewards.Escape), Color3.fromRGB(120, 255, 140))
+	EffectEvent:FireClient(player, "Escaped")
+	task.delay(2, function()
+		if player:GetAttribute("Role") == "Escaped" then
+			sendToLobby(player)
+		end
+	end)
+end
+
+local function openExit()
+	if not round or round.ExitOpen then
+		return
+	end
+	round.ExitOpen = true
+	GameState:SetAttribute("ExitOpen", true)
+	local info = round.Info
+	info.Gate.CanCollide = false
+	TweenService:Create(info.Gate, TweenInfo.new(1.2), { Transparency = 1 }):Play()
+	local light = info.Gate:FindFirstChildOfClass("PointLight")
+	if light then
+		light.Color = Color3.fromRGB(80, 255, 120)
+	end
+	info.GateLabel.Text = "🚪 EXIT OPEN!"
+	info.GateLabel.TextColor3 = Color3.fromRGB(120, 255, 140)
+	info.ExitPlate.Color = Color3.fromRGB(80, 255, 120)
+	for _, h in ipairs(round.AIHunters) do
+		h:SetEnraged(true)
+	end
+	splash(nil, "THE EXIT IS OPEN!", "Get to the gate - the Hunter is enraged!", Color3.fromRGB(120, 255, 140))
+	EffectEvent:FireAllClients("ExitOpen", info.ExitPosition)
+end
+
+local function collectKey(player, keyModel)
+	if not round or round.Ended then
+		return
+	end
+	round.Keys += 1
+	GameState:SetAttribute("KeysCollected", round.Keys)
+	EffectEvent:FireAllClients("Key", keyModel:GetPivot().Position)
+	keyModel:Destroy()
+	DataService.AddCoins(player, Config.Rewards.Key)
+	notify(
+		nil,
+		("🔑 %s found a key! (%d/%d)"):format(player.DisplayName, math.min(round.Keys, Config.KeysNeeded), Config.KeysNeeded),
+		Color3.fromRGB(255, 220, 90)
+	)
+	if round.Keys >= Config.KeysNeeded then
+		openExit()
+	end
+end
+
+local function spawnKey(position, parent)
+	local model = Instance.new("Model")
+	model.Name = "Key"
+
+	local function kp(size, offset, shape)
+		local p = Instance.new("Part")
+		p.Anchored = true
+		p.CanCollide = false
+		p.Material = Enum.Material.Neon
+		p.Color = Color3.fromRGB(255, 205, 60)
+		if shape then
+			p.Shape = shape
+		end
+		p.Size = size
+		p.CFrame = CFrame.new(position) * offset
+		p.Parent = model
+		return p
+	end
+	local ring = kp(Vector3.new(0.5, 2, 2), CFrame.new(0, 1.2, 0), Enum.PartType.Cylinder)
+	kp(Vector3.new(0.4, 2.6, 0.4), CFrame.new(0, -0.9, 0))
+	kp(Vector3.new(0.4, 0.4, 0.9), CFrame.new(0, -1.6, 0.5))
+	kp(Vector3.new(0.4, 0.4, 0.7), CFrame.new(0, -0.9, 0.4))
+	model.PrimaryPart = ring
+
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 210, 80)
+	light.Range = 14
+	light.Brightness = 3
+	light.Parent = ring
+
+	local hitbox = Instance.new("Part")
+	hitbox.Name = "Hitbox"
+	hitbox.Anchored = true
+	hitbox.CanCollide = false
+	hitbox.Transparency = 1
+	hitbox.Size = Vector3.new(6, 7, 6)
+	hitbox.Position = position
+	hitbox.Parent = model
+
+	MapBuilder.Billboard(ring, "🔑", Color3.fromRGB(255, 220, 90), 46, 46, Vector3.new(0, 3, 0), true, 70)
+	CollectionService:AddTag(model, "SpinningKey")
+	model.Parent = parent
+
+	local taken = false
+	hitbox.Touched:Connect(function(hit)
+		if taken then
+			return
+		end
+		local player = Players:GetPlayerFromCharacter(hit.Parent)
+		if player and player:GetAttribute("Role") == "Runaway" then
+			taken = true
+			collectKey(player, model)
+		end
+	end)
+end
+
+---------------------------------------------------------------------------
+-- Player lifecycle
+---------------------------------------------------------------------------
+local function setupCharacter(player, character)
+	local hum = character:WaitForChild("Humanoid", 5)
+	if not hum then
+		return
+	end
+	local role = player:GetAttribute("Role")
+
+	if role == "Hunter" and round and not round.Ended then
+		-- respawned hunter goes back to the city
+		task.defer(function()
+			local root = character:WaitForChild("HumanoidRootPart", 5)
+			if root then
+				character:PivotTo(round.Info.HunterSpawn)
+				round.SetupPlayerHunter(player, character)
+			end
+		end)
+	elseif role == "Runaway" then
+		-- should not happen (respawn mid-round) -> counts as caught
+		setRole(player, "Caught")
+	end
+
+	hum.Died:Connect(function()
+		if player:GetAttribute("Role") == "Runaway" and round then
+			catchPlayer(player, nil)
+		end
+	end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+	setRole(player, "Lobby")
+	player:SetAttribute("Hidden", false)
+	player:SetAttribute("BoostUntil", 0)
+	DataService.Load(player)
+	player.CharacterAdded:Connect(function(char)
+		setupCharacter(player, char)
+	end)
+	if player.Character then
+		setupCharacter(player, player.Character)
+	end
+	notify(player, "Welcome to Nightfall Runners! Hold SHIFT to sprint.", Color3.fromRGB(200, 170, 255))
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	DataService.Release(player)
+end)
+
+game:BindToClose(function()
+	DataService.SaveAll()
+	task.wait(2)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(120)
+		DataService.SaveAll()
+	end
+end)
+
+BuyUpgrade.OnServerInvoke = function(player, name)
+	if type(name) ~= "string" then
+		return false, "Bad request"
+	end
+	return DataService.TryUpgrade(player, name)
+end
+
+---------------------------------------------------------------------------
+-- Round flow
+---------------------------------------------------------------------------
+local function setPhase(phase)
+	GameState:SetAttribute("Phase", phase)
+end
+
+local function startRound()
+	local rng = Random.new()
+	local mapFolder = Instance.new("Folder")
+	mapFolder.Name = "Round"
+	mapFolder.Parent = workspace
+	local info = MapBuilder.Build(rng, mapFolder)
+
+	round = {
+		Info = info,
+		Folder = mapFolder,
+		Keys = 0,
+		ExitOpen = false,
+		Escaped = {},
+		Caught = {},
+		AIHunters = {},
+		PlayerHunter = nil,
+		Released = false,
+		Ended = false,
+		Participants = {},
+		Frenzy = false,
+	}
+
+	GameState:SetAttribute("KeysCollected", 0)
+	GameState:SetAttribute("KeysNeeded", Config.KeysNeeded)
+	GameState:SetAttribute("ExitOpen", false)
+	GameState:SetAttribute("HunterReleased", false)
+
+	for _, pos in ipairs(info.KeySpots) do
+		spawnKey(pos, mapFolder)
+	end
+
+	-- speed pads
+	local padDebounce = {}
+	for _, pad in ipairs(info.SpeedPads) do
+		pad.Touched:Connect(function(hit)
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if not player or player:GetAttribute("Role") ~= "Runaway" then
+				return
+			end
+			if padDebounce[player] and os.clock() - padDebounce[player] < 1 then
+				return
+			end
+			padDebounce[player] = os.clock()
+			player:SetAttribute("BoostUntil", workspace:GetServerTimeNow() + Config.SpeedPadDuration)
+			EffectEvent:FireClient(player, "Boost")
+		end)
+	end
+
+	info.ExitZone.Touched:Connect(function(hit)
+		local player = Players:GetPlayerFromCharacter(hit.Parent)
+		if player then
+			escapePlayer(player)
+		end
+	end)
+
+	-- who's playing
+	local participants = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if getRoot(p) then
+			table.insert(participants, p)
+		end
+	end
+	round.Participants = participants
+
+	local playerHunter = nil
+	if #participants >= Config.PlayerHunterMinPlayers then
+		playerHunter = participants[rng:NextInteger(1, #participants)]
+	end
+
+	function round.SetupPlayerHunter(player, character)
+		local hum = character:FindFirstChildOfClass("Humanoid")
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if hum then
+			hum.WalkSpeed = Config.PlayerHunterSpeed
+		end
+		if not character:FindFirstChild("HunterGlow") then
+			local hl = Instance.new("Highlight")
+			hl.Name = "HunterGlow"
+			hl.FillColor = Color3.fromRGB(255, 30, 50)
+			hl.FillTransparency = 0.55
+			hl.OutlineColor = Color3.fromRGB(255, 80, 80)
+			hl.Parent = character
+		end
+		if root then
+			root.Anchored = not round.Released
+		end
+	end
+
+	local spawnIndex = 0
+	for _, p in ipairs(participants) do
+		local root = getRoot(p)
+		if p == playerHunter then
+			round.PlayerHunter = p
+			setRole(p, "Hunter")
+			p.Character:PivotTo(info.HunterSpawn)
+			round.SetupPlayerHunter(p, p.Character)
+			splash(p, "YOU ARE THE HUNTER", "Catch every runaway before they escape!", Color3.fromRGB(255, 60, 60))
+		else
+			spawnIndex += 1
+			setRole(p, "Runaway")
+			p:SetAttribute("Hidden", false)
+			local cf = info.RunawaySpawns[(spawnIndex - 1) % #info.RunawaySpawns + 1]
+			p.Character:PivotTo(cf)
+			if root then
+				root.AssemblyLinearVelocity = Vector3.zero
+			end
+			splash(p, "RUN!", ("Find %d keys and escape the city"):format(Config.KeysNeeded), Color3.fromRGB(255, 220, 90))
+		end
+	end
+
+	-- AI hunter (always at least one)
+	local function addAIHunter()
+		local h = HunterAI.new({
+			SpawnCFrame = info.HunterSpawn * CFrame.new(#round.AIHunters * 4, 0, 0),
+			Parent = Hunters,
+			GetTargets = runawayTargets,
+			OnCatch = function(player)
+				catchPlayer(player, nil)
+			end,
+			PatrolPoints = info.PatrolPoints,
+		})
+		h:SetEnraged(round.ExitOpen)
+		h:SetFrenzy(round.Frenzy)
+		table.insert(round.AIHunters, h)
+		return h
+	end
+	round.AddAIHunter = addAIHunter
+	addAIHunter()
+end
+
+local function releaseHunters()
+	round.Released = true
+	GameState:SetAttribute("HunterReleased", true)
+	for _, h in ipairs(round.AIHunters) do
+		h:Release()
+	end
+	if round.PlayerHunter then
+		local root = getRoot(round.PlayerHunter)
+		if root then
+			root.Anchored = false
+		end
+	end
+	splash(nil, "THE HUNTER IS LOOSE", "Stay out of sight...", Color3.fromRGB(255, 50, 70))
+	EffectEvent:FireAllClients("Release")
+end
+
+local function updateHidden()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local hidden = false
+		if player:GetAttribute("Role") == "Runaway" then
+			local root = getRoot(player)
+			if root then
+				for _, bush in ipairs(round.Info.Bushes) do
+					local d = root.Position - bush.Position
+					if Vector3.new(d.X, 0, d.Z).Magnitude < bush.Radius and root.Position.Y < bush.Position.Y + 4 then
+						hidden = true
+						break
+					end
+				end
+			end
+		end
+		if player:GetAttribute("Hidden") ~= hidden then
+			player:SetAttribute("Hidden", hidden)
+		end
+	end
+end
+
+local function countRunaways()
+	local n = 0
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player:GetAttribute("Role") == "Runaway" then
+			n += 1
+		end
+	end
+	return n
+end
+
+local function runRound()
+	setPhase("Round")
+	local startTime = os.clock()
+	local nextExtra = Config.HunterReleaseDelay + Config.ExtraHunterEvery
+
+	while true do
+		local elapsed = os.clock() - startTime
+		local timeLeft = math.max(0, Config.RoundTime - elapsed)
+		GameState:SetAttribute("TimeLeft", math.ceil(timeLeft))
+
+		if not round.Released and elapsed >= Config.HunterReleaseDelay then
+			releaseHunters()
+		end
+
+		if round.Released and elapsed >= nextExtra and #round.AIHunters < Config.MaxAIHunters then
+			nextExtra += Config.ExtraHunterEvery
+			local h = round.AddAIHunter()
+			h:Release()
+			notify(nil, "👹 Another Hunter has entered the city!", Color3.fromRGB(255, 70, 90))
+			EffectEvent:FireAllClients("Release")
+		end
+
+		if not round.Frenzy and timeLeft <= Config.FrenzyTime then
+			round.Frenzy = true
+			for _, h in ipairs(round.AIHunters) do
+				h:SetFrenzy(true)
+			end
+			splash(nil, "FRENZY!", "The Hunters can sense you now - hurry!", Color3.fromRGB(255, 40, 40))
+		end
+
+		-- player hunter catches
+		if round.Released and round.PlayerHunter and round.PlayerHunter.Parent then
+			local hRoot = getRoot(round.PlayerHunter)
+			if hRoot then
+				for _, t in ipairs(runawayTargets()) do
+					if (t.Root.Position - hRoot.Position).Magnitude <= Config.CatchRadius + 0.5 then
+						catchPlayer(t.Player, round.PlayerHunter)
+					end
+				end
+			end
+		end
+
+		updateHidden()
+
+		local left = countRunaways()
+		GameState:SetAttribute("RunawaysLeft", left)
+		if left == 0 or timeLeft <= 0 then
+			break
+		end
+		task.wait(0.1)
+	end
+end
+
+local function endRound()
+	round.Ended = true
+	setPhase("Ending")
+
+	-- anyone still running when time is up gets caught by the night
+	local timedOut = {}
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player:GetAttribute("Role") == "Runaway" then
+			setRole(player, "Caught")
+			table.insert(round.Caught, player)
+			table.insert(timedOut, player)
+		end
+	end
+
+	for _, player in ipairs(round.Participants) do
+		if player.Parent then
+			DataService.AddCoins(player, Config.Rewards.Participation)
+		end
+	end
+
+	local escaped = #round.Escaped
+	local title, sub, color
+	if escaped > 0 then
+		local names = {}
+		for _, p in ipairs(round.Escaped) do
+			table.insert(names, p.DisplayName)
+		end
+		title = escaped == 1 and "1 RUNAWAY ESCAPED" or (escaped .. " RUNAWAYS ESCAPED")
+		sub = table.concat(names, ", ")
+		color = Color3.fromRGB(120, 255, 140)
+	else
+		title = "THE HUNTERS WIN"
+		sub = #timedOut > 0 and "Time ran out..." or "Nobody made it out."
+		color = Color3.fromRGB(255, 60, 70)
+		if round.PlayerHunter and round.PlayerHunter.Parent then
+			DataService.AddCoins(round.PlayerHunter, Config.Rewards.HunterWin)
+			notify(round.PlayerHunter, ("+%d coins - you win!"):format(Config.Rewards.HunterWin), Color3.fromRGB(255, 120, 120))
+		end
+	end
+	splash(nil, title, sub, color)
+
+	for _, h in ipairs(round.AIHunters) do
+		h:Destroy()
+	end
+	task.wait(Config.EndingTime)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		local role = player:GetAttribute("Role")
+		setRole(player, "Lobby")
+		player:SetAttribute("Hidden", false)
+		if role == "Hunter" or role == "Caught" or role == "Runaway" then
+			sendToLobby(player)
+		end
+	end
+
+	round.Folder:Destroy()
+	round = nil
+	GameState:SetAttribute("ExitOpen", false)
+	GameState:SetAttribute("KeysCollected", 0)
+	GameState:SetAttribute("RunawaysLeft", 0)
+	GameState:SetAttribute("HunterReleased", false)
+end
+
+-- Main loop ---------------------------------------------------------------
+while true do
+	setPhase("Waiting")
+	while #Players:GetPlayers() < Config.MinPlayers do
+		task.wait(1)
+	end
+
+	setPhase("Intermission")
+	local ready = true
+	for t = Config.IntermissionTime, 1, -1 do
+		GameState:SetAttribute("TimeLeft", t)
+		task.wait(1)
+		if #Players:GetPlayers() < Config.MinPlayers then
+			ready = false
+			break
+		end
+	end
+
+	if ready then
+		local ok, err = pcall(startRound)
+		if ok then
+			runRound()
+			endRound()
+		else
+			warn("[Nightfall] failed to start round:", err)
+			if round and round.Folder then
+				round.Folder:Destroy()
+			end
+			round = nil
+			task.wait(3)
+		end
+	end
+end
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000008"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[-- Procedurally builds the lobby and a new neon city every round.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+
+local MapBuilder = {}
+
+local BUILDING_COLORS = {
+	Color3.fromRGB(52, 48, 68),
+	Color3.fromRGB(44, 52, 66),
+	Color3.fromRGB(66, 50, 58),
+	Color3.fromRGB(38, 42, 52),
+	Color3.fromRGB(58, 58, 64),
+}
+local NEON_COLORS = {
+	Color3.fromRGB(255, 70, 160),
+	Color3.fromRGB(60, 220, 255),
+	Color3.fromRGB(255, 200, 70),
+	Color3.fromRGB(150, 90, 255),
+}
+local CAR_COLORS = {
+	Color3.fromRGB(200, 50, 50),
+	Color3.fromRGB(40, 110, 200),
+	Color3.fromRGB(230, 230, 230),
+	Color3.fromRGB(240, 180, 40),
+	Color3.fromRGB(30, 30, 30),
+}
+
+local function newPart(parent, props)
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	for k, v in pairs(props) do
+		p[k] = v
+	end
+	p.Parent = parent
+	return p
+end
+
+local function addLight(part, color, range, brightness)
+	local l = Instance.new("PointLight")
+	l.Color = color
+	l.Range = range
+	l.Brightness = brightness
+	l.Shadows = false
+	l.Parent = part
+	return l
+end
+
+function MapBuilder.Billboard(part, text, color, w, h, offset, alwaysOnTop, maxDistance)
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(w, h)
+	bb.StudsOffset = offset or Vector3.new(0, 3, 0)
+	bb.AlwaysOnTop = alwaysOnTop == true
+	bb.LightInfluence = 0
+	if maxDistance then
+		bb.MaxDistance = maxDistance
+	end
+	local t = Instance.new("TextLabel")
+	t.Size = UDim2.fromScale(1, 1)
+	t.BackgroundTransparency = 1
+	t.Text = text
+	t.TextColor3 = color
+	t.TextScaled = true
+	t.Font = Enum.Font.FredokaOne
+	t.TextStrokeTransparency = 0.2
+	t.Parent = bb
+	bb.Parent = part
+	return bb, t
+end
+
+local function pick(rng, list)
+	return list[rng:NextInteger(1, #list)]
+end
+
+---------------------------------------------------------------------------
+-- Lobby
+---------------------------------------------------------------------------
+function MapBuilder.BuildLobby(parent)
+	local model = Instance.new("Model")
+	model.Name = "Lobby"
+	local c = Config.LobbyPosition
+	local S = 90
+
+	newPart(model, {
+		Name = "Floor",
+		Size = Vector3.new(S, 2, S),
+		Position = c - Vector3.new(0, 1, 0),
+		Material = Enum.Material.SmoothPlastic,
+		Color = Color3.fromRGB(30, 28, 44),
+	})
+	-- neon floor grid
+	for i = -2, 2 do
+		local off = i * 18
+		newPart(model, {
+			Size = Vector3.new(0.6, 0.1, S),
+			Position = c + Vector3.new(off, 0.05, 0),
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(110, 70, 220),
+			CanCollide = false,
+		})
+		newPart(model, {
+			Size = Vector3.new(S, 0.1, 0.6),
+			Position = c + Vector3.new(0, 0.05, off),
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(110, 70, 220),
+			CanCollide = false,
+		})
+	end
+
+	-- glass walls
+	local H = 16
+	local walls = {
+		{ Vector3.new(S, H, 1), Vector3.new(0, H / 2, S / 2) },
+		{ Vector3.new(S, H, 1), Vector3.new(0, H / 2, -S / 2) },
+		{ Vector3.new(1, H, S), Vector3.new(S / 2, H / 2, 0) },
+		{ Vector3.new(1, H, S), Vector3.new(-S / 2, H / 2, 0) },
+	}
+	for _, w in ipairs(walls) do
+		newPart(model, {
+			Size = w[1],
+			Position = c + w[2],
+			Material = Enum.Material.Glass,
+			Transparency = 0.65,
+			Color = Color3.fromRGB(140, 110, 230),
+		})
+	end
+
+	-- corner pillars
+	for _, sx in ipairs({ -1, 1 }) do
+		for _, sz in ipairs({ -1, 1 }) do
+			local p = newPart(model, {
+				Size = Vector3.new(3, H + 4, 3),
+				Position = c + Vector3.new(sx * (S / 2 - 2), (H + 4) / 2, sz * (S / 2 - 2)),
+				Material = Enum.Material.Neon,
+				Color = Color3.fromRGB(255, 70, 160),
+			})
+			addLight(p, p.Color, 28, 2)
+		end
+	end
+
+	local spawn = Instance.new("SpawnLocation")
+	spawn.Name = "LobbySpawn"
+	spawn.Anchored = true
+	spawn.Size = Vector3.new(16, 1, 16)
+	spawn.Position = c + Vector3.new(0, 0.5, -10)
+	spawn.Material = Enum.Material.Neon
+	spawn.Color = Color3.fromRGB(120, 80, 255)
+	spawn.TopSurface = Enum.SurfaceType.Smooth
+	spawn.Duration = 0
+	spawn.Neutral = true
+	spawn.Parent = model
+
+	-- How-to-play board
+	local board = newPart(model, {
+		Name = "Board",
+		Size = Vector3.new(44, 20, 1),
+		Position = c + Vector3.new(0, 12, S / 2 - 3),
+		Material = Enum.Material.SmoothPlastic,
+		Color = Color3.fromRGB(15, 12, 25),
+	})
+	local sg = Instance.new("SurfaceGui")
+	sg.Face = Enum.NormalId.Front
+	sg.CanvasSize = Vector2.new(880, 400)
+	sg.LightInfluence = 0
+	sg.Parent = board
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, 0, 0.3, 0)
+	title.BackgroundTransparency = 1
+	title.Text = "NIGHTFALL RUNNERS"
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextColor3 = Color3.fromRGB(255, 90, 170)
+	title.Parent = sg
+	local body = Instance.new("TextLabel")
+	body.Size = UDim2.new(0.92, 0, 0.66, 0)
+	body.Position = UDim2.new(0.04, 0, 0.32, 0)
+	body.BackgroundTransparency = 1
+	body.TextWrapped = true
+	body.TextScaled = true
+	body.Font = Enum.Font.GothamBold
+	body.TextColor3 = Color3.fromRGB(230, 225, 255)
+	body.TextXAlignment = Enum.TextXAlignment.Left
+	body.Text = ("🔑  Find %d keys hidden around the city\n🚪  Unlock the exit gate and ESCAPE\n👹  The Hunter is coming - don't get caught!\n🌿  Hide inside bushes  •  ⚡ Speed pads boost you\n⇧  Hold SHIFT to sprint (watch your stamina)"):format(
+		Config.KeysNeeded
+	)
+	body.Parent = sg
+
+	model.Parent = parent
+	return model, spawn
+end
+
+---------------------------------------------------------------------------
+-- City map
+---------------------------------------------------------------------------
+function MapBuilder.Build(rng, parent)
+	local N, C = Config.GridSize, Config.CellSize
+	local size = N * C
+	local half = size / 2
+
+	local model = Instance.new("Model")
+	model.Name = "Map"
+
+	local info = {
+		Model = model,
+		RunawaySpawns = {},
+		KeySpots = {},
+		PatrolPoints = {},
+		Bushes = {},
+		SpeedPads = {},
+	}
+
+	local function cellCenter(i, j)
+		return Vector3.new(-half + (i - 0.5) * C, 0, -half + (j - 0.5) * C)
+	end
+
+	-- Ground
+	newPart(model, {
+		Name = "Ground",
+		Size = Vector3.new(size + 60, 4, size + 60),
+		Position = Vector3.new(0, -2, 0),
+		Material = Enum.Material.Asphalt,
+		Color = Color3.fromRGB(38, 38, 44),
+	})
+
+	-- Border walls
+	local wallH, wallT = 34, 4
+	local wallProps = { Material = Enum.Material.Brick, Color = Color3.fromRGB(58, 46, 66) }
+	local function wall(sz, pos)
+		local w = newPart(model, {
+			Name = "Wall",
+			Size = sz,
+			Position = pos,
+			Material = wallProps.Material,
+			Color = wallProps.Color,
+		})
+		newPart(model, {
+			Size = Vector3.new(sz.X + 0.2, 0.8, sz.Z + 0.2),
+			Position = pos + Vector3.new(0, sz.Y / 2 - 0.4, 0),
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(255, 40, 70),
+			CanCollide = false,
+		})
+		return w
+	end
+	wall(Vector3.new(size + wallT * 2, wallH, wallT), Vector3.new(0, wallH / 2, -half - wallT / 2))
+	wall(Vector3.new(wallT, wallH, size), Vector3.new(half + wallT / 2, wallH / 2, 0))
+	wall(Vector3.new(wallT, wallH, size), Vector3.new(-half - wallT / 2, wallH / 2, 0))
+
+	-- North wall with the exit gap
+	local gapW = 18
+	local exitX = cellCenter(rng:NextInteger(3, N - 2), N).X
+	local leftLen = (exitX - gapW / 2) - (-half - wallT)
+	local rightLen = (half + wallT) - (exitX + gapW / 2)
+	wall(Vector3.new(leftLen, wallH, wallT), Vector3.new(-half - wallT + leftLen / 2, wallH / 2, half + wallT / 2))
+	wall(Vector3.new(rightLen, wallH, wallT), Vector3.new(half + wallT - rightLen / 2, wallH / 2, half + wallT / 2))
+
+	local gate = newPart(model, {
+		Name = "Gate",
+		Size = Vector3.new(gapW, wallH, 1.5),
+		Position = Vector3.new(exitX, wallH / 2, half + wallT / 2),
+		Material = Enum.Material.ForceField,
+		Color = Color3.fromRGB(255, 40, 60),
+	})
+	addLight(gate, gate.Color, 30, 3)
+	local _, gateLabel = MapBuilder.Billboard(gate, "🔒 EXIT", Color3.fromRGB(255, 80, 90), 200, 60, Vector3.new(0, wallH / 2 + 3, 0), true)
+
+	local exitPlate = newPart(model, {
+		Name = "ExitPlate",
+		Size = Vector3.new(gapW, 0.3, 14),
+		Position = Vector3.new(exitX, 0.15, half + wallT + 7),
+		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(80, 80, 90),
+		CanCollide = false,
+	})
+	local exitZone = newPart(model, {
+		Name = "ExitZone",
+		Size = Vector3.new(gapW, 12, 14),
+		Position = Vector3.new(exitX, 6, half + wallT + 7),
+		Transparency = 1,
+		CanCollide = false,
+	})
+
+	info.Gate = gate
+	info.GateLabel = gateLabel
+	info.ExitPlate = exitPlate
+	info.ExitZone = exitZone
+	info.ExitPosition = Vector3.new(exitX, 3, half - 6)
+
+	-- Cell layout -----------------------------------------------------------
+	local midI, midJ = math.floor(N / 2), math.floor(N / 2)
+	local layout = {}
+	for i = 1, N do
+		layout[i] = {}
+		for j = 1, N do
+			local t
+			if j == 1 or j == N then
+				t = "empty"
+			elseif (i == midI or i == midI + 1) and (j == midJ or j == midJ + 1) then
+				t = "lair"
+			else
+				local r = rng:NextNumber()
+				if r < 0.36 then
+					t = "building"
+				elseif r < 0.5 then
+					t = "crates"
+				elseif r < 0.63 then
+					t = "bushes"
+				elseif r < 0.68 then
+					t = "pad"
+				else
+					t = "empty"
+				end
+			end
+			layout[i][j] = t
+		end
+	end
+
+	local keyCandidates = {}
+
+	for i = 1, N do
+		for j = 1, N do
+			local t = layout[i][j]
+			local cc = cellCenter(i, j)
+
+			if t == "building" then
+				local w = C - rng:NextInteger(8, 11)
+				local d = C - rng:NextInteger(8, 11)
+				local h = rng:NextInteger(16, 50)
+				newPart(model, {
+					Name = "Sidewalk",
+					Size = Vector3.new(w + 3, 0.3, d + 3),
+					Position = cc + Vector3.new(0, 0.15, 0),
+					Material = Enum.Material.Concrete,
+					Color = Color3.fromRGB(90, 88, 96),
+				})
+				newPart(model, {
+					Name = "Building",
+					Size = Vector3.new(w, h, d),
+					Position = cc + Vector3.new(0, h / 2, 0),
+					Material = pick(rng, { Enum.Material.Concrete, Enum.Material.Brick, Enum.Material.SmoothPlastic }),
+					Color = pick(rng, BUILDING_COLORS),
+				})
+				if rng:NextNumber() < 0.65 then
+					local neon = pick(rng, NEON_COLORS)
+					for y = 7, h - 4, 8 do
+						newPart(model, {
+							Size = Vector3.new(w + 0.2, 1, d + 0.2),
+							Position = cc + Vector3.new(0, y, 0),
+							Material = Enum.Material.Neon,
+							Color = neon,
+							Transparency = 0.15,
+							CanCollide = false,
+						})
+					end
+				end
+				local roof = newPart(model, {
+					Size = Vector3.new(w + 0.6, 0.6, d + 0.6),
+					Position = cc + Vector3.new(0, h + 0.3, 0),
+					Material = Enum.Material.Neon,
+					Color = pick(rng, NEON_COLORS),
+					CanCollide = false,
+				})
+				if rng:NextNumber() < 0.3 then
+					addLight(roof, roof.Color, 40, 1.5)
+				end
+			elseif t == "crates" then
+				local count = rng:NextInteger(2, 4)
+				for _ = 1, count do
+					local ang = rng:NextNumber() * math.pi * 2
+					local rad = rng:NextNumber(6, 9)
+					local s = rng:NextInteger(4, 5)
+					local pos = cc + Vector3.new(math.cos(ang) * rad, s / 2, math.sin(ang) * rad)
+					local crate = newPart(model, {
+						Name = "Crate",
+						Size = Vector3.new(s, s, s),
+						CFrame = CFrame.new(pos) * CFrame.Angles(0, rng:NextNumber() * math.pi, 0),
+						Material = Enum.Material.WoodPlanks,
+						Color = Color3.fromRGB(150, 105, 60),
+					})
+					if rng:NextNumber() < 0.3 then
+						newPart(model, {
+							Name = "Crate",
+							Size = Vector3.new(s - 1, s - 1, s - 1),
+							CFrame = crate.CFrame * CFrame.new(0, s - 0.5, 0) * CFrame.Angles(0, 0.4, 0),
+							Material = Enum.Material.WoodPlanks,
+							Color = Color3.fromRGB(130, 90, 50),
+						})
+					end
+				end
+				table.insert(keyCandidates, cc)
+				table.insert(info.PatrolPoints, cc)
+			elseif t == "bushes" then
+				local count = rng:NextInteger(2, 3)
+				for k = 1, count do
+					local ang = (k / count) * math.pi * 2 + rng:NextNumber()
+					local rad = rng:NextNumber(3, 7)
+					local pos = cc + Vector3.new(math.cos(ang) * rad, 3.2, math.sin(ang) * rad)
+					local bush = newPart(model, {
+						Name = "Bush",
+						Shape = Enum.PartType.Ball,
+						Size = Vector3.new(9.5, 9.5, 9.5),
+						Position = pos,
+						Material = Enum.Material.Grass,
+						Color = Color3.fromRGB(40, rng:NextInteger(95, 130), 50),
+						CanCollide = false,
+						CanQuery = false,
+						Transparency = 0.05,
+					})
+					table.insert(info.Bushes, { Position = bush.Position, Radius = 4.3 })
+				end
+				table.insert(info.PatrolPoints, cc)
+			elseif t == "pad" then
+				local pad = newPart(model, {
+					Name = "SpeedPad",
+					Size = Vector3.new(9, 0.4, 9),
+					Position = cc + Vector3.new(0, 0.2, 0),
+					Material = Enum.Material.Neon,
+					Color = Color3.fromRGB(60, 230, 255),
+					CanCollide = false,
+				})
+				addLight(pad, pad.Color, 16, 2)
+				local sg = Instance.new("SurfaceGui")
+				sg.Face = Enum.NormalId.Top
+				sg.LightInfluence = 0
+				sg.Parent = pad
+				local lbl = Instance.new("TextLabel")
+				lbl.Size = UDim2.fromScale(1, 1)
+				lbl.BackgroundTransparency = 1
+				lbl.Text = "⚡"
+				lbl.TextScaled = true
+				lbl.TextColor3 = Color3.new(1, 1, 1)
+				lbl.Parent = sg
+				table.insert(info.SpeedPads, pad)
+				table.insert(info.PatrolPoints, cc)
+			elseif t == "empty" then
+				local roll = rng:NextNumber()
+				if roll < 0.35 then
+					-- street lamp
+					local base = cc + Vector3.new(C / 2 - 4, 0, C / 2 - 4)
+					newPart(model, {
+						Name = "LampPost",
+						Size = Vector3.new(0.8, 14, 0.8),
+						Position = base + Vector3.new(0, 7, 0),
+						Material = Enum.Material.Metal,
+						Color = Color3.fromRGB(30, 30, 34),
+					})
+					local head = newPart(model, {
+						Size = Vector3.new(2.4, 0.8, 2.4),
+						Position = base + Vector3.new(0, 14.2, 0),
+						Material = Enum.Material.Neon,
+						Color = Color3.fromRGB(255, 210, 140),
+						CanCollide = false,
+					})
+					addLight(head, Color3.fromRGB(255, 200, 130), 34, 2.2)
+				elseif roll < 0.6 and j > 1 and j < N then
+					-- parked car
+					local side = rng:NextNumber() < 0.5 and -1 or 1
+					local carCF = CFrame.new(cc + Vector3.new(side * 7, 0, 0)) * CFrame.Angles(0, rng:NextNumber(-0.2, 0.2), 0)
+					local color = pick(rng, CAR_COLORS)
+					newPart(model, {
+						Name = "Car",
+						Size = Vector3.new(5, 2.6, 11),
+						CFrame = carCF * CFrame.new(0, 1.7, 0),
+						Material = Enum.Material.SmoothPlastic,
+						Color = color,
+					})
+					newPart(model, {
+						Name = "Car",
+						Size = Vector3.new(4.6, 2, 5.5),
+						CFrame = carCF * CFrame.new(0, 4, 0.5),
+						Material = Enum.Material.Glass,
+						Transparency = 0.3,
+						Color = Color3.fromRGB(30, 40, 60),
+					})
+					for _, x in ipairs({ -1.8, 1.8 }) do
+						local light = newPart(model, {
+							Size = Vector3.new(1, 0.6, 0.2),
+							CFrame = carCF * CFrame.new(x, 2, -5.55),
+							Material = Enum.Material.Neon,
+							Color = Color3.fromRGB(255, 250, 210),
+							CanCollide = false,
+						})
+						if x > 0 then
+							addLight(light, light.Color, 14, 1)
+						end
+					end
+				end
+				if j > 1 and j < N then
+					table.insert(keyCandidates, cc)
+				end
+				table.insert(info.PatrolPoints, cc)
+			end
+
+			if j == 1 and i > 1 and i < N then
+				table.insert(info.RunawaySpawns, CFrame.new(cc + Vector3.new(0, 4, 0)) * CFrame.Angles(0, math.pi, 0))
+			end
+		end
+	end
+
+	-- Start line
+	newPart(model, {
+		Size = Vector3.new(size, 0.1, 1.5),
+		Position = Vector3.new(0, 0.05, -half + C),
+		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(120, 255, 140),
+		CanCollide = false,
+	})
+
+	-- Hunter lair (center)
+	local lairPos = cellCenter(midI, midJ) + Vector3.new(C / 2, 0, C / 2)
+	local lairFloor = newPart(model, {
+		Name = "Lair",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.4, 26, 26),
+		CFrame = CFrame.new(lairPos + Vector3.new(0, 0.2, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+		Material = Enum.Material.Slate,
+		Color = Color3.fromRGB(45, 10, 15),
+	})
+	newPart(model, {
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.45, 20, 20),
+		CFrame = lairFloor.CFrame,
+		Material = Enum.Material.Neon,
+		Color = Color3.fromRGB(200, 20, 40),
+		CanCollide = false,
+	})
+	for k = 1, 6 do
+		local a = k / 6 * math.pi * 2
+		local p = newPart(model, {
+			Size = Vector3.new(1.2, 9, 1.2),
+			Position = lairPos + Vector3.new(math.cos(a) * 12, 4.5, math.sin(a) * 12),
+			Material = Enum.Material.Neon,
+			Color = Color3.fromRGB(255, 30, 50),
+		})
+		if k % 2 == 0 then
+			addLight(p, p.Color, 24, 2)
+		end
+	end
+	info.HunterSpawn = CFrame.new(lairPos + Vector3.new(0, 5, 0))
+	table.insert(info.PatrolPoints, lairPos)
+
+	-- Pick key spots, spread out
+	for idx = #keyCandidates, 2, -1 do
+		local swap = rng:NextInteger(1, idx)
+		keyCandidates[idx], keyCandidates[swap] = keyCandidates[swap], keyCandidates[idx]
+	end
+	local minSpacing = C * 2.2
+	for pass = 1, 3 do
+		for _, cand in ipairs(keyCandidates) do
+			if #info.KeySpots >= Config.KeysToSpawn then
+				break
+			end
+			local ok = true
+			for _, chosen in ipairs(info.KeySpots) do
+				if (chosen - cand).Magnitude < minSpacing then
+					ok = false
+					break
+				end
+			end
+			if ok and (cand - lairPos).Magnitude > C then
+				table.insert(info.KeySpots, cand + Vector3.new(0, 3, 0))
+			end
+		end
+		minSpacing *= 0.6
+	end
+
+	info.Bounds = { Half = half }
+	model.Parent = parent
+	return info
+end
+
+return MapBuilder
+]]></ProtectedString></Properties></Item></Item></Item><Item class="StarterPlayer" referent="RBX0000000E"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX0000000D"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX0000000C"><Properties><string name="Name">Client</string></Properties><Item class="LocalScript" referent="RBX0000000B"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[-- Nightfall Runners :: client (HUD, sprint/stamina, effects, spectate, shop)
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
+local TweenService = game:GetService("TweenService")
+local CollectionService = game:GetService("CollectionService")
+local Lighting = game:GetService("Lighting")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local GameState = ReplicatedStorage:WaitForChild("GameState")
+local HuntersFolder = workspace:WaitForChild("Hunters")
+
+---------------------------------------------------------------------------
+-- UI helpers
+---------------------------------------------------------------------------
+local FONT = Enum.Font.FredokaOne
+local FONT_BODY = Enum.Font.GothamBold
+local PANEL = Color3.fromRGB(18, 14, 30)
+local ACCENT = Color3.fromRGB(150, 100, 255)
+
+local function make(class, props, children)
+	local inst = Instance.new(class)
+	for k, v in pairs(props or {}) do
+		if k ~= "Parent" then
+			inst[k] = v
+		end
+	end
+	for _, child in ipairs(children or {}) do
+		child.Parent = inst
+	end
+	if props and props.Parent then
+		inst.Parent = props.Parent
+	end
+	return inst
+end
+
+local function corner(r)
+	return make("UICorner", { CornerRadius = UDim.new(0, r or 12) })
+end
+
+local function stroke(color, thickness, transparency)
+	return make("UIStroke", {
+		Color = color or ACCENT,
+		Thickness = thickness or 2,
+		Transparency = transparency or 0.3,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	})
+end
+
+local function label(props)
+	props.BackgroundTransparency = props.BackgroundTransparency or 1
+	props.Font = props.Font or FONT
+	props.TextColor3 = props.TextColor3 or Color3.new(1, 1, 1)
+	props.TextScaled = props.TextScaled ~= false
+	return make("TextLabel", props)
+end
+
+local gui = make("ScreenGui", {
+	Name = "NightfallHUD",
+	ResetOnSpawn = false,
+	IgnoreGuiInset = true,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	Parent = player:WaitForChild("PlayerGui"),
+})
+
+---------------------------------------------------------------------------
+-- Danger vignette (red edges)
+---------------------------------------------------------------------------
+local vignette = make("Frame", {
+	Name = "Vignette",
+	Size = UDim2.fromScale(1, 1),
+	BackgroundTransparency = 1,
+	ZIndex = 0,
+	Parent = gui,
+})
+local vignetteEdges = {}
+local function edge(size, pos, rotation)
+	local f = make("Frame", {
+		Size = size,
+		Position = pos,
+		BackgroundColor3 = Color3.fromRGB(200, 0, 20),
+		BorderSizePixel = 0,
+		BackgroundTransparency = 1,
+		Parent = vignette,
+	}, {
+		make("UIGradient", {
+			Rotation = rotation,
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+		}),
+	})
+	table.insert(vignetteEdges, f)
+end
+edge(UDim2.fromScale(1, 0.3), UDim2.fromScale(0, 0), 90)
+edge(UDim2.fromScale(1, 0.3), UDim2.fromScale(0, 0.7), -90)
+edge(UDim2.fromScale(0.25, 1), UDim2.fromScale(0, 0), 0)
+edge(UDim2.fromScale(0.25, 1), UDim2.fromScale(0.75, 0), 180)
+
+local flash = make("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(1, 1, 1),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ZIndex = 50,
+	Parent = gui,
+})
+
+---------------------------------------------------------------------------
+-- Top status bar
+---------------------------------------------------------------------------
+local top = make("Frame", {
+	Name = "Top",
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 14),
+	Size = UDim2.fromOffset(330, 74),
+	BackgroundColor3 = PANEL,
+	BackgroundTransparency = 0.15,
+	Parent = gui,
+}, { corner(16), stroke(ACCENT, 2, 0.4) })
+
+local phaseLabel = label({
+	Size = UDim2.new(1, -20, 0, 20),
+	Position = UDim2.fromOffset(10, 8),
+	Text = "WAITING FOR PLAYERS",
+	TextColor3 = Color3.fromRGB(200, 180, 255),
+	Font = FONT_BODY,
+	Parent = top,
+})
+local timerLabel = label({
+	Size = UDim2.new(1, -20, 0, 38),
+	Position = UDim2.fromOffset(10, 28),
+	Text = "",
+	Parent = top,
+})
+
+local pills = make("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0),
+	Position = UDim2.new(0.5, 0, 0, 94),
+	Size = UDim2.fromOffset(330, 34),
+	BackgroundTransparency = 1,
+	Visible = false,
+	Parent = gui,
+}, {
+	make("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		Padding = UDim.new(0, 8),
+	}),
+})
+local function pill(text, color)
+	local f = make("Frame", {
+		Size = UDim2.fromOffset(150, 34),
+		BackgroundColor3 = PANEL,
+		BackgroundTransparency = 0.15,
+		Parent = pills,
+	}, { corner(17), stroke(color, 2, 0.3) })
+	local l = label({
+		Size = UDim2.new(1, -12, 1, -8),
+		Position = UDim2.fromOffset(6, 4),
+		Text = text,
+		TextColor3 = color,
+		Parent = f,
+	})
+	return f, l
+end
+local keysPill, keysLabel = pill("🔑 0 / 5", Color3.fromRGB(255, 215, 80))
+local _, runnersLabel = pill("🏃 0 left", Color3.fromRGB(140, 220, 255))
+
+---------------------------------------------------------------------------
+-- Role badge + stamina
+---------------------------------------------------------------------------
+local bottom = make("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -24),
+	Size = UDim2.fromOffset(320, 70),
+	BackgroundTransparency = 1,
+	Parent = gui,
+})
+local roleLabel = label({
+	Size = UDim2.new(1, 0, 0, 24),
+	Text = "",
+	Parent = bottom,
+})
+local hiddenLabel = label({
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 0, -4),
+	Size = UDim2.fromOffset(200, 28),
+	Text = "🌿 HIDDEN",
+	TextColor3 = Color3.fromRGB(120, 255, 140),
+	Visible = false,
+	Parent = bottom,
+})
+local staminaBack = make("Frame", {
+	Position = UDim2.fromOffset(0, 32),
+	Size = UDim2.new(1, 0, 0, 18),
+	BackgroundColor3 = PANEL,
+	BackgroundTransparency = 0.1,
+	Parent = bottom,
+}, { corner(9), stroke(Color3.fromRGB(80, 200, 255), 2, 0.4) })
+local staminaFill = make("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.fromRGB(80, 210, 255),
+	BorderSizePixel = 0,
+	Parent = staminaBack,
+}, {
+	corner(9),
+	make("UIGradient", {
+		Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(190, 190, 190)),
+		Rotation = 90,
+	}),
+})
+local staminaText = label({
+	Size = UDim2.fromScale(1, 1),
+	Text = "STAMINA",
+	Font = FONT_BODY,
+	TextColor3 = Color3.fromRGB(255, 255, 255),
+	TextStrokeTransparency = 0.5,
+	ZIndex = 3,
+	Parent = staminaBack,
+})
+
+---------------------------------------------------------------------------
+-- Toast notifications
+---------------------------------------------------------------------------
+local toastHolder = make("Frame", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -16, 0, 80),
+	Size = UDim2.fromOffset(330, 400),
+	BackgroundTransparency = 1,
+	Parent = gui,
+}, {
+	make("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Right,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}),
+})
+local toastCount = 0
+local function toast(text, color)
+	toastCount += 1
+	local f = make("Frame", {
+		Size = UDim2.fromOffset(330, 36),
+		BackgroundColor3 = PANEL,
+		BackgroundTransparency = 0.15,
+		LayoutOrder = toastCount,
+		Parent = toastHolder,
+	}, { corner(10), stroke(color, 2, 0.4) })
+	local l = label({
+		Size = UDim2.new(1, -16, 1, -10),
+		Position = UDim2.fromOffset(8, 5),
+		Text = text,
+		Font = FONT_BODY,
+		TextColor3 = color,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = f,
+	})
+	local items = toastHolder:GetChildren()
+	local frames = {}
+	for _, c in ipairs(items) do
+		if c:IsA("Frame") then
+			table.insert(frames, c)
+		end
+	end
+	if #frames > 6 then
+		table.sort(frames, function(a, b)
+			return a.LayoutOrder < b.LayoutOrder
+		end)
+		frames[1]:Destroy()
+	end
+	task.delay(5, function()
+		if f.Parent then
+			TweenService:Create(f, TweenInfo.new(0.4), { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(l, TweenInfo.new(0.4), { TextTransparency = 1 }):Play()
+			task.wait(0.45)
+			f:Destroy()
+		end
+	end)
+end
+
+---------------------------------------------------------------------------
+-- Splash (big center text)
+---------------------------------------------------------------------------
+local splashFrame = make("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.36),
+	Size = UDim2.fromOffset(700, 130),
+	BackgroundTransparency = 1,
+	Visible = false,
+	Parent = gui,
+})
+local splashTitle = label({
+	Size = UDim2.new(1, 0, 0, 80),
+	Text = "",
+	TextStrokeTransparency = 0,
+	TextStrokeColor3 = Color3.fromRGB(20, 0, 30),
+	Parent = splashFrame,
+})
+local splashSub = label({
+	Position = UDim2.fromOffset(0, 84),
+	Size = UDim2.new(1, 0, 0, 30),
+	Text = "",
+	Font = FONT_BODY,
+	TextStrokeTransparency = 0.3,
+	Parent = splashFrame,
+})
+local splashScale = make("UIScale", { Parent = splashFrame })
+local splashToken = 0
+local function showSplash(title, sub, color)
+	splashToken += 1
+	local token = splashToken
+	splashTitle.Text = title
+	splashTitle.TextColor3 = color or Color3.new(1, 1, 1)
+	splashSub.Text = sub or ""
+	splashTitle.TextTransparency = 0
+	splashSub.TextTransparency = 0
+	splashTitle.TextStrokeTransparency = 0
+	splashFrame.Visible = true
+	splashScale.Scale = 1.5
+	TweenService:Create(splashScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	task.delay(3.2, function()
+		if token ~= splashToken then
+			return
+		end
+		local ti = TweenInfo.new(0.5)
+		TweenService:Create(splashTitle, ti, { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+		TweenService:Create(splashSub, ti, { TextTransparency = 1 }):Play()
+		task.wait(0.5)
+		if token == splashToken then
+			splashFrame.Visible = false
+		end
+	end)
+end
+
+---------------------------------------------------------------------------
+-- Buttons: shop, sprint (touch), spectate
+---------------------------------------------------------------------------
+local function button(props, text, color)
+	local b = make("TextButton", {
+		Size = props.Size,
+		Position = props.Position,
+		AnchorPoint = props.AnchorPoint or Vector2.zero,
+		BackgroundColor3 = color or PANEL,
+		BackgroundTransparency = props.BackgroundTransparency or 0.1,
+		Text = text,
+		Font = FONT,
+		TextScaled = true,
+		TextColor3 = Color3.new(1, 1, 1),
+		AutoButtonColor = true,
+		Visible = props.Visible ~= false,
+		Parent = props.Parent or gui,
+	}, { corner(12), stroke(Color3.new(1, 1, 1), 2, 0.6), make("UIPadding", {
+		PaddingTop = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 6),
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 8),
+	}) })
+	return b
+end
+
+local shopButton = button({
+	Size = UDim2.fromOffset(120, 44),
+	Position = UDim2.new(0, 16, 0.5, -22),
+}, "🛒 SHOP", Color3.fromRGB(110, 60, 220))
+
+local sprintButton = button({
+	Size = UDim2.fromOffset(96, 96),
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -24, 1, -170),
+	Visible = UserInputService.TouchEnabled,
+}, "SPRINT", Color3.fromRGB(40, 150, 220))
+
+local spectateBar = make("Frame", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -110),
+	Size = UDim2.fromOffset(420, 50),
+	BackgroundTransparency = 1,
+	Visible = false,
+	Parent = gui,
+})
+local specPrev = button({ Size = UDim2.fromOffset(50, 50), Parent = spectateBar }, "◀")
+local specNext = button({ Size = UDim2.fromOffset(50, 50), Position = UDim2.new(1, -50, 0, 0), Parent = spectateBar }, "▶")
+local specLabel = label({
+	Position = UDim2.fromOffset(58, 0),
+	Size = UDim2.new(1, -116, 1, 0),
+	Text = "SPECTATE",
+	Parent = spectateBar,
+})
+local specButton = button({
+	Size = UDim2.fromOffset(140, 44),
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -170),
+	Visible = false,
+}, "👁 SPECTATE", Color3.fromRGB(60, 60, 90))
+
+---------------------------------------------------------------------------
+-- Shop panel
+---------------------------------------------------------------------------
+local shop = make("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(420, 330),
+	BackgroundColor3 = PANEL,
+	Visible = false,
+	ZIndex = 20,
+	Parent = gui,
+}, { corner(18), stroke(ACCENT, 3, 0.2) })
+label({ Size = UDim2.new(1, -40, 0, 44), Position = UDim2.fromOffset(20, 12), Text = "UPGRADE SHOP", ZIndex = 21, Parent = shop })
+local coinsLabel = label({
+	Size = UDim2.new(1, -40, 0, 26),
+	Position = UDim2.fromOffset(20, 56),
+	Text = "🪙 0",
+	TextColor3 = Color3.fromRGB(255, 215, 80),
+	ZIndex = 21,
+	Parent = shop,
+})
+local closeShop = button({ Size = UDim2.fromOffset(40, 40), Position = UDim2.new(1, -52, 0, 12), Parent = shop }, "✕", Color3.fromRGB(180, 50, 70))
+closeShop.ZIndex = 22
+
+local shopRows = {}
+local function shopRow(name, y)
+	local info = Config.Upgrades[name]
+	local row = make("Frame", {
+		Position = UDim2.fromOffset(20, y),
+		Size = UDim2.new(1, -40, 0, 96),
+		BackgroundColor3 = Color3.fromRGB(34, 28, 54),
+		ZIndex = 21,
+		Parent = shop,
+	}, { corner(12) })
+	local title = label({ Position = UDim2.fromOffset(12, 8), Size = UDim2.new(0.6, 0, 0, 30), Text = info.Label, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 22, Parent = row })
+	local desc = label({
+		Position = UDim2.fromOffset(12, 40),
+		Size = UDim2.new(0.6, 0, 0, 20),
+		Text = info.Desc,
+		Font = FONT_BODY,
+		TextColor3 = Color3.fromRGB(190, 180, 220),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 22,
+		Parent = row,
+	})
+	local level = label({
+		Position = UDim2.fromOffset(12, 64),
+		Size = UDim2.new(0.6, 0, 0, 22),
+		Text = "",
+		TextColor3 = Color3.fromRGB(120, 220, 255),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 22,
+		Parent = row,
+	})
+	local buy = button({
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -12, 0.5, 0),
+		Size = UDim2.fromOffset(120, 50),
+		Parent = row,
+	}, "BUY", Color3.fromRGB(60, 180, 90))
+	buy.ZIndex = 22
+	shopRows[name] = { Level = level, Buy = buy, Title = title, Desc = desc }
+	buy.MouseButton1Click:Connect(function()
+		local ok, msg = Remotes.BuyUpgrade:InvokeServer(name)
+		toast(msg or "", ok and Color3.fromRGB(120, 255, 140) or Color3.fromRGB(255, 110, 110))
+	end)
+end
+shopRow("Stamina", 96)
+shopRow("Speed", 204)
+
+local function refreshShop()
+	local stats = player:FindFirstChild("leaderstats")
+	local coins = stats and stats:FindFirstChild("Coins")
+	coinsLabel.Text = "🪙 " .. (coins and coins.Value or 0)
+	for name, row in pairs(shopRows) do
+		local lvl = player:GetAttribute(name .. "Level") or 0
+		local info = Config.Upgrades[name]
+		local pips = string.rep("■", lvl) .. string.rep("□", info.MaxLevel - lvl)
+		row.Level.Text = pips
+		if lvl >= info.MaxLevel then
+			row.Buy.Text = "MAXED"
+			row.Buy.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
+		else
+			row.Buy.Text = "🪙 " .. Config.UpgradeCost(name, lvl)
+			row.Buy.BackgroundColor3 = Color3.fromRGB(60, 180, 90)
+		end
+	end
+end
+
+shopButton.MouseButton1Click:Connect(function()
+	shop.Visible = not shop.Visible
+	refreshShop()
+end)
+closeShop.MouseButton1Click:Connect(function()
+	shop.Visible = false
+end)
+player:GetAttributeChangedSignal("StaminaLevel"):Connect(refreshShop)
+player:GetAttributeChangedSignal("SpeedLevel"):Connect(refreshShop)
+task.spawn(function()
+	local stats = player:WaitForChild("leaderstats", 30)
+	if stats then
+		stats:WaitForChild("Coins").Changed:Connect(refreshShop)
+		refreshShop()
+	end
+end)
+
+---------------------------------------------------------------------------
+-- Sprint + stamina
+---------------------------------------------------------------------------
+local sprintHeld = false
+local stamina = Config.MaxStamina
+local exhausted = false
+
+local function onSprint(_, state)
+	if state == Enum.UserInputState.Begin then
+		sprintHeld = true
+	elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+		sprintHeld = false
+	end
+	return Enum.ContextActionResult.Pass
+end
+ContextActionService:BindAction("Sprint", onSprint, false, Enum.KeyCode.LeftShift, Enum.KeyCode.RightShift, Enum.KeyCode.ButtonL3)
+
+sprintButton.MouseButton1Down:Connect(function()
+	sprintHeld = not sprintHeld
+	sprintButton.BackgroundColor3 = sprintHeld and Color3.fromRGB(255, 160, 40) or Color3.fromRGB(40, 150, 220)
+end)
+
+---------------------------------------------------------------------------
+-- Spectating
+---------------------------------------------------------------------------
+local spectating = false
+local specIndex = 1
+
+local function spectateTargets()
+	local list = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		local role = p:GetAttribute("Role")
+		if p ~= player and (role == "Runaway" or role == "Hunter") and p.Character and p.Character:FindFirstChildOfClass("Humanoid") then
+			table.insert(list, p)
+		end
+	end
+	return list
+end
+
+local function stopSpectate()
+	spectating = false
+	spectateBar.Visible = false
+	local char = player.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		camera.CameraSubject = hum
+	end
+end
+
+local function updateSpectate()
+	if not spectating then
+		return
+	end
+	local list = spectateTargets()
+	if #list == 0 then
+		specLabel.Text = "Nobody to watch"
+		stopSpectate()
+		return
+	end
+	specIndex = ((specIndex - 1) % #list) + 1
+	local target = list[specIndex]
+	local hum = target.Character:FindFirstChildOfClass("Humanoid")
+	camera.CameraSubject = hum
+	local role = target:GetAttribute("Role")
+	specLabel.Text = (role == "Hunter" and "👹 " or "🏃 ") .. target.DisplayName
+end
+
+specButton.MouseButton1Click:Connect(function()
+	if spectating then
+		stopSpectate()
+	else
+		spectating = true
+		spectateBar.Visible = true
+		updateSpectate()
+	end
+end)
+specPrev.MouseButton1Click:Connect(function()
+	specIndex -= 1
+	updateSpectate()
+end)
+specNext.MouseButton1Click:Connect(function()
+	specIndex += 1
+	updateSpectate()
+end)
+
+---------------------------------------------------------------------------
+-- State -> UI
+---------------------------------------------------------------------------
+local function fmtTime(t)
+	t = math.max(0, math.floor(t))
+	return ("%d:%02d"):format(t // 60, t % 60)
+end
+
+local function refreshRole()
+	local role = player:GetAttribute("Role") or "Lobby"
+	local phase = GameState:GetAttribute("Phase")
+	if role == "Runaway" then
+		roleLabel.Text = "🏃 RUNAWAY"
+		roleLabel.TextColor3 = Color3.fromRGB(140, 220, 255)
+	elseif role == "Hunter" then
+		roleLabel.Text = "👹 HUNTER"
+		roleLabel.TextColor3 = Color3.fromRGB(255, 80, 90)
+	elseif role == "Caught" then
+		roleLabel.Text = "💀 CAUGHT"
+		roleLabel.TextColor3 = Color3.fromRGB(200, 120, 120)
+	elseif role == "Escaped" then
+		roleLabel.Text = "🏁 ESCAPED"
+		roleLabel.TextColor3 = Color3.fromRGB(120, 255, 140)
+	else
+		roleLabel.Text = "LOBBY"
+		roleLabel.TextColor3 = Color3.fromRGB(200, 180, 255)
+	end
+	staminaBack.Visible = role ~= "Hunter"
+	local canSpectate = phase == "Round" and role ~= "Runaway" and role ~= "Hunter"
+	specButton.Visible = canSpectate
+	if not canSpectate and spectating then
+		stopSpectate()
+	end
+	sprintButton.Visible = UserInputService.TouchEnabled and role ~= "Hunter"
+	shopButton.Visible = role ~= "Runaway" and role ~= "Hunter"
+	if not shopButton.Visible then
+		shop.Visible = false
+	end
+end
+
+local function refreshState()
+	local phase = GameState:GetAttribute("Phase")
+	local timeLeft = GameState:GetAttribute("TimeLeft") or 0
+	local keys = GameState:GetAttribute("KeysCollected") or 0
+	local needed = GameState:GetAttribute("KeysNeeded") or Config.KeysNeeded
+	local exitOpen = GameState:GetAttribute("ExitOpen")
+
+	pills.Visible = phase == "Round"
+	if phase == "Waiting" then
+		phaseLabel.Text = "WAITING FOR PLAYERS"
+		timerLabel.Text = "..."
+	elseif phase == "Intermission" then
+		phaseLabel.Text = "NEXT ROUND IN"
+		timerLabel.Text = tostring(timeLeft)
+		timerLabel.TextColor3 = Color3.new(1, 1, 1)
+	elseif phase == "Round" then
+		local elapsed = Config.RoundTime - timeLeft
+		local release = Config.HunterReleaseDelay - elapsed
+		if not GameState:GetAttribute("HunterReleased") and release > 0 then
+			phaseLabel.Text = "HUNTER RELEASED IN"
+			timerLabel.Text = tostring(math.ceil(release))
+			timerLabel.TextColor3 = Color3.fromRGB(255, 200, 90)
+		else
+			phaseLabel.Text = exitOpen and "🚪 EXIT OPEN - RUN!" or "FIND THE KEYS"
+			timerLabel.Text = fmtTime(timeLeft)
+			timerLabel.TextColor3 = timeLeft <= Config.FrenzyTime and Color3.fromRGB(255, 70, 80) or Color3.new(1, 1, 1)
+		end
+		keysLabel.Text = ("🔑 %d / %d"):format(math.min(keys, needed), needed)
+		keysLabel.TextColor3 = exitOpen and Color3.fromRGB(120, 255, 140) or Color3.fromRGB(255, 215, 80)
+		runnersLabel.Text = ("🏃 %d left"):format(GameState:GetAttribute("RunawaysLeft") or 0)
+	elseif phase == "Ending" then
+		phaseLabel.Text = "ROUND OVER"
+		timerLabel.Text = "GG"
+	end
+	refreshRole()
+end
+
+for _, attr in ipairs({ "Phase", "TimeLeft", "KeysCollected", "ExitOpen", "RunawaysLeft", "HunterReleased" }) do
+	GameState:GetAttributeChangedSignal(attr):Connect(refreshState)
+end
+player:GetAttributeChangedSignal("Role"):Connect(function()
+	refreshState()
+	local role = player:GetAttribute("Role")
+	if role == "Runaway" then
+		stamina = player:GetAttribute("MaxStamina") or Config.MaxStamina
+		exhausted = false
+	end
+end)
+player:GetAttributeChangedSignal("Hidden"):Connect(function()
+	hiddenLabel.Visible = player:GetAttribute("Hidden") == true
+end)
+refreshState()
+
+local lastKeys = 0
+GameState:GetAttributeChangedSignal("KeysCollected"):Connect(function()
+	local k = GameState:GetAttribute("KeysCollected") or 0
+	if k > lastKeys then
+		keysPill.Size = UDim2.fromOffset(170, 40)
+		TweenService:Create(keysPill, TweenInfo.new(0.3, Enum.EasingStyle.Back), { Size = UDim2.fromOffset(150, 34) }):Play()
+	end
+	lastKeys = k
+end)
+
+Remotes.Notify.OnClientEvent:Connect(toast)
+Remotes.Splash.OnClientEvent:Connect(showSplash)
+
+---------------------------------------------------------------------------
+-- Effects
+---------------------------------------------------------------------------
+local shake = 0
+local function flashScreen(color, from)
+	flash.BackgroundColor3 = color
+	flash.BackgroundTransparency = from or 0.4
+	TweenService:Create(flash, TweenInfo.new(0.6), { BackgroundTransparency = 1 }):Play()
+end
+
+local function burst(position, color)
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CastShadow = false
+	p.Shape = Enum.PartType.Ball
+	p.Material = Enum.Material.Neon
+	p.Color = color
+	p.Size = Vector3.new(1, 1, 1)
+	p.Position = position
+	p.Parent = workspace
+	TweenService:Create(p, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Size = Vector3.new(14, 14, 14),
+		Transparency = 1,
+	}):Play()
+	game:GetService("Debris"):AddItem(p, 0.7)
+end
+
+Remotes.Effect.OnClientEvent:Connect(function(kind, position)
+	if kind == "Key" then
+		burst(position, Color3.fromRGB(255, 210, 70))
+		flashScreen(Color3.fromRGB(255, 220, 100), 0.75)
+	elseif kind == "Caught" then
+		burst(position, Color3.fromRGB(255, 30, 50))
+		local char = player.Character
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if root and (root.Position - position).Magnitude < 60 then
+			shake = 1
+		end
+		if player:GetAttribute("Role") == "Caught" then
+			flashScreen(Color3.fromRGB(255, 0, 0), 0.2)
+		end
+	elseif kind == "Release" then
+		shake = 0.6
+		flashScreen(Color3.fromRGB(200, 0, 20), 0.6)
+	elseif kind == "ExitOpen" then
+		flashScreen(Color3.fromRGB(100, 255, 140), 0.6)
+	elseif kind == "Escaped" then
+		flashScreen(Color3.fromRGB(255, 255, 255), 0)
+	elseif kind == "Boost" then
+		flashScreen(Color3.fromRGB(80, 220, 255), 0.7)
+		toast("⚡ SPEED BOOST!", Color3.fromRGB(80, 220, 255))
+	end
+end)
+
+---------------------------------------------------------------------------
+-- Per-frame: sprint, danger, hunter animation, key spin, camera
+---------------------------------------------------------------------------
+local baseFov = 70
+local currentFov = baseFov
+local animT = 0
+
+local function hunterRoots()
+	local list = {}
+	for _, model in ipairs(HuntersFolder:GetChildren()) do
+		local r = model:FindFirstChild("HumanoidRootPart")
+		if r then
+			table.insert(list, r)
+		end
+	end
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= player and p:GetAttribute("Role") == "Hunter" and p.Character then
+			local r = p.Character:FindFirstChild("HumanoidRootPart")
+			if r then
+				table.insert(list, r)
+			end
+		end
+	end
+	return list
+end
+
+local function animateHunter(model, t)
+	local root = model:FindFirstChild("HumanoidRootPart")
+	local torso = model:FindFirstChild("Torso")
+	if not root or not torso then
+		return
+	end
+	local speed = (root.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude
+	local amt = math.clamp(speed / 18, 0, 1.2)
+	local swing = math.sin(t * (6 + speed * 0.35)) * 0.9 * amt
+	local chasing = model:GetAttribute("Chasing")
+	local function set(name, cf)
+		local m = torso:FindFirstChild(name)
+		if m then
+			m.Transform = cf
+		end
+	end
+	set("Left Hip", CFrame.Angles(swing, 0, 0))
+	set("Right Hip", CFrame.Angles(-swing, 0, 0))
+	if chasing then
+		-- arms reaching forward while chasing
+		set("Left Shoulder", CFrame.Angles(math.rad(80) + swing * 0.2, 0, 0))
+		set("Right Shoulder", CFrame.Angles(math.rad(80) - swing * 0.2, 0, 0))
+	else
+		set("Left Shoulder", CFrame.Angles(-swing * 0.8, 0, 0))
+		set("Right Shoulder", CFrame.Angles(swing * 0.8, 0, 0))
+	end
+	set("Neck", CFrame.Angles(math.sin(t * 1.7) * 0.15, math.sin(t * 0.9) * 0.4, 0))
+	local root2 = root:FindFirstChild("RootJoint")
+	if root2 then
+		root2.Transform = CFrame.Angles(chasing and -0.25 or -0.08, 0, 0)
+	end
+end
+
+local keyBase = {}
+
+RunService.RenderStepped:Connect(function(dt)
+	animT += dt
+	local char = player.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	local role = player:GetAttribute("Role")
+
+	-- sprint / stamina
+	local sprinting = false
+	if hum and role ~= "Hunter" and role ~= "Caught" then
+		local maxS = player:GetAttribute("MaxStamina") or Config.MaxStamina
+		local sprintSpeed = player:GetAttribute("SprintSpeed") or Config.SprintSpeed
+		local moving = hum.MoveDirection.Magnitude > 0.1
+		if sprintHeld and moving and not exhausted and stamina > 0 then
+			sprinting = true
+			stamina = math.max(0, stamina - Config.StaminaDrain * dt)
+			if stamina <= 0 then
+				exhausted = true
+				toast("💨 Out of breath!", Color3.fromRGB(255, 150, 90))
+			end
+		else
+			stamina = math.min(maxS, stamina + Config.StaminaRegen * dt * (moving and 0.7 or 1))
+		end
+		if exhausted and stamina >= maxS * 0.35 then
+			exhausted = false
+		end
+		local speed = sprinting and sprintSpeed or Config.WalkSpeed
+		if exhausted then
+			speed = Config.WalkSpeed - 3
+		end
+		if workspace:GetServerTimeNow() < (player:GetAttribute("BoostUntil") or 0) then
+			speed += Config.SpeedPadBonus
+		end
+		hum.WalkSpeed = speed
+
+		local frac = stamina / maxS
+		staminaFill.Size = UDim2.fromScale(frac, 1)
+		staminaFill.BackgroundColor3 = exhausted and Color3.fromRGB(255, 90, 80)
+			or (frac < 0.3 and Color3.fromRGB(255, 190, 70) or Color3.fromRGB(80, 210, 255))
+		staminaText.Text = exhausted and "EXHAUSTED" or "STAMINA"
+	end
+
+	-- danger: proximity to hunters
+	local danger = 0
+	if root and role == "Runaway" then
+		for _, hr in ipairs(hunterRoots()) do
+			local d = (hr.Position - root.Position).Magnitude
+			danger = math.max(danger, math.clamp(1 - (d - 12) / 55, 0, 1))
+		end
+	end
+	local pulse = danger > 0 and (0.75 + 0.25 * math.sin(animT * (4 + danger * 8))) or 0
+	for _, e in ipairs(vignetteEdges) do
+		e.BackgroundTransparency = 1 - danger * 0.75 * pulse
+	end
+
+	-- hunters' limbs
+	for _, model in ipairs(HuntersFolder:GetChildren()) do
+		animateHunter(model, animT)
+	end
+
+	-- spinning keys
+	for _, key in ipairs(CollectionService:GetTagged("SpinningKey")) do
+		if key:IsDescendantOf(workspace) then
+			local base = keyBase[key]
+			if not base then
+				base = key:GetPivot()
+				keyBase[key] = base
+				key.Destroying:Connect(function()
+					keyBase[key] = nil
+				end)
+			end
+			key:PivotTo(base * CFrame.new(0, math.sin(animT * 2) * 0.5, 0) * CFrame.Angles(0, animT * 2, 0))
+		end
+	end
+
+	-- camera feel
+	local targetFov = baseFov + (sprinting and 8 or 0) + danger * 6
+	currentFov += (targetFov - currentFov) * math.min(1, dt * 6)
+	camera.FieldOfView = currentFov
+	if shake > 0 then
+		shake = math.max(0, shake - dt * 1.5)
+		local s = shake * 0.35
+		camera.CFrame = camera.CFrame * CFrame.Angles(
+			(math.random() - 0.5) * s * 0.1,
+			(math.random() - 0.5) * s * 0.1,
+			0
+		)
+	end
+end)
+
+player.CharacterAdded:Connect(function()
+	stamina = player:GetAttribute("MaxStamina") or Config.MaxStamina
+	exhausted = false
+	if spectating then
+		task.defer(updateSpectate)
+	end
+end)
+
+-- slowly darken saturation while in danger (subtle mood)
+local moodCC = Instance.new("ColorCorrectionEffect")
+moodCC.Name = "DangerMood"
+moodCC.Parent = Lighting
+RunService.Heartbeat:Connect(function()
+	local alpha = 1 - (vignetteEdges[1].BackgroundTransparency)
+	moodCC.Saturation = -alpha * 0.6
+	moodCC.TintColor = Color3.new(1, 1 - alpha * 0.25, 1 - alpha * 0.25)
+end)
+]]></ProtectedString></Properties></Item></Item></Item></Item></roblox>
