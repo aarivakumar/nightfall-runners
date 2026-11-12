@@ -132,6 +132,54 @@ const MONSTERS = {
   glitch: { name: 'The Glitch', emoji: '👾', eye: 0xff2ad8, eyeCss: '#ff6ae8', body: 0x2a0a3a, scale: 1.2, speed: -0.5, sight: 130, hear: 40, posture: 'float', headY: 9.8, lunge: 4.6,
     ghost: 0x6a0a8a, robe: 0x1a0a2a, hood: 0x1a0a2a, boneFace: true, longClaws: true, flicker: true, ribs: false, spikes: 0, voice: { roar: 800, scream: 1800, growl: 300, wail: true }, caption: 'The Glitch corrupted you.' },
 };
+
+// ---- Levels 15-26: monsters made with a helper (posture decides the body type)
+function M(name, emoji, eye, posture, body, extra = {}) {
+  const l = new THREE.Color(eye).lerp(new THREE.Color(0xffffff), 0.3);
+  const P = { upright: { scale: 1.3, speed: 0, sight: 110, hear: 20, headY: 8.5, lunge: 7.2, voice: { roar: 140, scream: 720, growl: 52 } },
+    crawl: { scale: 1.05, speed: 2, sight: 80, hear: 16, headY: 4.6, lunge: 3.8, voice: { roar: 280, scream: 1000, growl: 100, click: true } },
+    float: { scale: 1.2, speed: -1, sight: 125, hear: 36, headY: 9.8, lunge: 4.6, voice: { roar: 560, scream: 1400, growl: 200, wail: true } } }[posture];
+  return { name, emoji, eye, eyeCss: '#' + l.getHexString(), body, posture, spikes: 0, ribs: false, ...P,
+    ...(posture === 'float' ? { flicker: true, longClaws: true } : {}), caption: `${name} got you.`, ...extra };
+}
+Object.assign(MONSTERS, {
+  magmagolem: M('The Magma Golem', '🌋', 0xff5a1a, 'upright', 0x2a1a14, { bulk: 1.5, scale: 1.5, horns: true, spikes: 5, ghost: 0x501400, caption: 'The Magma Golem melted you.' }),
+  salamander: M('The Fire Salamander', '🦎', 0xffa21a, 'crawl', 0x5a1a0a, { tail: true, spikes: 7, speed: 2.6, caption: 'The Fire Salamander roasted you.' }),
+  emberwraith: M('The Ember Wraith', '🔥', 0xff6a2a, 'float', 0x3a0a04, { ghost: 0x6a1400, robe: 0x1a0402, hood: 0x1a0402, boneFace: true, caption: 'The Ember Wraith burned you to ash.' }),
+  iceknight: M('The Ice Knight', '🛡', 0x6ae0ff, 'upright', 0x8aa8c0, { metal: true, horns: true, face: 0xb0c8d8, caption: 'The Ice Knight froze you solid.' }),
+  frostspider: M('The Frost Spider', '🕸', 0xa0f0ff, 'crawl', 0xd0e8f0, { eyes: 6, extraArms: true, spikes: 6, spikeLen: 1.2, caption: 'The Frost Spider wrapped you in ice.' }),
+  snowqueen: M('The Snow Queen', '👸', 0x9af0ff, 'float', 0xe0f0ff, { ghost: 0x1a3a5a, robe: 0xd8ecff, hair: 0xf0f8ff, lightK: 0.25, caption: 'The Snow Queen kept you forever.' }),
+  patient: M('The Patient', '🤕', 0x6aff6a, 'upright', 0xd8d0c0, { mummy: true, lightK: 0.4, caption: 'The Patient needed a roommate.' }),
+  nurse: M('The Crawling Nurse', '💉', 0xff3a5a, 'crawl', 0xe8e0e0, { hair: 0x1a1a1a, extraArms: true, eyeSize: 1.4, caption: 'The Crawling Nurse gave you a shot.' }),
+  shadowdoc: M('The Shadow Doctor', '🩺', 0x5affd8, 'float', 0x0a1a1a, { ghost: 0x0a2a2a, robe: 0xe8f0f0, hood: 0x101818, boneFace: true, caption: "The Shadow Doctor says you won't recover." }),
+  sporegiant: M('The Spore Giant', '🍄', 0xc86aff, 'upright', 0x5a3a2a, { bulk: 1.4, scale: 1.45, bigHead: true, clownButtons: true, caption: 'The Spore Giant covered you in spores.' }),
+  toad: M('The Toad Horror', '🐸', 0xffe03a, 'crawl', 0x3a5a1a, { eyeSize: 2, bulk: 1.3, speed: 1.6, caption: 'The Toad Horror snapped you up with its tongue.' }),
+  moldspirit: M('The Mold Spirit', '🦠', 0x8aff4a, 'float', 0x2a4a1a, { ghost: 0x1a4a0a, tentacles: true, caption: 'The Mold Spirit grew on you.' }),
+  sheriff: M('The Undead Sheriff', '🤠', 0xffc83a, 'upright', 0x4a3a2a, { hat: true, boneFace: true, ribs: true, caption: 'The Undead Sheriff ran you out of town.' }),
+  rattler: M('The Rattler', '🐍', 0xff6a1a, 'crawl', 0x8a6a3a, { tail: true, spikes: 9, spikeLen: 0.6, speed: 2.5, caption: 'The Rattler struck first.' }),
+  tumbleghost: M('The Tumbleweed Phantom', '🌵', 0xffe08a, 'float', 0x8a6a3a, { ghost: 0x3a2a10, robe: 0xa88a5a, hood: 0x8a6a40, caption: 'The Tumbleweed Phantom blew you away.' }),
+  harpy: M('The Storm Harpy', '🦅', 0xfff04a, 'float', 0x4a4a6a, { wings: true, legsVisible: true, horns: true, flicker: false, caption: 'The Storm Harpy carried you off.' }),
+  thunderbeast: M('The Thunder Beast', '⚡', 0x5ad8ff, 'crawl', 0x2a2a4a, { fur: 0x6a6a8a, bulk: 1.2, horns: true, speed: 2.4, caption: 'The Thunder Beast struck like lightning.' }),
+  cloudwraith: M('The Cloud Wraith', '☁️', 0xb0e0ff, 'float', 0xe8f0ff, { ghost: 0x3a4a6a, robe: 0xf0f4ff, hood: 0xd8e4f0, boneFace: true, lightK: 0.3, caption: 'The Cloud Wraith swallowed you in fog.' }),
+  mannequin: M('The Mannequin', '🧍', 0xffffff, 'upright', 0xe8dcd0, { face: 0xf0e4d8, eyeSize: 0.6, caption: 'The Mannequin moved when you blinked.' }),
+  cartcrawler: M('The Cart Crawler', '🛒', 0xff3a3a, 'crawl', 0x8a8a90, { metal: true, extraArms: true, eyes: 6, caption: 'The Cart Crawler took you to checkout.' }),
+  securityghost: M('The Security Ghost', '🔦', 0x3a8aff, 'float', 0x1a2a4a, { ghost: 0x0a1a3a, robe: 0x14203a, hat: true, caption: 'The Security Ghost escorted you out.' }),
+  mantis: M('The Mantis Queen', '🦗', 0x9aff3a, 'upright', 0x3a6a1a, { bigHead: true, eyeSize: 2.2, longClaws: true, armLen: 3.2, caption: 'The Mantis Queen caught you in her claws.' }),
+  ant: M('The Giant Ant', '🐜', 0xff2a2a, 'crawl', 0x2a0a0a, { extraArms: true, horns: true, speed: 2.6, caption: 'The Giant Ant carried you back to the nest.' }),
+  moth: M('The Moth Specter', '🦋', 0xffe8a0, 'float', 0x8a7a5a, { wings: true, eyeSize: 2, flicker: false, caption: 'The Moth Specter dusted you.' }),
+  clockknight: M('The Clockwork Knight', '⚙️', 0xffb43a, 'upright', 0x8a6a2a, { metal: true, eyes: 1, eyeSize: 2.4, bulk: 1.2, caption: 'The Clockwork Knight wound you down.' }),
+  gearspider: M('The Gear Spider', '🕷', 0xff6a1a, 'crawl', 0x6a5a3a, { metal: true, eyes: 6, extraArms: true, caption: 'The Gear Spider ground you up.' }),
+  cuckoo: M('The Cuckoo Phantom', '🕰', 0xff3aa0, 'float', 0x4a2a1a, { ghost: 0x3a0a1a, robe: 0x2a1a10, horns: true, boneFace: true, caption: "Cuckoo! Cuckoo! Time's up." }),
+  molebeast: M('The Mole Beast', '🦡', 0xff5a5a, 'crawl', 0x3a2a20, { fur: 0x4a3a2a, bulk: 1.3, longClaws: true, eyeSize: 0.7, caption: 'The Mole Beast dragged you underground.' }),
+  minerghost: M('The Lost Miner', '⛏', 0xffd23a, 'upright', 0x3a3a30, { hat: true, boneFace: true, ribs: true, lightK: 0.6, caption: 'The Lost Miner buried you.' }),
+  lanternwisp: M('The Lantern Wisp', '🏮', 0xffa23a, 'float', 0x2a1a0a, { lure: true, ghost: 0x4a2a0a, robe: 0x1a1008, hood: 0x1a1008, boneFace: true, caption: 'The Lantern Wisp led you into the dark.' }),
+  shadowstalker: M('The Shadow Stalker', '🌑', 0xffffff, 'upright', 0x050508, { scale: 1.6, longClaws: true, armLen: 3.4, caption: 'The Shadow Stalker was right behind you.' }),
+  voidcrawler: M('The Void Crawler', '🕳', 0xb44aff, 'crawl', 0x0a0414, { eyes: 6, extraArms: true, spikes: 8, spikeLen: 1.5, speed: 2.6, caption: 'The Void Crawler pulled you into nothing.' }),
+  nightmareking: M('The Nightmare King', '👑', 0xff1a4a, 'float', 0x14040a, { ghost: 0x3a0010, robe: 0x0a0204, hood: 0x0a0204, horns: true, boneFace: true, scale: 1.5, caption: 'The Nightmare King rules your dreams now.' }),
+  unicorn: M('The Rainbow Unicorn', '🦄', 0xff6ae8, 'crawl', 0xf8f0ff, { horns: true, speed: 2.4, caption: 'The Rainbow Unicorn poked you.' }),
+  cloudclown: M('The Cloud Clown', '🎈', 0x3affff, 'upright', 0xff7ac8, { clown: true, face: 0xfff0f8, caption: 'The Cloud Clown popped your bubble.' }),
+  glitterghost: M('The Glitter Ghost', '✨', 0xffe03a, 'float', 0xffc8f0, { ghost: 0x5a1a4a, robe: 0xffd8f4, hood: 0xffb0e8, lightK: 0.3, caption: 'The Glitter Ghost made you sparkle… forever.' }),
+});
 const LEVELS = [
   { name: 'Nightfall City', emoji: '🌃', color: '#ff6fb5', center: 'city', corners: ['forest', 'graveyard', 'factory', 'fields'], monsters: ['stalker', 'crawler', 'wraith'],
     hemi: [0x8f80e0, 0x1a1030, 0.75], sky: 0x140b2a, wall: 0x3d3048, lair: 0xff1e32, speedBonus: 0, weather: null,
@@ -204,6 +252,42 @@ const LEVELS = [
     blurb: 'A neon future city in the rain: server farms, laser grids that burn your stamina, junkyards and a glowing neon park.',
     story: ['The year is 2099. The machines run the city now…', 'The only way out is the north gate.', 'Find 5 keys hidden in the system…', 'Security has detected you.', 'Three hunter units are online.'],
     released: ['Hunter units activated.', 'Don\'t touch the lasers!'], escape: 'You escaped Cyber City!' },
+  { name: "Volcano Island", emoji: '🌋', color: '#ff6a2a', center: 'volcanotown', corners: ["lava", "ashwoods", "craters", "beach"], monsters: ["magmagolem", "salamander", "emberwraith"],
+    hemi: [0xffa070, 0x2a0a04, 0.75], sky: 0x1e0804, wall: 0x3a1a10, lair: 0xff4a0a, speedBonus: 3, weather: 'embers',
+    blurb: "A tropical island with an erupting volcano: a lava village, rivers of lava, burnt forests, craters and a black sand beach.", story: ["The volcano woke up at midnight…", "The only way out is the north gate.", "Find 5 keys before the lava reaches you…", "Something is climbing out of the lava.", "Three somethings."], released: ["The island is burning.", "Do NOT step in the lava!"], escape: "You escaped Volcano Island!" },
+  { name: "Frozen Castle", emoji: '🏰', color: '#9ae8ff', center: 'icecastle', corners: ["snowwoods", "crystal", "lake", "maze"], monsters: ["iceknight", "frostspider", "snowqueen"],
+    hemi: [0xb0d0ff, 0x101828, 0.8], sky: 0x0c1424, wall: 0x8aa0b8, lair: 0x6ae0ff, speedBonus: 3, weather: 'snow',
+    blurb: "An enchanted ice castle: frozen courtyards, crystal caves, a slippery frozen lake and an icy hedge maze.", story: ["Long ago, the Snow Queen froze her own castle…", "The only way out is the north gate.", "Find 5 keys frozen in the ice…", "The castle guards are thawing.", "And they are COLD."], released: ["The castle wakes.", "Careful on the ice!"], escape: "You escaped the Frozen Castle!" },
+  { name: "Hollow Hospital", emoji: '🏥', color: '#7affb0', center: 'hospital', corners: ["graveyard", "servers", "maze", "swamp"], monsters: ["patient", "nurse", "shadowdoc"],
+    hemi: [0x9ad8c0, 0x0a1410, 0.7], sky: 0x061210, wall: 0x5a6a64, lair: 0x5affd8, speedBonus: 3, weather: 'rain',
+    blurb: "An abandoned hospital on a rainy hill: dark wards, a graveyard out back, flickering machine rooms and an overgrown garden.", story: ["St. Hollow Hospital closed 50 years ago…", "The only way out is the north gate.", "Find 5 keys left behind by the staff…", "Someone is still checking in.", "Visiting hours are OVER."], released: ["The patients are awake.", "Stay quiet in the halls…"], escape: "You checked out of Hollow Hospital!" },
+  { name: "Mushroom Marsh", emoji: '🍄', color: '#c86aff', center: 'shroomtown', corners: ["alienwoods", "swamp", "pumpkins", "ferns"], monsters: ["sporegiant", "toad", "moldspirit"],
+    hemi: [0xb090d0, 0x14081a, 0.75], sky: 0x0c0614, wall: 0x4a3a2a, lair: 0xc86aff, speedBonus: 3, weather: 'bubbles',
+    blurb: "A soggy marsh full of giant glowing mushrooms: a mushroom village, fungus forests, swamps, gourd patches and ferns.", story: ["Deep in the marsh, the mushrooms are glowing…", "The only way out is the north gate.", "Find 5 keys hidden under the caps…", "The spores are spreading.", "And something is GROWING."], released: ["The marsh is alive.", "Stay out of the swamp water!"], escape: "You escaped Mushroom Marsh!" },
+  { name: "Ghost Town Gulch", emoji: '🤠', color: '#ffc85a', center: 'westtown', corners: ["dunes", "canyon", "boneyard", "caves"], monsters: ["sheriff", "rattler", "tumbleghost"],
+    hemi: [0xe0b880, 0x2a1a0a, 0.8], sky: 0x1a1006, wall: 0x8a6a44, lair: 0xffc83a, speedBonus: 3.5, weather: 'sand',
+    blurb: "A Wild West ghost town: dusty streets, desert dunes, red canyons, a cattle boneyard and old mine caves.", story: ["This town has been empty since the gold ran out…", "The only way out is the north gate.", "Find 5 keys before sundown… oh, it's already night.", "Spurs are jingling in the dark.", "The sheriff never left."], released: ["Draw!", "Watch out for rattlers!"], escape: "You got out of Ghost Town Gulch!" },
+  { name: "Sky Islands", emoji: '☁️', color: '#9ad8ff', center: 'skycity', corners: ["cotton", "xcrystal", "gumdrops", "base"], monsters: ["harpy", "thunderbeast", "cloudwraith"],
+    hemi: [0xc0d8ff, 0x182030, 0.85], sky: 0x0a1430, wall: 0x8a9ab8, lair: 0xfff04a, speedBonus: 3.5, weather: null, gravity: 48,
+    blurb: "Floating islands above the clouds: a cloud city, fluffy cloud fields, crystal plains and floating gardens. LOW gravity, super jumps!", story: ["Above the clouds, a storm is brewing…", "The only way out is the north gate.", "Find 5 keys scattered across the sky…", "Thunder is rolling in.", "And it has WINGS."], released: ["The storm has arrived.", "Jump high!"], escape: "You escaped the Sky Islands!" },
+  { name: "Midnight Mall", emoji: '🛍', color: '#ff9ad8', center: 'mall', corners: ["blocks", "ballpit", "trains", "servers"], monsters: ["mannequin", "cartcrawler", "securityghost"],
+    hemi: [0xd0b0e0, 0x1a1020, 0.8], sky: 0x0e0816, wall: 0x5a4a6a, lair: 0xff6ae8, speedBonus: 3.5, weather: null,
+    blurb: "A giant shopping mall after closing time: storefronts, a toy store, a ball pit play area, a kiddie train and the security office.", story: ["You fell asleep in the mall. Now it's locked…", "The only way out is the north gate.", "Find 5 keys behind the counters…", "The mannequins have moved.", "And they're not alone."], released: ["The mall is closed.", "Hide in the ball pits!"], escape: "You escaped the Midnight Mall!" },
+  { name: "Bug Kingdom", emoji: '🐜', color: '#9aff3a', center: 'hive', corners: ["ferns", "tarpits", "caves", "alienwoods"], monsters: ["mantis", "ant", "moth"],
+    hemi: [0xa0d080, 0x0e1408, 0.75], sky: 0x081008, wall: 0x4a5a2a, lair: 0x9aff3a, speedBonus: 4, weather: null,
+    blurb: "You shrank to bug size! A giant ant hive, huge ferns, sticky sap pits, tunnels and glowing mushrooms.", story: ["Uh oh. You shrank to the size of a bug…", "The only way out is the north gate.", "Find 5 keys in the giant grass…", "Something has six legs.", "And it's HUNGRY."], released: ["The hive is buzzing.", "Don't get stuck in the sap!"], escape: "You escaped the Bug Kingdom!" },
+  { name: "Clockwork Town", emoji: '⚙️', color: '#ffb43a', center: 'steamtown', corners: ["factory", "trains", "servers", "ruins"], monsters: ["clockknight", "gearspider", "cuckoo"],
+    hemi: [0xd8b080, 0x1a1008, 0.75], sky: 0x140c06, wall: 0x6a4a2a, lair: 0xffb43a, speedBonus: 4, weather: 'ash',
+    blurb: "A steampunk town of brass and gears: smoking factories, a train yard, machine rooms and broken ruins.", story: ["In Clockwork Town, every clock just struck midnight…", "The only way out is the north gate.", "Find 5 keys before the clocks stop…", "Gears are turning in the dark.", "Tick… tock… tick…"], released: ["The machines are wound up.", "Run before time runs out!"], escape: "You escaped Clockwork Town!" },
+  { name: "Deep Mines", emoji: '⛏', color: '#ffd23a', center: 'minecamp', corners: ["caves", "crystal", "lava", "tarpits"], monsters: ["molebeast", "minerghost", "lanternwisp"],
+    hemi: [0xc0a070, 0x0a0806, 0.65], sky: 0x060404, wall: 0x3a3028, lair: 0xffd23a, speedBonus: 4, weather: 'ash',
+    blurb: "An old mine deep underground: a miners' camp, dark caves, glowing crystal veins, lava pools and tar pits.", story: ["The mine collapsed years ago. Some miners never left…", "The only way out is the north gate.", "Find 5 keys deep in the tunnels…", "Something is digging toward you.", "Keep your flashlight ON."], released: ["The tunnels are moving.", "Don't fall in the lava!"], escape: "You escaped the Deep Mines!" },
+  { name: "Shadow Realm", emoji: '🌑', color: '#b44aff', center: 'shadowcity', corners: ["haunted", "trench", "maze", "graveyard"], monsters: ["shadowstalker", "voidcrawler", "nightmareking"],
+    hemi: [0x6a5a9a, 0x08040c, 0.6], sky: 0x030206, wall: 0x1a1024, lair: 0xb44aff, speedBonus: 4.5, weather: 'ash',
+    blurb: "The darkest place of all: a shadow city, bleeding woods, a bottomless trench, a maze and a graveyard. VERY dark!", story: ["You fell asleep… and woke up in the Shadow Realm.", "The only way out is the north gate.", "Find 5 keys in the darkness…", "The shadows are moving.", "The Nightmare King is coming."], released: ["The darkness hunts you.", "Your flashlight is your only friend."], escape: "You escaped the Shadow Realm!" },
+  { name: "Rainbow Nightmare", emoji: '🌈', color: '#ff7ae8', center: 'rainbowtown', corners: ["gumdrops", "cotton", "neonpark", "ballpit"], monsters: ["unicorn", "cloudclown", "glitterghost"],
+    hemi: [0xffb0f0, 0x200a20, 0.85], sky: 0x1a0618, wall: 0x8a4a8a, lair: 0xff6ae8, speedBonus: 4.5, weather: 'sprinkles',
+    blurb: "Everything is cute and colorful… too cute. A rainbow town, gumdrop hills, cotton candy fields, a neon park and ball pits.", story: ["Welcome to Rainbow Land! Everyone is SO happy here…", "The only way out is the north gate.", "Find 5 keys under the rainbows…", "The smiles are getting bigger.", "TOO big."], released: ["Let's be friends FOREVER!", "Don't trust the unicorn."], escape: "You escaped the Rainbow Nightmare!" },
   { name: 'The Nightmare Mix', emoji: '🌀', color: '#ff4ad0', mix: true, center: 'city', corners: [], monsters: [],
     hemi: [0xb070e0, 0x200820, 0.7], sky: 0x120414, wall: 0x2a1030, lair: 0xff2ad0, speedBonus: 2, weather: 'embers',
     blurb: 'Different every round: random areas from every level and 3 random monsters. The hardest level.',
@@ -495,6 +579,21 @@ const ZONES = {
   lasergrid: { name: '🔴 Laser Grid (lasers burn your stamina!)', color: '#ff4a6a', ground: [24, 20, 30], fog: 0x1a0610, density: 0.009, map: '#2a1a2a', sight: 1 },
   neonpark: { name: '🌳 Neon Park', color: '#ff6ae8', ground: [20, 24, 40], fog: 0x0e0a24, density: 0.011, map: '#1a1a3a', sight: 0.5 },
 };
+
+Object.assign(ZONES, {
+  volcanotown: { name: '🌋 Lava Village', color: '#ff8a4a', ground: [44, 28, 22], fog: 0x2a0c04, density: 0.0085, map: '#3a2018', sight: 0.95, use: 'ruins' },
+  icecastle: { name: '🏰 Ice Castle Courtyard', color: '#c0f0ff', ground: [150, 170, 190], fog: 0x1a2a40, density: 0.0085, map: '#6a8098', sight: 1, use: 'village' },
+  hospital: { name: '🏥 The Hospital', color: '#a8ffd8', ground: [52, 60, 58], fog: 0x0c1814, density: 0.01, map: '#34403c', sight: 0.85, use: 'city' },
+  shroomtown: { name: '🍄 Mushroom Village', color: '#d8a0ff', ground: [44, 30, 50], fog: 0x140a1e, density: 0.0095, map: '#34243c', sight: 0.85, use: 'alienwoods' },
+  westtown: { name: '🤠 Ghost Town', color: '#ffd27a', ground: [120, 92, 60], fog: 0x241608, density: 0.0085, map: '#7a5e3c', sight: 1, use: 'bazaar' },
+  skycity: { name: '☁️ Cloud City', color: '#d8f0ff', ground: [190, 200, 220], fog: 0x24304a, density: 0.0065, map: '#8a98b0', sight: 1.1, use: 'base' },
+  mall: { name: '🛍 The Mall', color: '#ffb0e8', ground: [90, 80, 96], fog: 0x1a1020, density: 0.0075, map: '#4a3e54', sight: 1, use: 'toytown' },
+  hive: { name: '🐜 The Ant Hive', color: '#c8ff7a', ground: [70, 52, 30], fog: 0x140e04, density: 0.011, map: '#4a3a20', sight: 0.6, use: 'canyon' },
+  steamtown: { name: '⚙️ Brass Town', color: '#ffc87a', ground: [60, 48, 34], fog: 0x1e1208, density: 0.009, map: '#40301e', sight: 0.95, use: 'city' },
+  minecamp: { name: "⛏ Miners' Camp", color: '#ffe07a', ground: [50, 42, 34], fog: 0x0c0806, density: 0.012, map: '#342a20', sight: 0.75, use: 'camp' },
+  shadowcity: { name: '🌑 Shadow City', color: '#c08aff', ground: [16, 12, 22], fog: 0x040208, density: 0.014, map: '#140c1c', sight: 0.6, use: 'city' },
+  rainbowtown: { name: '🌈 Rainbow Town', color: '#ffb0f0', ground: [130, 90, 140], fog: 0x2a1030, density: 0.0075, map: '#6a4a74', sight: 1, use: 'candytown' },
+});
 
 let world = null;
 
@@ -1943,7 +2042,8 @@ function buildWorld(seed, L = LEVELS[0]) {
   };
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
     const cc = cellCenter(i, j);
-    if (!isLair(i, j)) builders[W.zones[j * N + i]](cc, i, j, j === 0 || j === N - 1);
+    const zk = W.zones[j * N + i];
+    if (!isLair(i, j)) (builders[zk] || builders[ZONES[zk].use])(cc, i, j, j === 0 || j === N - 1);
     if (j === 0 && i > 0 && i < N - 1) W.spawns.push(cc.clone());
   }
 
@@ -4361,6 +4461,14 @@ function renderSettings() {
 document.querySelectorAll('.settingsBox').forEach(mountSettings);
 applySettings(); renderSettings();
 
+function showTab(t) {
+  document.querySelectorAll('#lbTabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
+  document.querySelectorAll('.lbPanel').forEach((p) => p.classList.toggle('on', p.dataset.panel === t));
+  $('menu').scrollTop = 0;
+}
+document.querySelectorAll('#lbTabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+$('pickLevelBtn').addEventListener('click', () => showTab('levels'));
+
 function renderMenu() {
   renderLobby();
   const lv = $('levelSeg'); lv.innerHTML = '';
@@ -4368,13 +4476,24 @@ function renderMenu() {
     const b = document.createElement('button');
     const best = save.levelBest && save.levelBest[k + 1] !== undefined ? `Best ${fmtTime(save.levelBest[k + 1])}` : 'Not escaped yet';
     b.className = 'lvl' + (game.level === k + 1 ? ' on' : '');
-    b.innerHTML = `<span class="lvE">${L.emoji}</span><span class="lvN">${k + 1}. ${L.name}</span><span class="lvM">${L.mix ? '❓ ❓ ❓' : L.monsters.map((m) => MONSTERS[m].emoji).join(' ')}</span><span class="lvB">${best}</span>`;
+    b.innerHTML = `<span class="lvNum">${k + 1}</span><span class="lvE">${L.emoji}</span><span class="lvN">${L.name}</span><span class="lvM">${L.mix ? '❓ ❓ ❓' : L.monsters.map((m) => MONSTERS[m].emoji).join(' ')}</span><span class="lvB">${best}</span>`;
     b.style.setProperty('--lc', L.color);
-    b.onclick = () => game.setLevel(k + 1);
+    b.onclick = () => { game.setLevel(k + 1); if (!net.isClient) showTab('play'); };
     lv.appendChild(b);
   });
-  const L = LV();
-  $('levelBlurb').innerHTML = `${L.blurb}<br>Monsters${L.mix ? ' this round' : ''}: ${L.monsters.map((m) => `<b style="color:${MONSTERS[m].eyeCss}">${MONSTERS[m].emoji} ${MONSTERS[m].name}</b>`).join(', ')}`;
+  const L = LV(), base = LEVELS[game.level - 1];
+  $('lbHero').style.setProperty('--lc', base.color);
+  $('heroEmojiBg').textContent = base.emoji;
+  $('heroNum').textContent = `LEVEL ${game.level} / ${LEVELS.length}`;
+  $('heroName').textContent = base.name;
+  $('levelBlurb').textContent = base.blurb;
+  $('heroMonsters').innerHTML = (base.mix ? '<span class="mChip" style="border-color:#ff4ad0;color:#ff9af0">❓ 3 random monsters every round</span>' : '')
+    + (base.mix ? '' : L.monsters.map((m) => `<span class="mChip" style="border-color:${MONSTERS[m].eyeCss};color:${MONSTERS[m].eyeCss}">${MONSTERS[m].emoji} ${MONSTERS[m].name}</span>`).join(''));
+  const hb = save.levelBest && save.levelBest[game.level];
+  $('heroBest').textContent = hb !== undefined ? `🏆 Your best: ${fmtTime(hb)}` : 'Not escaped yet';
+  $('hdrCoins').textContent = save.coins; $('hdrName').textContent = save.name;
+  $('squadMini').innerHTML = net.on ? `👥 <b>Room ${net.code}</b> · ${net.lobby.length} player${net.lobby.length === 1 ? '' : 's'}${net.isClient ? ' · waiting for the host' : ''}` : '👤 Solo · <a href="#" id="goSquad" style="color:var(--gold)">play with friends</a>';
+  const gs = $('goSquad'); if (gs) gs.onclick = (e) => { e.preventDefault(); showTab('squad'); };
   $('stCoins').textContent = save.coins;
   $('stEsc').textContent = save.escapes;
   $('stBest').textContent = save.best === null ? '–' : fmtTime(save.best);
@@ -4402,7 +4521,7 @@ $('againBtn').addEventListener('click', () => (net.isHost ? game.hostStart() : g
 $('nextBtn').addEventListener('click', () => { game.setLevel(Math.min(LEVELS.length, game.level + 1)); if (net.isHost) game.hostStart(); else game.start(true); });
 // multiplayer menu
 $('mpName').value = save.name;
-$('mpName').addEventListener('change', () => { save.name = $('mpName').value.trim().slice(0, 12) || save.name; $('mpName').value = save.name; writeSave(); });
+$('mpName').addEventListener('change', () => { save.name = $('mpName').value.trim().slice(0, 12) || save.name; $('mpName').value = save.name; writeSave(); renderMenu(); });
 $('mpCreate').addEventListener('click', () => net.create());
 $('mpJoin').addEventListener('click', () => net.join($('mpCode').value));
 $('mpCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') net.join($('mpCode').value); e.stopPropagation(); });
@@ -4413,7 +4532,7 @@ $('mpCopy').addEventListener('click', () => {
   try { navigator.clipboard.writeText(link); toastMenu('Invite link copied!'); } catch (e) { toastMenu(link); }
 });
 function toastMenu(t) { net.setStatus(t); }
-{ const room = new URLSearchParams(location.search).get('room'); if (room) { $('mpCode').value = room.toUpperCase(); setTimeout(() => net.join(room), 300); } }
+{ const room = new URLSearchParams(location.search).get('room'); if (room) { showTab('squad'); $('mpCode').value = room.toUpperCase(); setTimeout(() => net.join(room), 300); } }
 $('menuBtn').addEventListener('click', () => game.showMenu());
 $('resumeBtn').addEventListener('click', () => { setPaused(false); tryLock(); });
 $('quitBtn').addEventListener('click', () => game.showMenu());
@@ -4564,6 +4683,7 @@ if (demo) {
         const T = +new URLSearchParams(location.search).get('t') || 1.5;
         for (let i = 0; i < 60 * T; i++) game.update(1 / 60);
         game.update = () => {};
+      } else if (demo === 'tab') { game.showMenu(); showTab(new URLSearchParams(location.search).get('tab') || 'levels');
       } else if (demo === 'touch') {
         enableTouch(); input.joyY = -1; input.sprintTouch = true;
         const z0 = game.player.pos.z;

@@ -90,7 +90,7 @@ Then open http://localhost:8137 in Chrome/Firefox/Edge. Works with keyboard + mo
 wall-jumps, flashlight (F), and cutscenes for the intro, getting caught and escaping.
 Coins, upgrades and best time are saved in your browser.
 
-**Fifteen levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
+**27 levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
 
 | Level | Areas | Monsters |
 |---|---|---|
@@ -108,7 +108,19 @@ Coins, upgrades and best time are saved in your browser.
 | 🦖 12. Dino Valley (ash) | fossil plains with dino nests, giant fern forest, sticky tar pits, caves, lava fields | 🦖 Raptor (very fast), 🦕 T-Rex (huge), 🪶 Pterodactyl (wings) |
 | 🏴‍☠️ 13. Pirate Cove | pirate port with taverns, moonlit beach, pirate ships and docks, lagoon (slows you), sea caves | 🏴‍☠️ Ghost Pirate, 🐙 Krakenling, 💀 Skull Captain |
 | 🤖 14. Cyber City 2099 (rain) | neon city with holograms, server farm, laser grid (burns stamina), rust yards, neon park | 🐕 Robo-Hound, 🤖 Sentinel, 👾 The Glitch |
-| 🌀 15. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
+| 🌋 15. Volcano Island (embers) | lava village, lava rivers, burnt forest, craters, black sand beach | 🌋 Magma Golem, 🦎 Fire Salamander, 🔥 Ember Wraith |
+| 🏰 16. Frozen Castle (snow) | ice castle courtyard, frozen pines, crystal caves, slippery frozen lake, ice maze | 🛡 Ice Knight, 🕸 Frost Spider, 👸 Snow Queen |
+| 🏥 17. Hollow Hospital (rain) | abandoned hospital, graveyard, machine rooms, maze, overgrown swamp garden | 🤕 The Patient, 💉 Crawling Nurse, 🩺 Shadow Doctor |
+| 🍄 18. Mushroom Marsh | mushroom village, glowing fungus forest, swamp, gourd patch, giant ferns | 🍄 Spore Giant, 🐸 Toad Horror, 🦠 Mold Spirit |
+| 🤠 19. Ghost Town Gulch (sandstorm) | Wild West ghost town, dunes, red canyons, boneyard, mine caves | 🤠 Undead Sheriff, 🐍 Rattler, 🌵 Tumbleweed Phantom |
+| ☁️ 20. Sky Islands (low gravity) | cloud city, cloud fields, crystal plains, gumdrop hills, sky base | 🦅 Storm Harpy, ⚡ Thunder Beast, ☁️ Cloud Wraith |
+| 🛍 21. Midnight Mall | storefronts, giant toy blocks, ball pits, kiddie train, security rooms | 🧍 Mannequin, 🛒 Cart Crawler, 🔦 Security Ghost |
+| 🐜 22. Bug Kingdom | ant hive tunnels, giant ferns, sticky sap pits, caves, glowing mushrooms | 🦗 Mantis Queen, 🐜 Giant Ant, 🦋 Moth Specter |
+| ⚙️ 23. Clockwork Town (ash) | brass town, smoking factories, train yard, machine rooms, ruins | ⚙️ Clockwork Knight, 🕷 Gear Spider, 🕰 Cuckoo Phantom |
+| ⛏ 24. Deep Mines | miners’ camp, dark caves, crystal veins, lava pools, tar pits | 🦡 Mole Beast, ⛏ Lost Miner, 🏮 Lantern Wisp |
+| 🌑 25. Shadow Realm (very dark) | shadow city, bleeding woods, bottomless trench, maze, graveyard | 🌑 Shadow Stalker, 🕳 Void Crawler, 👑 Nightmare King |
+| 🌈 26. Rainbow Nightmare (sprinkles) | rainbow town, gumdrop hills, cotton candy fields, neon park, ball pits | 🦄 Rainbow Unicorn, 🎈 Cloud Clown, ✨ Glitter Ghost |
+| 🌀 27. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
 
 Monsters get a little faster each level. Cutscenes: a level-specific intro, the monsters being released,
 the exit gate opening (and a monster hearing it), the last-45-seconds frenzy, getting caught, and escaping.
