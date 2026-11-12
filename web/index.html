@@ -31,6 +31,12 @@
   #vignette { position: fixed; inset: 0; pointer-events: none; opacity: 0;
     background: radial-gradient(ellipse at center, transparent 45%, rgba(220, 0, 30, 0.85) 100%); }
   #static { position: fixed; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen; }
+  #teeth { position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 28; overflow: hidden; }
+  #teeth .jaw { position: absolute; left: -2%; width: 104%; height: 54vh; background: radial-gradient(ellipse at 50% 100%, #6a0010, #2a0004 70%); }
+  #teeth .top { top: 0; transform: translateY(-100%); }
+  #teeth .bot { bottom: 0; transform: translateY(100%); background: radial-gradient(ellipse at 50% 0%, #6a0010, #2a0004 70%); }
+  #teeth .jaw.bot svg { top: auto; bottom: 100%; transform: scaleY(-1); }
+  #teeth .jaw svg { position: absolute; left: 0; width: 100%; height: 11vh; top: 100%; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); }
   #flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: #fff; transition: opacity 0.6s ease-out; }
 
   #hud { position: fixed; inset: 0; pointer-events: none; }
@@ -150,6 +156,18 @@
   #tSprint.on { background: rgba(255,150,40,0.75); }
   #tView { right: 40px; bottom: 140px; width: 58px; height: 58px; font-size: 20px; }
   #tLight { right: 110px; bottom: 120px; width: 58px; height: 58px; font-size: 20px; }
+  #tGhost { right: 180px; bottom: 112px; width: 58px; height: 58px; font-size: 22px; background: rgba(120,60,200,0.55); }
+  #tBomb { right: 210px; bottom: 30px; width: 58px; height: 58px; font-size: 22px; background: rgba(200,160,40,0.55); }
+  .pill.item { color: #ffe9a0; border-color: rgba(255, 224, 90, 0.5); }
+  #exitArrow { position: absolute; top: 150px; left: 50%; transform: translateX(-50%); text-align: center; }
+  #exitArrowIcon { font-size: 44px; line-height: 1; color: var(--green); text-shadow: 0 0 16px rgba(120,255,143,0.8); transition: transform 0.1s linear; }
+  #exitDist { font-family: Fredoka, sans-serif; font-weight: 700; color: var(--green); font-size: 14px; text-shadow: 0 1px 4px #000; }
+  body.ghosting canvas#c { filter: saturate(0.5) hue-rotate(35deg) brightness(1.15); }
+  .settingsBox .setRow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
+  .settingsBox .setRow > span { width: 110px; flex: none; }
+  .settingsBox input[type=range] { flex: 1; accent-color: var(--accent); }
+  .settingsBox .seg { flex: 1; }
+  .settingsBox .seg button { font-size: 14px; padding: 6px 8px; }
   #tPause { right: 16px; top: 16px; width: 48px; height: 48px; font-size: 16px; }
   body.touch #hint { display: none; }
   body.touch #toasts { top: 74px; }
@@ -175,6 +193,7 @@
 <div id="vignette"></div>
 <div id="static"></div>
 <div id="flash"></div>
+<div id="teeth"><div id="teethTop" class="jaw top"><svg viewBox="0 0 100 14" preserveAspectRatio="none"><g fill="#efe4c8" stroke="#8a7a5a" stroke-width="0.25"><polygon points="0.0,0 7.1,0 3.55,12"/><polygon points="7.15,0 14.25,0 10.7,8.5"/><polygon points="14.3,0 21.4,0 17.85,12"/><polygon points="21.450000000000003,0 28.550000000000004,0 25.000000000000004,12"/><polygon points="28.6,0 35.7,0 32.15,8.5"/><polygon points="35.75,0 42.85,0 39.3,12"/><polygon points="42.900000000000006,0 50.00000000000001,0 46.45,12"/><polygon points="50.050000000000004,0 57.150000000000006,0 53.6,8.5"/><polygon points="57.2,0 64.3,0 60.75,12"/><polygon points="64.35000000000001,0 71.45,0 67.9,12"/><polygon points="71.5,0 78.6,0 75.05,8.5"/><polygon points="78.65,0 85.75,0 82.2,12"/><polygon points="85.80000000000001,0 92.9,0 89.35000000000001,12"/><polygon points="92.95,0 100.05,0 96.5,8.5"/></g></svg></div><div id="teethBot" class="jaw bot"><svg viewBox="0 0 100 14" preserveAspectRatio="none"><g fill="#efe4c8" stroke="#8a7a5a" stroke-width="0.25"><polygon points="0.0,0 7.1,0 3.55,12"/><polygon points="7.15,0 14.25,0 10.7,8.5"/><polygon points="14.3,0 21.4,0 17.85,12"/><polygon points="21.450000000000003,0 28.550000000000004,0 25.000000000000004,12"/><polygon points="28.6,0 35.7,0 32.15,8.5"/><polygon points="35.75,0 42.85,0 39.3,12"/><polygon points="42.900000000000006,0 50.00000000000001,0 46.45,12"/><polygon points="50.050000000000004,0 57.150000000000006,0 53.6,8.5"/><polygon points="57.2,0 64.3,0 60.75,12"/><polygon points="64.35000000000001,0 71.45,0 67.9,12"/><polygon points="71.5,0 78.6,0 75.05,8.5"/><polygon points="78.65,0 85.75,0 82.2,12"/><polygon points="85.80000000000001,0 92.9,0 89.35000000000001,12"/><polygon points="92.95,0 100.05,0 96.5,8.5"/></g></svg></div></div>
 <div id="fade"></div>
 <div id="letterbox"><div class="bar top"></div><div class="bar bot"></div></div>
 <div id="caption"></div>
@@ -186,21 +205,24 @@
   <button class="tbtn" id="tSprint">SPRINT</button>
   <button class="tbtn" id="tView">👁</button>
   <button class="tbtn" id="tLight">🔦</button>
+  <button class="tbtn hidden" id="tGhost">👻</button>
+  <button class="tbtn hidden" id="tBomb">💥</button>
   <button class="tbtn" id="tPause">❚❚</button>
 </div>
 
 <div id="hud" class="hidden">
   <div id="crosshair"></div>
   <div id="topbar"><div id="phase">FIND THE KEYS</div><div id="timer">4:00</div></div>
-  <div id="pills"><div class="pill key" id="keysPill">🔑 0 / 5</div><div class="pill hunt" id="huntPill">👹 🕷 👻</div><div class="pill team hidden" id="teamPill">👥 1</div></div>
+  <div id="pills"><div class="pill key" id="keysPill">🔑 0 / 5</div><div class="pill hunt" id="huntPill">👹 🕷 👻</div><div class="pill team hidden" id="teamPill">👥 1</div><div class="pill item hidden" id="itemPill"></div></div>
   <canvas id="minimap" width="360" height="380"></canvas>
   <div id="toasts"></div>
+  <div id="exitArrow" class="hidden"><div id="exitArrowIcon">⬆</div><div id="exitDist"></div></div>
   <div id="splash"><div id="splashTitle"></div><div id="splashSub"></div></div>
   <div id="bottom">
     <div id="hiddenTag" class="hidden">🌿 HIDDEN</div>
     <div id="stamina"><div id="staminaFill"></div><span id="staminaText">STAMINA</span></div>
   </div>
-  <div id="hint"><kbd>WASD</kbd> move · <kbd>Mouse</kbd> look · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump / wall-jump · <kbd>V</kbd> view · <kbd>F</kbd> flashlight · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</div>
+  <div id="hint"><kbd>WASD</kbd> move · <kbd>Mouse</kbd> look · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump / wall-jump · <kbd>V</kbd> view · <kbd>F</kbd> flashlight · <kbd>Q</kbd> 👻 · <kbd>E</kbd> 💥 · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</div>
 </div>
 
 <div id="menu" class="overlay hidden">
@@ -229,6 +251,7 @@
         <li>🚪 Keys unlock the <b>exit gate</b> on the north wall, so run through it</li>
         <li>👹 Monsters hunt by <b>sight and sound</b>. Sprinting is loud. They can't see far in the woods</li>
         <li>🧱 Jump toward a wall in mid-air and press jump again to <b>wall-jump</b> (3 in a row, rooftops are safe!)</li>
+        <li>👻 <b>Ghost Potions</b> make you invisible (<kbd>Q</kbd>) · 💥 <b>Flash Bombs</b> stun nearby monsters (<kbd>E</kbd>)</li>
         <li>🌿 Hide in <b>bushes</b> and <b>corn fields</b> · ⚡ <b>Speed pads</b> · 🥤 <b>Energy drinks</b> refill stamina</li>
         <li>👹 <b>All three</b> of a level's monsters hunt you at once. When one spots you, it <b>howls for the others</b></li>
         <li>🧊 Level 2's black ice is <b>slippery</b> · 🌿 Level 3's hedge maze hides you from sight</li>
@@ -255,6 +278,8 @@
       </div>
       <div class="label">UPGRADE SHOP</div>
       <div id="shop"></div>
+      <div class="label">SETTINGS</div>
+      <div class="settingsBox"></div>
       <div class="label">CONTROLS</div>
       <ul class="how">
         <li><kbd>W A S D</kbd> move · <kbd>Mouse</kbd> look (click to lock)</li>
@@ -269,6 +294,7 @@
   <div class="card">
     <div id="resTitle" class="display" style="color:#cdb8ff">PAUSED</div>
     <div id="pauseSub" style="color:var(--muted);font-weight:700;margin-bottom:16px">Click Resume to keep running</div>
+    <div class="settingsBox" style="text-align:left;margin-bottom:14px"></div>
     <div class="btnRow"><button id="resumeBtn" class="on">Resume</button><button id="quitBtn">Quit to menu</button></div>
   </div>
 </div>

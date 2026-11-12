@@ -90,7 +90,7 @@ Then open http://localhost:8137 in Chrome/Firefox/Edge. Works with keyboard + mo
 wall-jumps, flashlight (F), and cutscenes for the intro, getting caught and escaping.
 Coins, upgrades and best time are saved in your browser.
 
-**Nine levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
+**Twelve levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
 
 | Level | Areas | Monsters |
 |---|---|---|
@@ -102,11 +102,19 @@ Coins, upgrades and best time are saved in your browser.
 | 🌊 6. Sunken Depths (bubbles, floaty jumps) | sunken city, kelp forest, coral reef, shipwreck graveyard, midnight trench | 🐟 Angler (glowing lure), 🧜 Drowned Sailor, 🪼 Jelly Phantom (tentacles) |
 | 🪐 7. Planet X (moon gravity) | research base, glowshroom forest, crystal plains, craters, UFO crash site | 👽 The Grey, 🦠 The Xeno (tail), 🌌 Void Wisp |
 | 🍭 8. Sweet Screams (sprinkles) | gingerbread town, candy cane woods, gumdrop hills, sticky chocolate river (slows you), cotton candy fields | 🍪 Gingerbrute, 🍭 Candy Spider, 🧁 Sugar Specter |
-| 🌀 9. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
+| 🏚 9. Haunted Manor | spooky mansions, pumpkin patch, swamp (water slows you), graveyard, hedge maze | 🧛 Vampire, 🐺 Werewolf, 😱 Banshee |
+| 🌴 10. Jungle Temple (rain) | step-pyramid temples with stone heads that watch you, deep jungle, rivers, mossy cliffs, swamp | 🐍 Serpent, 🦍 Jungle Brute, 🗿 Tiki Spirit |
+| 🧸 11. Midnight Toyland | toy town, giant blocks, ball pits you can hide in, toy train yard, dollhouses | 🧸 Teddy, 🪆 Broken Doll, 🎁 Jack-in-the-Box |
+| 🌀 12. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
 
 Monsters get a little faster each level. Cutscenes: a level-specific intro, the monsters being released,
 the exit gate opening (and a monster hearing it), the last-45-seconds frenzy, getting caught, and escaping.
 Every cutscene can be skipped (click, Space, Enter or Esc). Stamina lasts much longer than before.
+
+**Power-ups** are hidden around every map: 👻 **Ghost Potion** (press `Q`) makes you invisible for 7 seconds,
+💥 **Flash Bomb** (press `E`) stuns every monster near you for 5 seconds. When the exit opens, an arrow points to it.
+Getting caught now plays an **eaten** cutscene: the monster opens wide, pulls you into its mouth and *CHOMP*.
+**Settings** (menu and pause screen): volume, look speed, and a *Fast* graphics mode for slower computers and phones.
 
 What else is different in the browser version:
 - **A big map (20×20 blocks)** with five areas per level, shuffled every round. Level 1: 🏙 Neon City down the middle,

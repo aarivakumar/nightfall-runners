@@ -89,6 +89,27 @@ const MONSTERS = {
     eyes: 6, extraArms: true, spikes: 6, spikeLen: 1.2, ribs: false, voice: { roar: 320, scream: 1000, growl: 110, click: true }, caption: 'The Candy Spider wrapped you in sugar.' },
   sugarghost: { name: 'The Sugar Specter', emoji: '🧁', eye: 0xff2a8a, eyeCss: '#ff6aaa', body: 0xffb0d8, scale: 1.15, speed: -1, sight: 120, hear: 34, posture: 'float', headY: 9.8, lunge: 4.6,
     ghost: 0x6a1a40, robe: 0xffc0e0, hood: 0xff90c8, longClaws: true, flicker: true, ribs: false, spikes: 0, lightK: 0.3, voice: { roar: 640, scream: 1500, growl: 230, laugh: true }, caption: 'The Sugar Specter melted you like candy.' },
+  // ---- Level 9: Haunted Manor
+  vampire: { name: 'The Vampire', emoji: '🧛', eye: 0xff1a2a, eyeCss: '#ff5a6a', body: 0x1a0a14, face: 0xe8e0e8, scale: 1.3, speed: 0.5, sight: 115, hear: 20, posture: 'upright', headY: 8.5, lunge: 7.2,
+    robe: 0x3a0012, legsVisible: true, ribs: false, spikes: 0, lightK: 0.5, voice: { roar: 160, scream: 800, growl: 60, laugh: true }, caption: 'The Vampire had a midnight snack.' },
+  werewolf: { name: 'The Werewolf', emoji: '🐺', eye: 0xffd21a, eyeCss: '#ffe05a', body: 0x2a1e14, scale: 1.15, speed: 2, sight: 85, hear: 22, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    fur: 0x4a3a2a, bulk: 1.15, horns: true, spikes: 0, voice: { roar: 220, scream: 900, growl: 80 }, caption: 'The Werewolf caught your scent.' },
+  banshee: { name: 'The Banshee', emoji: '😱', eye: 0x9affff, eyeCss: '#c0ffff', body: 0xc8d0e0, scale: 1.15, speed: -1, sight: 120, hear: 40, posture: 'float', headY: 9.8, lunge: 4.6,
+    ghost: 0x1a2a3a, robe: 0xd0d8e8, hair: 0x0a0a0a, longClaws: true, flicker: true, ribs: false, spikes: 0, lightK: 0.25, voice: { roar: 700, scream: 1700, growl: 250, wail: true }, caption: 'The Banshee screamed you away.' },
+  // ---- Level 10: Jungle Temple
+  serpent: { name: 'The Serpent', emoji: '🐍', eye: 0xffe21a, eyeCss: '#ffe85a', body: 0x1a4a1a, bone: 0xd8c860, scale: 1.1, speed: 2.2, sight: 80, hear: 14, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    tail: true, spikes: 9, spikeLen: 0.7, eyeSize: 1.3, ribs: false, voice: { roar: 260, scream: 1100, growl: 140, click: true }, caption: 'The Serpent swallowed you whole.' },
+  junglebrute: { name: 'The Jungle Brute', emoji: '🦍', eye: 0xff8a1a, eyeCss: '#ffaa5a', body: 0x16220e, scale: 1.45, speed: 0, sight: 100, hear: 22, posture: 'upright', headY: 8.5, lunge: 7.8,
+    fur: 0x2a4a1a, bulk: 1.4, spikes: 0, voice: { roar: 70, scream: 450, growl: 34 }, caption: 'The Jungle Brute pounded you flat.' },
+  tiki: { name: 'The Tiki Spirit', emoji: '🗿', eye: 0xff6a1a, eyeCss: '#ff9a5a', body: 0x6a4020, face: 0x8a5a2a, scale: 1.2, speed: -1, sight: 125, hear: 36, posture: 'float', headY: 9.8, lunge: 4.6,
+    robe: 0x2a5a1a, eyeSize: 1.6, horns: true, longClaws: true, flicker: true, ribs: false, spikes: 0, voice: { roar: 380, scream: 1200, growl: 150, wail: true }, caption: 'The Tiki Spirit cursed you.' },
+  // ---- Level 11: Midnight Toyland
+  teddy: { name: 'The Teddy', emoji: '🧸', eye: 0xff2a2a, eyeCss: '#ff6a6a', body: 0x7a4a2a, scale: 1.4, speed: 0, sight: 110, hear: 20, posture: 'upright', headY: 8.5, lunge: 7.6,
+    fur: 0x8a5a3a, bulk: 1.3, clownButtons: true, horns: true, eyeSize: 1.4, spikes: 0, lightK: 0.6, voice: { roar: 140, scream: 760, growl: 55, laugh: true }, caption: 'The Teddy hugged you a little too hard.' },
+  doll: { name: 'The Broken Doll', emoji: '🪆', eye: 0x6affff, eyeCss: '#9affff', body: 0xd8c8c0, face: 0xf4e8e8, scale: 1.0, speed: 1.8, sight: 75, hear: 16, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    hair: 0x4a2a10, eyeSize: 1.7, extraArms: true, ribs: false, spikes: 0, lightK: 0.4, voice: { roar: 420, scream: 1300, growl: 160, creak: true }, caption: 'The Broken Doll wants you to play forever.' },
+  jackbox: { name: 'The Jack-in-the-Box', emoji: '🎁', eye: 0xb44aff, eyeCss: '#cf8bff', body: 0x3a1a6a, face: 0xf2ede4, scale: 1.25, speed: -0.5, sight: 120, hear: 32, posture: 'float', headY: 9.8, lunge: 4.6,
+    clown: true, robe: 0x5a2aa0, spikes: 0, ribs: false, lightK: 0.5, voice: { roar: 360, scream: 1100, growl: 130, laugh: true }, caption: 'POP! goes the Jack-in-the-Box.' },
 };
 const LEVELS = [
   { name: 'Nightfall City', emoji: '🌃', color: '#ff6fb5', center: 'city', corners: ['forest', 'graveyard', 'factory', 'fields'], monsters: ['stalker', 'crawler', 'wraith'],
@@ -132,6 +153,21 @@ const LEVELS = [
     blurb: 'A candy land gone wrong: gingerbread houses, candy cane woods, gumdrop hills, sticky chocolate rivers and cotton candy fields.',
     story: ['Welcome to Candy Land! Everything here is sweet…', 'The only way out is the north gate.', 'Find 5 keys hidden in the candy…', 'Something smells… sugary.', 'And it\'s hungry for YOU.'],
     released: ['Treat time is over.', 'Don\'t get stuck in the chocolate!'], escape: 'You escaped Sweet Screams!' },
+  { name: 'Haunted Manor', emoji: '🏚', color: '#b48aff', center: 'manor', corners: ['pumpkins', 'swamp', 'graveyard', 'maze'], monsters: ['vampire', 'werewolf', 'banshee'],
+    hemi: [0x9a80d0, 0x140a1a, 0.7], sky: 0x0e0614, wall: 0x2a1a2a, lair: 0xb44aff, speedBonus: 2, weather: 'ash',
+    blurb: 'A haunted mansion estate: creepy manors, a pumpkin patch, a foggy swamp, a graveyard and a hedge maze.',
+    story: ['Nobody has lived in the manor for a hundred years…', 'The only way out is the north gate.', 'Find 5 keys hidden on the grounds…', 'The doors are creaking open.', 'And the residents are HOME.'],
+    released: ['The manor wakes up.', 'Don\'t look back.'], escape: 'You escaped the Haunted Manor!' },
+  { name: 'Jungle Temple', emoji: '🌴', color: '#5aff8a', center: 'temple', corners: ['jungle', 'river', 'mossrock', 'swamp'], monsters: ['serpent', 'junglebrute', 'tiki'],
+    hemi: [0x8ad08a, 0x0a1a0a, 0.7], sky: 0x06120a, wall: 0x3a4a2a, lair: 0xff8a1a, speedBonus: 2, weather: 'rain',
+    blurb: 'A lost temple deep in a rainy jungle: step pyramids, thick jungle, rivers, mossy cliffs and swamps.',
+    story: ['Deep in the jungle, a lost temple glows in the rain…', 'The only way out is the north gate.', 'Find 5 keys hidden in the ruins…', 'The jungle has gone quiet.', 'Too quiet.'],
+    released: ['The temple guardians awaken.', 'The rivers will slow you down!'], escape: 'You escaped the jungle!' },
+  { name: 'Midnight Toyland', emoji: '🧸', color: '#ffb84a', center: 'toytown', corners: ['blocks', 'ballpit', 'trains', 'dollhouses'], monsters: ['teddy', 'doll', 'jackbox'],
+    hemi: [0xffc0a0, 0x1a1020, 0.75], sky: 0x120a18, wall: 0x5a3a6a, lair: 0xffb84a, speedBonus: 2.5, weather: 'sprinkles',
+    blurb: 'A giant toy room after midnight: toy town, giant blocks, ball pits to hide in, toy trains and dollhouses.',
+    story: ['At midnight, the toys come out to play…', 'The only way out is the north gate.', 'Find 5 keys hidden between the toys…', 'Something just wound itself up.', 'They want to play with YOU.'],
+    released: ['Playtime!', 'Hide in the ball pits!'], escape: 'You escaped Midnight Toyland!' },
   { name: 'The Nightmare Mix', emoji: '🌀', color: '#ff4ad0', mix: true, center: 'city', corners: [], monsters: [],
     hemi: [0xb070e0, 0x200820, 0.7], sky: 0x120414, wall: 0x2a1030, lair: 0xff2ad0, speedBonus: 2, weather: 'embers',
     blurb: 'Different every round: random areas from every level and 3 random monsters. The hardest level.',
@@ -161,6 +197,7 @@ function loadSave() {
   return JSON.parse(JSON.stringify(DEFAULT_SAVE));
 }
 const save = loadSave();
+const settings = () => (save.settings = { vol: 0.8, sens: 1, quality: 'high', ...(save.settings || {}) });
 if (!save.name) save.name = 'Runner' + Math.floor(10 + Math.random() * 90);
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* ignore */ } }
 
@@ -390,6 +427,21 @@ const ZONES = {
   gumdrops: { name: '🟣 Gumdrop Hills', color: '#c87aff', ground: [96, 64, 108], fog: 0x1a0a24, density: 0.009, map: '#4a2a5a', sight: 0.8 },
   chocoriver: { name: '🍫 Chocolate River (sticky!)', color: '#d8a070', ground: [74, 44, 34], fog: 0x1e0c08, density: 0.009, map: '#4a2a1a', sight: 0.9 },
   cotton: { name: '☁️ Cotton Candy Fields', color: '#ffb0e0', ground: [130, 90, 120], fog: 0x2a1028, density: 0.01, map: '#6a4a6a', sight: 0.6 },
+  // Level 9
+  manor: { name: '🏚 The Manor', color: '#c8a8ff', ground: [34, 30, 36], fog: 0x140c1c, density: 0.009, map: '#2a2232', sight: 0.9 },
+  pumpkins: { name: '🎃 Pumpkin Patch', color: '#ff9a3a', ground: [50, 36, 22], fog: 0x1e1008, density: 0.0095, map: '#3a2a16', sight: 0.85 },
+  swamp: { name: '🐸 The Swamp (water slows you)', color: '#7aff9a', ground: [30, 40, 26], fog: 0x0c1a10, density: 0.014, map: '#1e2e1a', sight: 0.5 },
+  // Level 10
+  temple: { name: '🛕 The Lost Temple', color: '#ffd27a', ground: [60, 66, 44], fog: 0x0e1a0a, density: 0.009, map: '#4a5030', sight: 0.9 },
+  jungle: { name: '🌴 Deep Jungle', color: '#5aff8a', ground: [24, 44, 20], fog: 0x061408, density: 0.014, map: '#163a14', sight: 0.4 },
+  river: { name: '🌊 Jungle River (water slows you)', color: '#6ad8ff', ground: [40, 54, 34], fog: 0x081a14, density: 0.01, map: '#2a3a2a', sight: 0.9 },
+  mossrock: { name: '🪨 Mossy Cliffs', color: '#9ad87a', ground: [44, 52, 40], fog: 0x0a1a0e, density: 0.011, map: '#3a4a34', sight: 0.55 },
+  // Level 11
+  toytown: { name: '🏘 Toy Town', color: '#ffd27a', ground: [70, 50, 80], fog: 0x1a0e22, density: 0.0075, map: '#4a3a5a', sight: 1 },
+  blocks: { name: '🧱 Giant Blocks', color: '#ff7a7a', ground: [60, 46, 70], fog: 0x180c20, density: 0.009, map: '#3a2a4a', sight: 0.65 },
+  ballpit: { name: '🔴 Ball Pits (hide in them!)', color: '#7ad8ff', ground: [56, 60, 84], fog: 0x0e1424, density: 0.009, map: '#3a3a5a', sight: 0.85 },
+  trains: { name: '🚂 Toy Train Yard', color: '#ffb84a', ground: [64, 54, 50], fog: 0x1a1210, density: 0.009, map: '#4a3a34', sight: 0.85 },
+  dollhouses: { name: '🏠 Dollhouse Lane', color: '#ffa0d0', ground: [80, 56, 76], fog: 0x1e0c1c, density: 0.0095, map: '#5a3a52', sight: 0.8 },
 };
 
 let world = null;
@@ -539,6 +591,10 @@ function buildWorld(seed, L = LEVELS[0]) {
     coral: std(0xffffff, { emissive: 0x401018, emissiveIntensity: 0.6, roughness: 0.7, flatShading: true }),
     alienCap: std(0xffffff, { emissive: 0x30104a, emissiveIntensity: 0.7, roughness: 0.6 }),
     choco: std(0x4a2414, { roughness: 0.25, metalness: 0.2 }), chocoBar: std(0x5a2e18, { roughness: 0.6 }),
+    pumpkin: std(0xffffff, { roughness: 0.7, flatShading: true }), firefly: neon(0xd8ff6a, 3),
+    swampWater: std(0x1a3a2a, { roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.85 }),
+    water: std(0x1a5a7a, { roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.8 }),
+    toy: std(0xffffff, { roughness: 0.35 }),
   });
   const lampMat = neon(0xffd08a, 3.2), sodiumMat = neon(0xff8a2a, 3.2), poleMat = std(0x1e1e24, { metalness: 0.6, roughness: 0.4 });
   const crateMat = std(0x96693c, { roughness: 1 }), crateMat2 = std(0x7d5632, { roughness: 1 });
@@ -672,13 +728,13 @@ function buildWorld(seed, L = LEVELS[0]) {
       if (Math.hypot(x - cc.x, z - cc.z) < (edge ? 8 : 5.5)) continue;
       if (placed.some((p) => Math.hypot(p[0] - x, p[1] - z) < 7.5)) continue;
       placed.push([x, z]); k++;
-      if (style === 'kelp' || style === 'alien' || style === 'candy') fancyTree(x, z, style);
+      if (style === 'kelp' || style === 'alien' || style === 'candy' || style === 'jungle') fancyTree(x, z, style);
       else if (style === 'dead' || style === 'ash' || rng.next() < 0.12) deadTree(x, z, style === 'ash'); else tree(x, z, style === 'snow');
     }
     if (!edge && !clearing && rng.next() < 0.4) {
       const a = rng.next() * Math.PI * 2;
       const x = cc.x + Math.cos(a) * 4, z = cc.z + Math.sin(a) * 4;
-      if (placed.every((p) => Math.hypot(p[0] - x, p[1] - z) > 6)) bush(x, z, i + j * 7, style === 'snow' ? SNOWBUSH() : style === 'dead' ? new THREE.Color(0x3a1a1a) : style === 'ash' ? new THREE.Color(0x4a4642) : style === 'kelp' ? new THREE.Color(0x1a4a3a) : style === 'alien' ? new THREE.Color(0x5a2a8a) : style === 'candy' ? new THREE.Color(0xff9ad0) : null);
+      if (placed.every((p) => Math.hypot(p[0] - x, p[1] - z) > 6)) bush(x, z, i + j * 7, style === 'snow' ? SNOWBUSH() : style === 'dead' ? new THREE.Color(0x3a1a1a) : style === 'ash' ? new THREE.Color(0x4a4642) : style === 'kelp' ? new THREE.Color(0x1a4a3a) : style === 'alien' ? new THREE.Color(0x5a2a8a) : style === 'candy' ? new THREE.Color(0xff9ad0) : style === 'jungle' ? new THREE.Color(0x1a5a1a) : null);
     }
     const shrooms = clearing ? 10 : rng.int(0, 3);
     for (let k = 0; k < shrooms; k++) {
@@ -1199,19 +1255,20 @@ function buildWorld(seed, L = LEVELS[0]) {
     W.patrol.push(cc);
   };
   const lavaCell = (cc, i, j, edge, style = '') => {
-    const choc = style === 'choco';
+    const choc = style === 'choco' || style === 'water', wet = style === 'water';
     if (!edge && rng.next() < 0.6) { // a river of lava: walkable, but it burns
       const alongX = rng.next() < 0.5, off = rng.pick([-1, 1]) * 7, w = alongX ? C : 5, d = alongX ? 5 : C;
       const x = cc.x + (alongX ? 0 : off), z = cc.z + (alongX ? off : 0);
-      box(w, 0.12, d, choc ? MAT.choco : MAT.lava, x, 0.06, z, false);
+      box(w, 0.12, d, wet ? MAT.water : choc ? MAT.choco : MAT.lava, x, 0.06, z, false);
       if (!choc) glowDecal(x, z, 9, 0xff4a0a, 0.4);
-      W.hazards.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, kind: choc ? 'choco' : 'lava' });
-      W.mapRects.push({ x, z, w, d, color: choc ? '#5a2e18' : '#ff4a0a' });
+      W.hazards.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, kind: wet ? 'water' : choc ? 'choco' : 'lava' });
+      W.mapRects.push({ x, z, w, d, color: wet ? '#2a7aa0' : choc ? '#5a2e18' : '#ff4a0a' });
     }
     const n = edge ? 0 : rng.int(1, 3);
     for (let k = 0; k < n; k++) { // obsidian spires
       const a = rng.next() * 6.3, rr = rng.range(6.5, 10), x = cc.x + Math.cos(a) * rr, z = cc.z + Math.sin(a) * rr, h = rng.range(9, 20), r0 = rng.range(1.5, 2.5);
-      if (choc) inst('chunk', GEO.box, MAT.chocoBar, x, h * 0.25, z, { sx: r0 * 1.6, sy: h * 0.5, sz: r0 * 1.6, ry: rng.next() * 6, rz: rng.range(-0.2, 0.2) });
+      if (wet) rock(x, z, r0);
+      else if (choc) inst('chunk', GEO.box, MAT.chocoBar, x, h * 0.25, z, { sx: r0 * 1.6, sy: h * 0.5, sz: r0 * 1.6, ry: rng.next() * 6, rz: rng.range(-0.2, 0.2) });
       else inst('obsidian', GEO.cone6, MAT.obsidian, x, h / 2, z, { sx: r0, sy: h, sz: r0, ry: rng.next() * 6, rz: rng.range(-0.1, 0.1) });
       solid(x, z, r0 * 1.6, r0 * 1.6, h);
       W.mapRects.push({ x, z, w: 4, d: 4, color: '#1a1214', round: true });
@@ -1310,7 +1367,7 @@ function buildWorld(seed, L = LEVELS[0]) {
   };
   const mesaCols = [0x8a3a22, 0xa04a2a, 0x7a3220, 0xb85a32];
   const canyonCell = (cc, i, j, edge, style = '') => {
-    const mcols = style === 'trench' ? [0x1a2a3a, 0x22324a, 0x2a3a50] : mesaCols;
+    const mcols = style === 'trench' ? [0x1a2a3a, 0x22324a, 0x2a3a50] : style === 'moss' ? [0x3a4a2a, 0x4a5a3a, 0x2a3a22, 0x55604a] : mesaCols;
     const n = edge ? rng.int(0, 1) : rng.int(2, 4), placed = [];
     for (let k = 0, tries = 0; k < n && tries < 40; tries++) {
       const x = cc.x + rng.range(-9, 9), z = cc.z + rng.range(-9, 9);
@@ -1378,6 +1435,12 @@ function buildWorld(seed, L = LEVELS[0]) {
       for (let k = 0; k < 5; k++) { const a = rng.next() * 6.3; inst('alienSpot', GEO.sphere, MAT.bulb, x + Math.cos(a) * r * 0.6, h + r * 0.3, z + Math.sin(a) * r * 0.6, { s: 0.45, color: col, cast: false }); }
       glowDecal(x, z, r * 1.4, col, 0.25);
       W.mapRects.push({ x, z, w: r * 2, d: r * 2, color: '#5a2a8a', round: true });
+    } else if (style === 'jungle') { // big jungle tree with hanging vines
+      h = rng.range(16, 26);
+      inst('jTrunk', GEO.trunk, MAT.bark, x, h / 2, z, { sx: 1.2, sy: h, sz: 1.2, color: 0x4a3a20 });
+      for (let k = 0; k < 3; k++) { const a = rng.next() * 6.3; inst('jLeaf', GEO.sphere, MAT.pine, x + Math.cos(a) * 3, h - k * 3, z + Math.sin(a) * 3, { sx: rng.range(5, 7), sy: 2.2, sz: rng.range(5, 7), color: rng.pick([0x1a4a14, 0x22581a, 0x14400e]) }); }
+      for (let k = 0; k < 5; k++) { const a = rng.next() * 6.3, vl = rng.range(5, 12); inst('vine', GEO.box, MAT.pine, x + Math.cos(a) * 4, h - 2 - vl / 2, z + Math.sin(a) * 4, { sx: 0.12, sy: vl, sz: 0.12, color: 0x2a6a1a, cast: false }); }
+      W.mapRects.push({ x, z, w: 8, d: 8, color: '#163a14', round: true });
     } else if (rng.next() < 0.5) { // lollipop
       h = rng.range(8, 14);
       const r = rng.range(2.5, 4);
@@ -1476,11 +1539,11 @@ function buildWorld(seed, L = LEVELS[0]) {
   };
 
   // ===== Level 8: Sweet Screams =====
-  const gingerHouse = (cc) => {
+  const gingerHouse = (cc, pastel = false) => {
     const w = rng.int(11, 14), d = rng.int(10, 12), h = rng.int(7, 9);
-    box(w, h, d, std(0xa8642a, { roughness: 0.9 }), cc.x, h / 2, cc.z);
+    box(w, h, d, std(pastel ? rng.pick([0xf0b8d0, 0xb8d8f0, 0xf0e0a0, 0xc0f0c8]) : 0xa8642a, { roughness: 0.9 }), cc.x, h / 2, cc.z);
     for (const sd of [-1, 1]) {
-      const p = box(w + 1.5, 0.7, d / 2 + 1.6, std(0x8a4a1a), cc.x, h + 2, cc.z + sd * (d / 4 + 0.3)); p.rotation.x = sd * 0.5;
+      const p = box(w + 1.5, 0.7, d / 2 + 1.6, std(pastel ? rng.pick([0xd04a6a, 0x4a6ad0, 0x8a4ad0]) : 0x8a4a1a), cc.x, h + 2, cc.z + sd * (d / 4 + 0.3)); p.rotation.x = sd * 0.5;
       const ic = box(w + 1.7, 0.4, d / 2 + 1.7, std(0xfff4f8, { roughness: 0.5 }), cc.x, h + 2.5, cc.z + sd * (d / 4 + 0.3), false); ic.rotation.x = sd * 0.5;
     }
     for (let k = 0; k < 6; k++) inst('gumdropS', GEO.sphere, MAT.bulb, cc.x - w / 2 + (k + 0.5) * (w / 6), h + 0.2, cc.z - d / 2 - 0.3, { s: 0.5, color: CARNI[k % 5], cast: false });
@@ -1517,6 +1580,173 @@ function buildWorld(seed, L = LEVELS[0]) {
     W.patrol.push(cc);
   };
 
+  // ===== Level 9: Haunted Manor =====
+  const mansion = (cc) => {
+    const w = rng.int(15, 18), d = rng.int(13, 16), h = rng.int(13, 18);
+    const wood = std(rng.pick([0x2a2028, 0x30262a, 0x24202c]), { roughness: 1 });
+    box(w, h, d, wood, cc.x, h / 2, cc.z);
+    const r = Math.max(w, d) * 0.75;
+    const roof = meshAt(new THREE.ConeGeometry(r, 7, 4), std(0x16121a, { roughness: 0.9 }), cc.x, h + 3.5, cc.z); roof.rotation.y = Math.PI / 4; roof.scale.set(w / Math.max(w, d), 1, d / Math.max(w, d));
+    const tx = cc.x + w / 2 - 2, tz = cc.z - d / 2 + 2;
+    meshAt(new THREE.CylinderGeometry(2.4, 2.4, h + 6, 10), wood, tx, (h + 6) / 2, tz);
+    meshAt(new THREE.ConeGeometry(3.2, 6, 10), std(0x16121a), tx, h + 9, tz);
+    for (let fl = 0; fl < Math.floor(h / 5); fl++) for (let k = -1; k <= 1; k++) {
+      const lit = rng.next(), m = lit < 0.35 ? neon(0xffc86a, 1.6) : lit < 0.45 ? neon(0xff2a3a, 1.8) : new THREE.MeshBasicMaterial({ color: 0x050308 });
+      box(1.8, 2.4, 0.2, m, cc.x + k * w / 3.5, 3 + fl * 5, cc.z - d / 2 - 0.1, false);
+    }
+    box(3, 5, 0.2, new THREE.MeshBasicMaterial({ color: 0x050308 }), cc.x, 2.5, cc.z - d / 2 - 0.1, false);
+    solid(cc.x, cc.z, w, d, h);
+    solid(tx, tz, 4.4, 4.4, h + 6);
+    W.mapRects.push({ x: cc.x, z: cc.z, w, d, color: '#3a2e40' });
+  };
+  const manorCell = (cc, i, j, edge) => {
+    const r = edge ? 1 : rng.next();
+    if (r < 0.3) { mansion(cc); return; }
+    if (r < 0.44) { for (let k = 0; k < rng.int(2, 3); k++) { const a = rng.next() * 6.3, rr = rng.range(3, 7); bush(cc.x + Math.cos(a) * rr, cc.z + Math.sin(a) * rr, i + j + k, new THREE.Color(0x1a2a1a)); } W.patrol.push(cc); return; }
+    if (r < 0.5) { speedPad(cc); W.patrol.push(cc); return; }
+    const roll = rng.next();
+    if (roll < 0.35) lamp(cc.x + C / 2 - 4, cc.z + C / 2 - 4, neon(0x8affb0, 3), 0x6aff9a);
+    else if (roll < 0.6 && !edge) { // a dried-up fountain with something glowing in it
+      const x = cc.x + rng.pick([-1, 1]) * 7, z = cc.z + rng.pick([-1, 1]) * 7;
+      meshAt(new THREE.CylinderGeometry(3.4, 3.6, 1.2, 16), std(0x4a4a50), x, 0.6, z);
+      meshAt(new THREE.CylinderGeometry(0.5, 0.7, 4, 8), std(0x4a4a50), x, 2.6, z);
+      glowDecal(x, z, 4, 0x6aff9a, 0.4);
+      solid(x, z, 6.4, 6.4, 1.2);
+    } else if (!edge && W.scarecrows.length < 10) scarecrow(cc.x + rng.pick([-1, 1]) * 7, cc.z + rng.pick([-1, 1]) * 7);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const pumpkinsCell = (cc, i, j, edge) => {
+    for (let k = 0, n = edge ? 3 : rng.int(5, 9); k < n; k++) {
+      const a = rng.next() * 6.3, rr = rng.range(4, 10.5), x = cc.x + Math.cos(a) * rr, z = cc.z + Math.sin(a) * rr, s = rng.range(0.9, 2.2);
+      inst('pumpkin', GEO.sphere, MAT.pumpkin, x, s * 0.7, z, { sx: s * 1.2, sy: s * 0.85, sz: s * 1.2, color: rng.pick([0xe06a10, 0xd05a10, 0xf08a20]) });
+      if (rng.next() < 0.35) { for (const ex of [-0.35, 0.35]) inst('jackEye', GEO.sphere, MAT.ember, x + ex * s, s * 0.85, z - s * 1.15, { s: 0.22 * s, cast: false }); glowDecal(x, z - s, 2.5 * s, 0xff8a1a, 0.4); }
+      if (s > 1.5) solid(x, z, s * 2.2, s * 2.2, s * 1.4);
+    }
+    if (!edge && rng.next() < 0.3 && W.scarecrows.length < 10) scarecrow(cc.x + 6, cc.z - 6);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const swampCell = (cc, i, j, edge) => {
+    if (!edge && rng.next() < 0.6) { // a murky pool: walkable, but it slows you down
+      const a = rng.next() < 0.5, x = cc.x + (a ? rng.pick([-1, 1]) * 6 : 0), z = cc.z + (a ? 0 : rng.pick([-1, 1]) * 6), w = a ? 9 : C, d = a ? C : 9;
+      box(w, 0.1, d, MAT.swampWater, x, 0.05, z, false);
+      for (let k = 0; k < 4; k++) inst('lily', GEO.cyl, MAT.pine, x + rng.range(-w / 2.5, w / 2.5), 0.15, z + rng.range(-d / 2.5, d / 2.5), { sx: 0.8, sy: 0.05, sz: 0.8, color: 0x3a8a2a, cast: false });
+      W.hazards.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, kind: 'water' });
+      W.mapRects.push({ x, z, w, d, color: '#1a3a3a' });
+    }
+    if (!edge) for (let k = 0; k < rng.int(1, 2); k++) deadTree(cc.x + rng.pick([-1, 1]) * rng.range(8, 10.5), cc.z + rng.pick([-1, 1]) * rng.range(8, 10.5));
+    for (let k = 0; k < 5; k++) inst('firefly', GEO.sphere, MAT.firefly, cc.x + rng.range(-11, 11), rng.range(1.5, 6), cc.z + rng.range(-11, 11), { s: 0.12, cast: false });
+    if (!edge && rng.next() < 0.5) bush(cc.x + rng.range(-5, 5), cc.z + rng.range(-5, 5), i + j, new THREE.Color(0x2a4a1a));
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
+  // ===== Level 10: Jungle Temple =====
+  const stoneHead = (x, z) => { // giant stone head whose eyes follow you
+    box(4, 1, 4, std(0x4a4a3a), x, 0.5, z);
+    const head = new THREE.Group(); head.position.set(x, 4.2, z); group.add(head);
+    meshAt(BOX(3.2, 5, 3), std(0x6a6a54, { roughness: 1 }), 0, 0, 0, head);
+    meshAt(BOX(3.4, 0.6, 1.2), std(0x5a5a46), 0, 1.2, 1.2, head);
+    meshAt(BOX(0.8, 1.6, 0.6), std(0x5a5a46), 0, 0, 1.6, head);
+    const eyeMat = neon(0x5aff8a, 0.5);
+    for (const ex of [-0.8, 0.8]) meshAt(BOX(0.6, 0.35, 0.1), eyeMat, ex, 0.6, 1.52, head);
+    watcher(x, z, head, eyeMat, 0x5aff8a, 7);
+  };
+  const temple = (cc) => {
+    const stone = std(rng.pick([0x6a6a50, 0x5a6248, 0x726a52]), { roughness: 1 });
+    let s = rng.range(19, 21), y = 0;
+    for (let k = 0; k < 4; k++) { box(s, 3, s, stone, cc.x, y + 1.5, cc.z); y += 3; s -= 4.2; }
+    box(s + 1, 4, s + 1, stone, cc.x, y + 2, cc.z);
+    box(2.4, 3, 0.3, neon(0x5aff8a, 1.8), cc.x, y + 1.8, cc.z - (s + 1) / 2 - 0.1, false);
+    for (let k = 0; k < 4; k++) box(3, 0.2, 1.4, std(0x4a5040), cc.x, 3 * k + 3.05, cc.z - (19 - 4.2 * k) / 2 + 0.7, false); // steps
+    glowDecal(cc.x, cc.z, 14, 0x5aff8a, 0.2);
+    solid(cc.x, cc.z, 20, 20, y + 4);
+    W.mapRects.push({ x: cc.x, z: cc.z, w: 20, d: 20, color: '#6a6a50' });
+  };
+  const templeCell = (cc, i, j, edge) => {
+    const r = edge ? 1 : rng.next();
+    if (r < 0.28) { temple(cc); return; }
+    if (r < 0.42) { for (let k = 0; k < rng.int(2, 3); k++) { const a = rng.next() * 6.3, rr = rng.range(3, 7); bush(cc.x + Math.cos(a) * rr, cc.z + Math.sin(a) * rr, i + j + k, new THREE.Color(0x1a5a1a)); } W.patrol.push(cc); return; }
+    if (r < 0.48) { speedPad(cc); W.patrol.push(cc); return; }
+    if (!edge && rng.next() < 0.45 && W.scarecrows.length < 10) stoneHead(cc.x + rng.pick([-1, 1]) * 7, cc.z + rng.pick([-1, 1]) * 7);
+    else if (!edge) for (let k = 0; k < rng.int(2, 4); k++) {
+      const a = rng.next() * 6.3, rr = rng.range(6, 9.5), x = cc.x + Math.cos(a) * rr, z = cc.z + Math.sin(a) * rr, h = rng.range(3, 10);
+      inst('column', GEO.cyl, MAT.stone, x, h / 2, z, { sx: 1, sy: h, sz: 1, color: 0x6a7058 });
+      solid(x, z, 2, 2, h);
+    }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
+  // ===== Level 11: Midnight Toyland =====
+  const TOYC = [0xff3a4a, 0x3a8aff, 0xffd23a, 0x3ad86a, 0xb44aff, 0xff8a1a];
+  const toySoldier = (x, z) => {
+    box(2.4, 0.6, 2.4, std(0x3a3a3a), x, 0.3, z);
+    meshAt(new THREE.CylinderGeometry(0.9, 0.9, 4, 12), std(0xc0202a), x, 2.6, z);
+    meshAt(new THREE.CylinderGeometry(0.8, 0.8, 1.6, 12), std(0x1a1a4a), x, 0.9 + 0.4, z);
+    const head = new THREE.Group(); head.position.set(x, 5.4, z); group.add(head);
+    meshAt(new THREE.SphereGeometry(0.9, 12, 10), std(0xf0d0b0), 0, 0, 0, head);
+    meshAt(new THREE.CylinderGeometry(0.8, 0.9, 2, 12), std(0x111111), 0, 1.4, 0, head);
+    const eyeMat = neon(0xff2a2a, 0.5);
+    for (const ex of [-0.3, 0.3]) meshAt(new THREE.SphereGeometry(0.13, 6, 4), eyeMat, ex, 0.15, 0.85, head);
+    watcher(x, z, head, eyeMat, 0xff2a2a, 7);
+  };
+  const toyBlock = (x, z, s, y = 0) => { inst('toyblock', GEO.box, MAT.toy, x, y + s / 2, z, { s, ry: rng.range(-0.2, 0.2), color: rng.pick(TOYC) }); };
+  const toytownCell = (cc, i, j, edge) => {
+    const r = edge ? 1 : rng.next();
+    if (r < 0.3) { gingerHouse(cc, true); return; }
+    if (r < 0.42) { for (let k = 0; k < rng.int(2, 3); k++) { const a = rng.next() * 6.3, rr = rng.range(3, 7); bush(cc.x + Math.cos(a) * rr, cc.z + Math.sin(a) * rr, i + j + k, new THREE.Color(rng.pick(TOYC)).multiplyScalar(0.7)); } W.patrol.push(cc); return; }
+    if (r < 0.48) { speedPad(cc); W.patrol.push(cc); return; }
+    if (!edge && rng.next() < 0.4 && W.scarecrows.length < 10) toySoldier(cc.x + rng.pick([-1, 1]) * 7, cc.z + rng.pick([-1, 1]) * 7);
+    else if (rng.next() < 0.5) lamp(cc.x + C / 2 - 4, cc.z + C / 2 - 4, lampMat, 0xffd27a);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const blocksCell = (cc, i, j, edge) => {
+    for (let k = 0, n = edge ? 1 : rng.int(2, 4); k < n; k++) {
+      const a = rng.next() * 6.3, rr = rng.range(6.5, 9.5), x = cc.x + Math.cos(a) * rr, z = cc.z + Math.sin(a) * rr, s = rng.range(3.5, 5), hgt = rng.int(1, 3);
+      for (let b = 0; b < hgt; b++) toyBlock(x + rng.range(-0.3, 0.3), z + rng.range(-0.3, 0.3), s - b * 0.4, b * (s - 0.2));
+      solid(x, z, s, s, hgt * (s - 0.2));
+      W.mapRects.push({ x, z, w: s, d: s, color: '#ff7a7a' });
+    }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const ballpitCell = (cc, i, j, edge) => {
+    if (!edge && rng.next() < 0.65) { // a ball pit with a low wall: you can hide in the balls
+      const R = 8.5;
+      for (const [x, z, w, d] of [[cc.x, cc.z + R, 2 * R, 1], [cc.x - R, cc.z, 1, 2 * R], [cc.x + R, cc.z, 1, 2 * R]]) { box(w, 1.6, d, std(rng.pick(TOYC)), x, 0.8, z); solid(x, z, w, d, 1.6); }
+      for (let k = 0; k < 160; k++) inst('ball', GEO.sphere, MAT.toy, cc.x + rng.range(-R + 1, R - 1), rng.range(0.4, 2.2), cc.z + rng.range(-R + 1, R - 1), { s: 0.6, color: rng.pick(TOYC), cast: false });
+      W.bushes.push({ x: cc.x, z: cc.z, r: R - 1, mesh: null });
+      W.mapRects.push({ x: cc.x, z: cc.z, w: 2 * R, d: 2 * R, color: '#3a8aff' });
+    } else if (!edge) for (let k = 0; k < rng.int(1, 3); k++) toyBlock(cc.x + rng.pick([-1, 1]) * 8, cc.z + rng.pick([-1, 1]) * 8, 3.5);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const trainsCell = (cc, i, j, edge) => {
+    const z0 = cc.z + rng.pick([-1, 1]) * 7;
+    for (const dz of [-1.1, 1.1]) box(C, 0.15, 0.3, std(0x8a8a90, { metalness: 0.6 }), cc.x, 0.08, z0 + dz, false);
+    for (let k = -5; k <= 5; k++) inst('tie', GEO.box, MAT.bark, cc.x + k * 2.3, 0.05, z0, { sx: 0.6, sy: 0.1, sz: 3.2, cast: false });
+    if (!edge && rng.next() < 0.6) { // a toy train car
+      const x = cc.x + rng.range(-5, 5), col = rng.pick(TOYC);
+      box(8, 3.6, 3.4, std(col), x, 2.3, z0);
+      box(8.4, 0.4, 3.8, std(0x2a2a2a), x, 4.3, z0, false);
+      for (const wx of [-2.6, 2.6]) for (const s of [-1, 1]) { const wl = meshAt(new THREE.CylinderGeometry(0.8, 0.8, 0.4, 12), std(0x1a1a1a), x + wx, 0.8, z0 + s * 1.8); wl.rotation.x = Math.PI / 2; }
+      solid(x, z0, 8, 3.4, 4.1);
+      W.mapRects.push({ x, z: z0, w: 8, d: 3.4, color: hex6(col) });
+    }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const dollhousesCell = (cc, i, j, edge) => {
+    if (!edge && rng.next() < 0.4) { gingerHouse(cc, true); return; }
+    if (!edge && rng.next() < 0.5) for (let k = 0; k < rng.int(1, 2); k++) bush(cc.x + rng.range(-6, 6), cc.z + rng.range(3, 7), i + j + k, new THREE.Color(0xffa0d0).multiplyScalar(0.8));
+    else if (!edge) toyBlock(cc.x + 7, cc.z - 7, 4);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
   const builders = {
     city: cityCell, forest: forestCell, graveyard: graveCell, factory: factoryCell, fields: fieldsCell,
     village: villageCell, snowwoods: (cc, i, j, e) => forestCell(cc, i, j, e, 'snow'), lake: lakeCell, crystal: crystalCell, camp: campCell,
@@ -1527,6 +1757,9 @@ function buildWorld(seed, L = LEVELS[0]) {
     wrecks: wrecksCell, trench: (cc, i, j, e) => canyonCell(cc, i, j, e, 'trench'),
     base: baseCell, alienwoods: (cc, i, j, e) => forestCell(cc, i, j, e, 'alien'), xcrystal: (cc, i, j, e) => crystalCell(cc, i, j, e, 'alien'), ufo: ufoCell,
     candytown: candytownCell, candywoods: (cc, i, j, e) => forestCell(cc, i, j, e, 'candy'), gumdrops: gumdropsCell, chocoriver: (cc, i, j, e) => lavaCell(cc, i, j, e, 'choco'), cotton: cottonCell,
+    manor: manorCell, pumpkins: pumpkinsCell, swamp: swampCell,
+    temple: templeCell, jungle: (cc, i, j, e) => forestCell(cc, i, j, e, 'jungle'), river: (cc, i, j, e) => lavaCell(cc, i, j, e, 'water'), mossrock: (cc, i, j, e) => canyonCell(cc, i, j, e, 'moss'),
+    toytown: toytownCell, blocks: blocksCell, ballpit: ballpitCell, trains: trainsCell, dollhouses: dollhousesCell,
   };
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
     const cc = cellCenter(i, j);
@@ -1613,6 +1846,27 @@ function buildWorld(seed, L = LEVELS[0]) {
     g.add(can, cap); g.position.set(p.x, 1.6, p.z); group.add(g);
     const decal = glowDecal(p.x, p.z, 4, 0x3cf0ff, 0.5);
     W.drinks.push({ x: p.x, z: p.z, mesh: g, decal, taken: false });
+  }
+  // ---- power-ups: 👻 ghost potions (turn invisible) and 💥 flash bombs (stun nearby monsters)
+  W.items = [];
+  for (const [kind, col] of [['ghost', 0xb47aff], ['bomb', 0xffe05a], ['ghost', 0xb47aff], ['bomb', 0xffe05a], ['ghost', 0xb47aff], ['bomb', 0xffe05a]]) {
+    for (const c of [...keyCandidates].reverse()) {
+      const p = V(c.x - 3, 0, c.z + 3);
+      if (spots.some((s) => s.distanceTo(c) < C * 1.2) || W.drinks.some((d) => Math.hypot(d.x - p.x, d.z - p.z) < C) || W.items.some((d) => Math.hypot(d.x - p.x, d.z - p.z) < C * 3)) continue;
+      const g = new THREE.Group();
+      if (kind === 'ghost') {
+        g.add(new THREE.Mesh(new THREE.SphereGeometry(0.75, 14, 10), neon(col, 2)));
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.7, 10), std(0xe0e0f0, { transparent: true, opacity: 0.8 })); neck.position.y = 0.85; g.add(neck);
+        const cork = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.25, 8), std(0x8a5a2a)); cork.position.y = 1.3; g.add(cork);
+      } else {
+        g.add(new THREE.Mesh(new THREE.SphereGeometry(0.8, 14, 10), std(0x2a2a34, { metalness: 0.6, roughness: 0.3 })));
+        const fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 6), std(0xc0a070)); fuse.position.y = 1; g.add(fuse);
+        const spark = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), neon(col, 4)); spark.position.y = 1.35; g.add(spark);
+      }
+      g.position.set(p.x, 1.6, p.z); group.add(g);
+      W.items.push({ x: p.x, z: p.z, kind, mesh: g, decal: glowDecal(p.x, p.z, 4, col, 0.5), taken: false });
+      break;
+    }
   }
 
   // ---- flush instanced props
@@ -2015,7 +2269,7 @@ const sfx = {
     if (this.ctx) { this.ctx.resume(); return; }
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.master = this.ctx.createGain(); this.master.gain.value = 0.55; this.master.connect(this.ctx.destination);
+      this.master = this.ctx.createGain(); this.master.gain.value = 0.55 * settings().vol; this.master.connect(this.ctx.destination);
       const len = this.ctx.sampleRate * 2, buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), d = buf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       this.noiseBuf = buf;
@@ -2057,6 +2311,8 @@ const sfx = {
     this.tone(base, 1.3, 'sawtooth', 0.4, 0, 70); this.tone(base * 1.33, 1.1, 'square', 0.15, 0, 90);
     this.noise(1.2, 0.6, 4000, 'bandpass', 150); this.tone(45, 1.5, 'sine', 0.6, 0.05, 30);
   },
+  chomp(v = 1) { this.noise(0.2, 0.9 * v, 900, 'lowpass', 120); this.tone(95, 0.35, 'sine', 0.7 * v, 0, 38); this.noise(0.12, 0.5 * v, 2600, 'bandpass', 800, 0.03); this.noise(0.1, 0.35 * v, 4000, 'highpass', null, 0.08); },
+  gulp() { this.tone(320, 0.55, 'sine', 0.45, 0, 70); this.noise(0.5, 0.3, 500, 'lowpass', 90, 0.05); this.tone(60, 0.6, 'sine', 0.5, 0.25, 35); },
   heartbeat(v) { this.tone(62, 0.16, 'sine', 0.55 * v); this.tone(54, 0.2, 'sine', 0.42 * v, 0.17); },
   boost() { this.noise(0.6, 0.35, 400, 'bandpass', 5000); },
   punch(when = 0) { this.noise(0.3, 0.7, 1400, 'lowpass', 150, when); this.tone(70, 0.45, 'sine', 0.8, when, 32); },
@@ -2121,6 +2377,8 @@ const ui = {
   vignette: $('vignette'), flash: $('flash'), fade: $('fade'), toasts: $('toasts'), caption: $('caption'), skip: $('skipBtn'),
   splash: $('splash'), splashTitle: $('splashTitle'), splashSub: $('splashSub'),
   minimap: $('minimap'), crosshair: $('crosshair'), static: $('static'),
+  teeth: $('teeth'), teethTop: $('teethTop'), teethBot: $('teethBot'),
+  itemPill: $('itemPill'), exitArrow: $('exitArrow'), exitArrowIcon: $('exitArrowIcon'), exitDist: $('exitDist'), tGhost: $('tGhost'), tBomb: $('tBomb'),
 };
 { // TV static that creeps in when monsters are near
   const [c, g] = makeCanvas(256, 256), img = g.createImageData(256, 256);
@@ -2162,9 +2420,10 @@ let isTouch = window.matchMedia('(pointer: coarse)').matches;
 
 function pitchLimits() { return firstPerson ? [-1.35, 1.35] : [-0.25, 1.25]; }
 function look(dx, dy) {
-  camYaw -= dx * 0.0026;
+  const k = settings().sens;
+  camYaw -= dx * 0.0026 * k;
   const [lo, hi] = pitchLimits();
-  camPitch = clamp(camPitch + dy * 0.0022, lo, hi);
+  camPitch = clamp(camPitch + dy * 0.0022 * k, lo, hi);
 }
 function setView(fp, announce = true) {
   firstPerson = fp; save.view = fp ? 'fp' : 'tp'; writeSave();
@@ -2186,6 +2445,8 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') input.jumpQueued = true;
     if (e.code === 'KeyV') setView(!firstPerson);
     if (e.code === 'KeyF') toggleFlashlight();
+    if (e.code === 'KeyQ') game.useGhost();
+    if (e.code === 'KeyE') game.useBomb();
     if (e.code === 'KeyM') { showMap = !showMap; ui.minimap.classList.toggle('hidden', !showMap); }
   }
   keys[e.code] = true;
@@ -2253,6 +2514,8 @@ if (isTouch) document.body.classList.add('touch');
   btn('tSprint', (el) => { input.sprintTouch = !input.sprintTouch; el.classList.toggle('on', input.sprintTouch); });
   btn('tView', () => setView(!firstPerson));
   btn('tLight', () => toggleFlashlight());
+  btn('tGhost', () => game.useGhost());
+  btn('tBomb', () => game.useBomb());
   btn('tPause', () => { if (game.state === 'play' && game.player && game.player.state === 'alive' && !game.cine) setPaused(!game.paused); });
 }
 
@@ -2274,6 +2537,7 @@ class Player {
     this.anim = 0; this.stepAcc = 0; this.landDip = 0;
     this.wallNormal = V(0, 0, 0); this.wallTime = -9; this.wallJumps = 0; this.airLock = 0; this.wallJumpCount = 0;
     this.mesh = buildRunner(); scene.add(this.mesh);
+    this.ghosts = 0; this.bombs = 0; this.ghostT = 0;
   }
   update(dt, now, control) {
     const f = V(Math.sin(camYaw), 0, Math.cos(camYaw));
@@ -2360,12 +2624,14 @@ class Player {
       if (bush && bush.mesh) { bush.mesh.material.opacity = 0.35; bush.mesh.material.depthWrite = false; }
       this.hiddenBush = bush;
     }
-    this.hidden = !!bush && this.state === 'alive';
+    this.ghostT = Math.max(0, this.ghostT - dt);
+    this.hidden = (!!bush || this.ghostT > 0) && this.state === 'alive';
+    document.body.classList.toggle('ghosting', this.ghostT > 0);
 
     // lava burns your stamina
     const hz = this.pos.y < 0.6 && this.state === 'alive' ? world.hazards.find((h) => this.pos.x > h.x0 && this.pos.x < h.x1 && this.pos.z > h.z0 && this.pos.z < h.z1) : null;
-    this.sticky = !!hz && hz.kind === 'choco';
-    if (hz && hz.kind !== 'choco') {
+    this.sticky = !!hz && (hz.kind === 'choco' || hz.kind === 'water');
+    if (hz && hz.kind === 'lava') {
       this.stamina = Math.max(0, this.stamina - 45 * dt);
       if (this.stamina <= 0) this.exhausted = true;
       this.burnT = (this.burnT || 0) - dt;
@@ -2500,6 +2766,7 @@ class Hunter {
     if (!this.active) return;
     this.anim += dt;
     this.target = player;
+    if (this.stunT > 0) { this.stunT -= dt; this.vel.set(0, 0, 0); this.animate(dt, listener); return; } // 💥 dazed by a flash bomb
     if (this.pauseT > 0) { this.pauseT -= dt; this.vel.set(0, 0, 0); this.animate(dt, listener); return; }
     if (this.released) {
       this.think -= dt;
@@ -2548,7 +2815,7 @@ class Hunter {
   // multiplayer guests: the host sends where the monsters are, we glide them there
   netSet(a) {
     if (!this.netPos) this.netPos = V(0, 0, 0);
-    this.netPos.set(a[0], a[1], a[2]); this.netF = a[3]; this.chasing = !!a[4]; this.active = !!a[5];
+    this.netPos.set(a[0], a[1], a[2]); this.netF = a[3]; this.chasing = !!a[4]; this.active = !!a[5]; this.stunT = a[6] ? 0.4 : 0;
     if (!this.netSynced && !game.cine) { this.pos.copy(this.netPos); this.netSynced = true; }
   }
   netUpdate(dt, listener) {
@@ -2633,12 +2900,18 @@ class Hunter {
     if (caught) u.head.rotation.set(0, 0, lerp(u.head.rotation.z, 0.45, k));
     else u.head.rotation.set(this.twitch.x, this.twitch.y, this.twitch.z);
     // jaw: shut-ish while prowling, snapping while it chases, wide open when it gets you
-    const jawT = caught ? 1.05 : this.chasing ? 0.5 + Math.sin(this.anim * 14) * 0.15 : 0.06 + Math.max(0, Math.sin(this.anim * 0.8)) * 0.14;
+    const jawT = caught ? (this.eatJaw ?? 1.05) : this.chasing ? 0.5 + Math.sin(this.anim * 14) * 0.15 : 0.06 + Math.max(0, Math.sin(this.anim * 0.8)) * 0.14;
     u.jaw.rotation.x = lerp(u.jaw.rotation.x, jawT, 1 - Math.exp(-14 * dt));
     this.flare = Math.max(0, this.flare - dt * 0.8);
     const eyeK = 1 + (hunting ? 0.35 : 0) + this.flare * 0.8 + (Math.random() < 0.02 ? -0.6 : 0);
     for (const s of u.eyeGlow) s.scale.setScalar(s.userData.base * eyeK);
     u.light.intensity = ((hunting ? 120 : 55) + this.flare * 400) * (0.8 + Math.random() * 0.2) * (this.T.lightK ?? 1);
+    if (this.stunT > 0) { // dazed: head spins, eyes go dim, jaw hangs open
+      u.head.rotation.set(Math.sin(this.anim * 7) * 0.25, this.anim * 5, 0.5);
+      u.jaw.rotation.x = 0.7;
+      for (const s of u.eyeGlow) s.scale.setScalar(s.userData.base * 0.3);
+      u.light.intensity *= 0.2;
+    }
     if (u.strings) { // keep the puppet strings attached
       const S = u.strings, arr = S.line.geometry.attributes.position.array, a = V(0, 0, 0), b = V(0, 0, 0);
       S.bar.position.set(Math.sin(this.anim * 1.3) * 0.6, 22 + Math.sin(this.anim * 1.8) * 0.5 + u.inner.position.y, 0);
@@ -2698,6 +2971,7 @@ function drawMap(now) {
   const dot = (x, z, col, r) => { const [mx, my] = mapXY(x, z); g.fillStyle = col; g.shadowColor = col; g.shadowBlur = 10; g.beginPath(); g.arc(mx, my, r, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0; };
   for (const k of world.keys) if (!k.taken && Math.hypot(k.x - p.pos.x, k.z - p.pos.z) < 110) dot(k.x, k.z, '#ffd257', 6 + Math.sin(now * 6));
   for (const d of world.drinks) if (!d.taken && Math.hypot(d.x - p.pos.x, d.z - p.pos.z) < 90) dot(d.x, d.z, '#3cf0ff', 4.5);
+  for (const it of world.items) if (!it.taken && Math.hypot(it.x - p.pos.x, it.z - p.pos.z) < 90) dot(it.x, it.z, it.kind === 'ghost' ? '#cf8bff' : '#ffe05a', 4.5);
   for (const h of game.hunters) {
     if (!h.active || h.pos.y < -10) continue;
     if (Math.hypot(h.pos.x - p.pos.x, h.pos.z - p.pos.z) > 50 && !h.chasing) continue;
@@ -2836,6 +3110,8 @@ const net = {
     if (!c) return;
     if (d.t === 'me') { const r = this.remotes.get(c.id); if (r && Array.isArray(d.s)) r.set(d.s); }
     else if (d.t === 'key') { const k = world && world.keys[d.i]; if (k && !k.taken && game.state === 'play') game.collectKey(k, c.name); }
+    else if (d.t === 'item') { const it = world && world.items[d.i]; if (it && !it.taken) { game.takeItem(it); this.broadcast({ t: 'item', i: d.i }); } }
+    else if (d.t === 'stun' && game.state === 'play') { game.stunAround(V(d.x, 0, d.z), c.name); }
   },
   dropClient(conn) {
     const c = this.conns.get(conn.peer);
@@ -2855,6 +3131,8 @@ const net = {
     } else if (d.t === 'start') game.netStart(d);
     else if (d.t === 'snap') { this.snaps++; game.applySnap(d); }
     else if (d.t === 'key') game.netKey(d.i, d.n, d.by);
+    else if (d.t === 'item') { const it = world && world.items[d.i]; if (it && !it.taken) game.takeItem(it); }
+    else if (d.t === 'stunned') { if (game.state === 'play') toast(`💥 ${d.by} stunned ${d.n} monster${d.n === 1 ? '' : 's'}!`, '#ffe05a'); }
     else if (d.t === 'exit') { if (!game.exitOpen) game.openExit(); }
     else if (d.t === 'battle') { if (game.state === 'play' && !(game.cine && game.cine.kind === 'battle')) { game.endCine(); game.startBattle(); } }
     else if (d.t === 'caught') {
@@ -2890,7 +3168,7 @@ const net = {
     this.sent++;
     this.broadcast({
       t: 'snap', e: r2(game.elapsed), rel: game.released ? 1 : 0, fr: game.frenzy ? 1 : 0,
-      h: game.hunters.map((h) => [r2(h.pos.x), r2(h.pos.y), r2(h.pos.z), r2(h.facing), h.chasing ? 1 : 0, h.active ? 1 : 0]), p: ps,
+      h: game.hunters.map((h) => [r2(h.pos.x), r2(h.pos.y), r2(h.pos.z), r2(h.facing), h.chasing ? 1 : 0, h.active ? 1 : 0, h.stunT > 0 ? 1 : 0]), p: ps,
     });
     if (this.overT < 0 && this.alive() === 0) this.overT = 3; // nobody left running: end the round
   },
@@ -2923,12 +3201,13 @@ function setWeather(kind) {
   if (weather.pts) { scene.remove(weather.pts); weather.pts.geometry.dispose(); weather.pts.material.dispose(); weather.pts = null; }
   weather.kind = kind;
   if (!kind) return;
-  const n = { snow: 2600, sand: 2200, ash: 1400, embers: 800, bubbles: 900, sprinkles: 1600 }[kind], pos = new Float32Array(n * 3);
+  const n = { snow: 2600, sand: 2200, ash: 1400, embers: 800, bubbles: 900, sprinkles: 1600, rain: 3000 }[kind], pos = new Float32Array(n * 3);
   weather.seed = new Float32Array(n);
   for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * 140; pos[i * 3 + 1] = Math.random() * 70; pos[i * 3 + 2] = (Math.random() - 0.5) * 140; weather.seed[i] = Math.random(); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const geoCols = kind === 'sprinkles' ? new Float32Array(n * 3).map((_, i) => [[1, 0.3, 0.5], [0.3, 0.8, 1], [1, 0.9, 0.3], [0.6, 0.4, 1], [0.4, 1, 0.6]][Math.floor(i / 3) % 5][i % 3]) : null;
   const mat = kind === 'sprinkles' ? new THREE.PointsMaterial({ vertexColors: true, map: GLOW_TEX, size: 0.6, transparent: true, depthWrite: false })
+    : kind === 'rain' ? new THREE.PointsMaterial({ color: 0x9ab8d8, size: 0.22, transparent: true, opacity: 0.6, depthWrite: false })
     : kind === 'bubbles' ? new THREE.PointsMaterial({ color: 0xbfefff, map: GLOW_TEX, size: 0.9, transparent: true, opacity: 0.55, depthWrite: false })
     : kind === 'snow' || kind === 'sand' || kind === 'ash'
     ? new THREE.PointsMaterial({ color: { snow: 0xffffff, sand: 0xd8b070, ash: 0x8a8480 }[kind], map: GLOW_TEX, size: kind === 'sand' ? 0.45 : 0.7, transparent: true, opacity: kind === 'sand' ? 0.7 : 0.9, depthWrite: false })
@@ -2941,7 +3220,8 @@ function updateWeather(dt, t) {
   const a = weather.pts.geometry.attributes.position.array, c = camera.position, snow = weather.kind === 'snow';
   for (let i = 0, k = 0; i < a.length; i += 3, k++) {
     const sd = weather.seed[k];
-    if (weather.kind === 'bubbles') { a[i] += Math.sin(t * 2 + sd * 20) * 1.2 * dt; a[i + 1] += (3 + sd * 4) * dt; a[i + 2] += Math.cos(t * 2 + sd * 13) * 1.2 * dt; }
+    if (weather.kind === 'rain') { a[i] += 3 * dt; a[i + 1] -= (45 + sd * 20) * dt; }
+    else if (weather.kind === 'bubbles') { a[i] += Math.sin(t * 2 + sd * 20) * 1.2 * dt; a[i + 1] += (3 + sd * 4) * dt; a[i + 2] += Math.cos(t * 2 + sd * 13) * 1.2 * dt; }
     else if (weather.kind === 'sprinkles') { a[i] += Math.sin(t + sd * 10) * 1.5 * dt; a[i + 1] -= (4 + sd * 3) * dt; a[i + 2] += Math.cos(t + sd * 7) * 1.5 * dt; }
     else if (weather.kind === 'sand') { a[i] += (28 + sd * 18) * dt; a[i + 1] += Math.sin(t * 2 + sd * 30) * 2 * dt; a[i + 2] += Math.sin(t + sd * 9) * 4 * dt; }
     else if (weather.kind === 'ash') { a[i] += Math.sin(t * 0.4 + sd * 10) * 1.5 * dt; a[i + 1] -= (1.5 + sd * 1.5) * dt; a[i + 2] += Math.cos(t * 0.3 + sd * 7) * 1.5 * dt; }
@@ -2993,6 +3273,7 @@ const game = {
     this.state = 'menu'; this.paused = false; this.cine = null; this.catcher = null;
     document.body.classList.remove('cine'); setCaption(''); ui.skip.classList.add('hidden'); ui.fade.style.opacity = 0;
     sfx.drone(false);
+    document.body.classList.remove('ghosting');
     this.newWorld();
     aimMoon(0, 0);
     ui.static.style.opacity = 0;
@@ -3037,6 +3318,7 @@ const game = {
     ui.vignette.style.opacity = 0;
   },
   endCine() {
+    if (this.cine && this.cine.kind === 'death') { this.hideTeeth(); if (this.cine.hunter) this.cine.hunter.eatJaw = undefined; }
     this.cine = null;
     document.body.classList.remove('cine');
     ui.skip.classList.add('hidden');
@@ -3350,37 +3632,50 @@ const game = {
     this.beginCine('death', { hunter, lookStart, hStart: hunter.pos.clone(), screamed: false, splashed: false });
     ui.skip.classList.add('hidden');
   },
+  // the monster lunges, opens wide… and eats you
   updateDeath(dt) {
-    const c = this.cine, t = (c.t += dt), p = this.player, h = c.hunter;
-    const eyeY = lerp(4.6, 1.0, smooth((t - 1.5) / 0.6));
-    const eye = V(p.pos.x, p.pos.y + eyeY, p.pos.z);
-    // lunge toward the camera
+    const c = this.cine, t = (c.t += dt), p = this.player, h = c.hunter, sc = h.T.scale;
+    const eye = V(p.pos.x, p.pos.y + 4.6, p.pos.z);
     const flat = V(eye.x - c.hStart.x, 0, eye.z - c.hStart.z);
     const fd = Math.max(0.01, flat.length()); flat.divideScalar(fd);
     const lungeTo = V(eye.x - flat.x * h.T.lunge, h.pos.y, eye.z - flat.z * h.T.lunge);
-    const lu = smooth((t - 0.4) / 0.35);
+    const lu = smooth((t - 0.35) / 0.35);
     h.pos.x = lerp(c.hStart.x, lungeTo.x, lu); h.pos.z = lerp(c.hStart.z, lungeTo.z, lu);
     h.chasing = true; h.facing = Math.atan2(flat.x, flat.z);
-    if (!c.screamed && t > 0.4) {
-      c.screamed = true; sfx.scream(h.typeKey); this.shake = 1.6; h.flare = 1.4;
-      flash('#ff0010', 0.7);
-      burst(eye.clone().addScaledVector(flat, -1.5), h.T.eye, 30, 10, 0.8, 2);
-    }
-    if (!c.splashed && t > 1.5) { c.splashed = true; splash('CAUGHT!', h.T.caption, h.T.eyeCss); }
+    const fire = (key, at, fn) => { if (!c[key] && t > at) { c[key] = true; fn(); } };
+    fire('screamed', 0.35, () => { sfx.scream(h.typeKey); this.shake = 1.6; h.flare = 1.4; flash('#ff0010', 0.6); burst(eye.clone().addScaledVector(flat, -1.5), h.T.eye, 30, 10, 0.8, 2); });
+    // jaw: wide open, CHOMP, then chewing
+    const chews = [1.75, 2.35, 2.95];
+    h.eatJaw = t < 0.75 ? 1.05 : t < 1.75 ? 1.55 : 0.35 * Math.abs(Math.sin((t - 1.75) * 5.2));
     h.mesh.updateMatrixWorld(true);
     const head = h.mesh.userData.headAnchor.getWorldPosition(V(0, 0, 0));
-    const look = c.lookStart.clone().lerp(head, smooth(t / 0.35));
-    if (t > 0.4 && t < 1.5) ui.static.style.opacity = (0.08 + Math.random() * 0.12).toFixed(2);
-    else if (t >= 1.5) ui.static.style.opacity = 0;
-    camera.position.copy(eye);
+    const mouth = head.clone().add(V(0, -0.35 * sc, 0));
+    const toCam = eye.clone().sub(mouth); toCam.y = 0; toCam.normalize();
+    // the camera gets pulled into the mouth
+    const pull = smooth((t - 0.75) / 1.0);
+    const inMouth = mouth.clone().addScaledVector(toCam, 0.9 * sc);
+    camera.position.copy(eye).lerp(inMouth, pull);
+    const look = c.lookStart.clone().lerp(head, smooth(t / 0.35)).lerp(mouth.clone().addScaledVector(toCam, -2 * sc), pull);
     camera.lookAt(look);
-    camera.rotateZ(smooth((t - 1.5) / 0.6) * 1.1);
+    camera.rotateZ(Math.sin(t * 3) * 0.06 * pull);
+    // teeth closing around the screen
+    let bite = 0;
+    if (t > 0.9 && t < 1.75) bite = smooth((t - 0.9) / 0.85) * 0.42;
+    else if (t >= 1.75) { const ph = (t - 1.75) * 5.2; bite = Math.min(1, 0.72 + 0.28 * Math.abs(Math.cos(ph))); }
+    ui.teethTop.style.transform = `translateY(${((bite - 1) * 100).toFixed(1)}%)`;
+    ui.teethBot.style.transform = `translateY(${((1 - bite) * 100).toFixed(1)}%)`;
+    ui.teeth.style.opacity = t > 0.85 ? 1 : 0;
+    chews.forEach((at, k) => fire('chew' + k, at, () => { sfx.chomp(k === 0 ? 1 : 0.7); this.shake = k === 0 ? 2.2 : 1.2; flash('#ff0010', k === 0 ? 0.75 : 0.35); }));
+    fire('splashed', 1.85, () => splash('EATEN!', h.T.caption, h.T.eyeCss));
+    fire('gulped', 3.45, () => sfx.gulp());
+    ui.static.style.opacity = t > 0.35 && t < 1.75 ? (0.06 + Math.random() * 0.1).toFixed(2) : 0;
     ui.vignette.style.opacity = Math.min(1, t * 2).toFixed(2);
-    ui.fade.style.background = '#000';
-    ui.fade.style.opacity = clamp((t - 2.4) / 0.9, 0, 1).toFixed(3);
+    ui.fade.style.background = '#1a0002';
+    ui.fade.style.opacity = (t < 1.75 ? 0 : t < 3.4 ? 0.55 + 0.25 * Math.abs(Math.sin(t * 5.2)) : clamp(0.8 + (t - 3.4) / 0.8, 0, 1)).toFixed(3);
     this.applyShake(dt);
-    if (t > 3.6) { this.endCine(); this.endMine(); }
+    if (t > 4.4) { h.eatJaw = undefined; this.hideTeeth(); this.endCine(); this.endMine(); }
   },
+  hideTeeth() { ui.teeth.style.opacity = 0; ui.teethTop.style.transform = 'translateY(-100%)'; ui.teethBot.style.transform = 'translateY(100%)'; },
 
   startEscape() {
     this.player.state = 'escaped';
@@ -3454,6 +3749,44 @@ const game = {
       else { if (net.isHost) net.broadcast({ t: 'exit' }); this.openExit(); }
     }
   },
+  takeItem(it) { it.taken = true; it.mesh.visible = false; it.decal.visible = false; },
+  collectItem(it) {
+    const p = this.player;
+    this.takeItem(it);
+    if (it.kind === 'ghost') { p.ghosts = Math.min(3, p.ghosts + 1); toast(`👻 Ghost Potion! Press ${isTouch ? 'the 👻 button' : 'Q'} to turn invisible`, '#cf8bff'); }
+    else { p.bombs = Math.min(3, p.bombs + 1); toast(`💥 Flash Bomb! Press ${isTouch ? 'the 💥 button' : 'E'} to stun nearby monsters`, '#ffe05a'); }
+    sfx.drink(); burst(V(it.x, 2, it.z), it.kind === 'ghost' ? 0xb47aff : 0xffe05a, 20, 8, 0.7);
+    const i = world.items.indexOf(it);
+    if (net.isClient) net.send({ t: 'item', i }); else if (net.isHost) net.broadcast({ t: 'item', i });
+  },
+  useGhost() {
+    const p = this.player;
+    if (this.state !== 'play' || this.cine || !p || p.state !== 'alive' || p.ghosts <= 0 || p.ghostT > 0) return;
+    p.ghosts--; p.ghostT = 7;
+    sfx.tone(600, 0.8, 'sine', 0.25, 0, 1400); sfx.noise(0.6, 0.2, 3000, 'highpass');
+    flash('#b47aff', 0.4); burst(p.pos.clone().add(V(0, 3, 0)), 0xb47aff, 30, 8, 0.8, 3);
+    toast('👻 You are INVISIBLE for 7 seconds!', '#cf8bff');
+  },
+  useBomb() {
+    const p = this.player;
+    if (this.state !== 'play' || this.cine || !p || p.state !== 'alive' || p.bombs <= 0) return;
+    p.bombs--;
+    flash('#ffffff', 0.95); this.shake = 1.2; sfx.boom(); sfx.tone(2400, 0.6, 'square', 0.12, 0, 600);
+    burst(p.pos.clone().add(V(0, 3, 0)), 0xffe05a, 60, 30, 0.9, 6, 2);
+    if (net.isClient) net.send({ t: 'stun', x: r2(p.pos.x), z: r2(p.pos.z) });
+    else this.stunAround(p.pos, null);
+  },
+  stunAround(pos, by) {
+    let n = 0;
+    for (const h of this.hunters) {
+      if (!h.active) continue;
+      if (Math.hypot(h.pos.x - pos.x, h.pos.z - pos.z) / Math.max(1, h.T.scale * 0.5) > 45) continue;
+      h.stunT = 5; h.chasing = false; h.lastKnown = null; h.path = null; h.vel.set(0, 0, 0); n++;
+    }
+    if (!by) toast(n ? `💥 You stunned ${n} monster${n === 1 ? '' : 's'}! RUN!` : '💥 No monsters close enough…', '#ffe05a');
+    else if (n) toast(`💥 ${by} stunned ${n} monster${n === 1 ? '' : 's'}!`, '#ffe05a');
+    if (net.isHost) net.broadcast({ t: 'stunned', n, by: by || net.myName() });
+  },
   collectDrink(d) {
     d.taken = true; d.mesh.visible = false; d.decal.visible = false;
     this.player.stamina = this.player.maxStamina; this.player.exhausted = false;
@@ -3475,6 +3808,7 @@ const game = {
   },
   caught(hunter) {
     if (this.player.state !== 'alive') return;
+    document.body.classList.remove('ghosting');
     this.player.state = 'caught'; this.catcher = hunter;
     this.player.vel.set(0, 0, 0);
     if (net.on) { hunter.pauseT = 3.6; hunter.vel.set(0, 0, 0); if (net.isHost) net.broadcast({ t: 'caught', id: net.myId, h: this.hunters.indexOf(hunter) }); }
@@ -3524,7 +3858,7 @@ const game = {
     $('againBtn').textContent = net.isHost ? 'Play again (everyone)' : 'Play again';
     $('menuBtn').textContent = net.on ? 'Room lobby' : 'Menu';
     if (net.on) { net.syncLobby(); if (net.isClient) setTimeout(() => { $('resultSub').textContent += ' · Waiting for the host to start the next round…'; }, 0); }
-    $('resultTitle').textContent = this.result.win ? (last ? 'YOU BEAT IT ALL!' : LV().battle ? 'TITANS DEFEATED!' : 'ESCAPED!') : 'CAUGHT';
+    $('resultTitle').textContent = this.result.win ? (last ? 'YOU BEAT IT ALL!' : LV().battle ? 'TITANS DEFEATED!' : 'ESCAPED!') : 'EATEN!';
     $('resultTitle').style.color = this.result.win ? 'var(--green)' : 'var(--red)';
     $('resultSub').textContent = this.result.reason;
     $('resultRows').innerHTML = rows.map(([a, b]) => `<div><span>${a}</span><span>${b >= 0 ? '+' : ''}${b} 🪙</span></div>`).join('')
@@ -3542,6 +3876,7 @@ const game = {
     if (world) {
       for (const sp of world.spinners) sp.obj.rotation[sp.axis] += sp.speed * dt;
       for (const k of world.keys) if (!k.taken) { k.mesh.rotation.y += dt * 2; k.mesh.position.y = 3.2 + Math.sin(now * 2 + k.x) * 0.4; }
+      for (const it of world.items) if (!it.taken) { it.mesh.rotation.y += dt * 2; it.mesh.position.y = 1.7 + Math.sin(now * 3 + it.x) * 0.35; }
       for (const d of world.drinks) if (!d.taken) { d.mesh.rotation.y += dt * 1.5; d.mesh.position.y = 1.6 + Math.sin(now * 2.5 + d.z) * 0.3; }
       if (world.exit && !this.exitOpen) world.exit.stripes.offset.x -= dt * 0.6;
       for (const p of world.pads) p.mesh.material.color.setRGB(0.24 * 2.2, (0.9 + Math.sin(now * 5) * 0.1) * 2.2, 2.2);
@@ -3615,6 +3950,7 @@ const game = {
       if (d < 3.2 && p.pos.y < 6) this.collectKey(k);
     }
     for (const d of world.drinks) if (!d.taken && Math.hypot(d.x - p.pos.x, d.z - p.pos.z) < 2.6 && p.pos.y < 5) this.collectDrink(d);
+    for (const it of world.items) if (!it.taken && Math.hypot(it.x - p.pos.x, it.z - p.pos.z) < 2.6 && p.pos.y < 5) this.collectItem(it);
     if (this.exitOpen && p.pos.z > world.half + 3 && Math.abs(p.pos.x - world.exit.x) < world.exit.gapW / 2 + 1) { this.startEscape(); return; }
     if (timeLeft <= 0) { this.timeUp(); return; }
 
@@ -3724,6 +4060,18 @@ const game = {
     ui.staminaFill.style.background = p.exhausted ? 'linear-gradient(180deg,#ff8a7a,#e04a3a)' : frac < 0.3 ? 'linear-gradient(180deg,#ffd77a,#f0a530)' : '';
     ui.staminaText.textContent = p.exhausted ? 'EXHAUSTED' : this.time < p.boostUntil ? '⚡ BOOST' : 'STAMINA';
     ui.hiddenTag.classList.toggle('hidden', !p.hidden);
+    ui.hiddenTag.textContent = p.ghostT > 0 ? `👻 INVISIBLE ${Math.ceil(p.ghostT)}` : '🌿 HIDDEN';
+    const inv = [p.ghosts ? `👻×${p.ghosts}${isTouch ? '' : ' Q'}` : '', p.bombs ? `💥×${p.bombs}${isTouch ? '' : ' E'}` : ''].filter(Boolean).join('  ');
+    ui.itemPill.classList.toggle('hidden', !inv); ui.itemPill.textContent = inv;
+    ui.tGhost.classList.toggle('hidden', !p.ghosts); ui.tBomb.classList.toggle('hidden', !p.bombs);
+    const showArrow = this.exitOpen && p.state === 'alive' && !LV().battle;
+    ui.exitArrow.classList.toggle('hidden', !showArrow);
+    if (showArrow) { // points at the open exit gate
+      const dx = world.exit.x - p.pos.x, dz = world.exit.z - p.pos.z;
+      const fwd = dx * Math.sin(camYaw) + dz * Math.cos(camYaw), right = -dx * Math.cos(camYaw) + dz * Math.sin(camYaw);
+      ui.exitArrowIcon.style.transform = `rotate(${Math.atan2(right, fwd).toFixed(3)}rad)`;
+      ui.exitDist.textContent = `EXIT ${Math.round(Math.hypot(dx, dz))}m`;
+    }
     ui.crosshair.classList.toggle('hidden', !firstPerson);
     if (showMap) drawMap(now);
   },
@@ -3738,6 +4086,29 @@ function setPaused(on) {
 // ---------------------------------------------------------------------------
 // Menu / shop
 // ---------------------------------------------------------------------------
+// ---- settings (menu + pause screen)
+function applySettings() {
+  const st = settings(), low = st.quality === 'low';
+  const pr = low ? 1 : Math.min(window.devicePixelRatio, 1.75);
+  renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(window.innerWidth, window.innerHeight);
+  moon.castShadow = !low; bloom.enabled = !low;
+  if (sfx.master) sfx.master.gain.value = 0.55 * st.vol;
+}
+function mountSettings(el) {
+  el.innerHTML = `<div class="setRow"><span>🔊 Volume</span><input type="range" min="0" max="100" data-k="vol"></div>
+    <div class="setRow"><span>🖱 Look speed</span><input type="range" min="30" max="250" data-k="sens"></div>
+    <div class="setRow"><span>✨ Graphics</span><div class="seg"><button data-q="high">High</button><button data-q="low">Fast</button></div></div>`;
+  el.querySelectorAll('input').forEach((inp) => inp.addEventListener('input', () => { settings()[inp.dataset.k] = inp.value / 100; writeSave(); applySettings(); renderSettings(); }));
+  el.querySelectorAll('[data-q]').forEach((b) => b.addEventListener('click', () => { settings().quality = b.dataset.q; writeSave(); applySettings(); renderSettings(); }));
+}
+function renderSettings() {
+  const st = settings();
+  document.querySelectorAll('.settingsBox input').forEach((inp) => { inp.value = Math.round(st[inp.dataset.k] * 100); });
+  document.querySelectorAll('.settingsBox [data-q]').forEach((b) => b.classList.toggle('on', b.dataset.q === st.quality));
+}
+document.querySelectorAll('.settingsBox').forEach(mountSettings);
+applySettings(); renderSettings();
+
 function renderMenu() {
   renderLobby();
   const lv = $('levelSeg'); lv.innerHTML = '';
@@ -3878,7 +4249,7 @@ if (demo) {
           if (firstChase === null && game.hunters[0].chasing) firstChase = t.toFixed(1);
         }
         const cineKind = game.cine && game.cine.kind;
-        for (let i = 0; i < 60 * 4; i++) game.update(1 / 60);
+        for (let i = 0; i < 60 * 6; i++) game.update(1 / 60);
         console.log('SIM', JSON.stringify({ firstChase, caughtAfter: t.toFixed(1), state: game.player.state, cine: cineKind, finalState: game.state }));
         const failed = [...world.keys, ...world.spawns, ...world.patrol].filter((k) => !findPath(world.nav, 0, 0, k.x, k.z));
         console.log('PATHS', JSON.stringify({ targets: world.keys.length + world.spawns.length + world.patrol.length, fails: failed.length, where: failed.map((k) => `${world.zoneAt(k.x, k.z)}@${k.x.toFixed(0)},${k.z.toFixed(0)}`) }));
@@ -3897,7 +4268,7 @@ if (demo) {
         for (let i = 0; i < 60 * 3 && !game.cine; i++) { game.update(1 / 60); }
         caughtAt = game.cine && game.cine.kind;
         if (demo === 'deathshot') { for (let i = 0; i < 60 * 0.9; i++) game.update(1 / 60); return; }
-        for (let i = 0; i < 60 * 4; i++) game.update(1 / 60);
+        for (let i = 0; i < 60 * 6; i++) game.update(1 / 60);
         console.log('DEATH', JSON.stringify({ cine: caughtAt, finalState: game.state, resultsShown: !ui.results.classList.contains('hidden') }));
       } else if (demo === 'escape' || demo === 'escapeshot') {
         game.keys = 4; game.collectKey(world.keys.find((k) => !k.taken)); game.skipCine();
@@ -3925,6 +4296,20 @@ if (demo) {
       } else if (demo === 'battleshot') { // ?demo=battleshot&level=4&t=12 → freeze the battle at t seconds
         game.keys = 4; game.collectKey(world.keys.find((k) => !k.taken));
         const T = +new URLSearchParams(location.search).get('t') || 10;
+        for (let i = 0; i < 60 * T; i++) game.update(1 / 60);
+        game.update = () => {};
+      } else if (demo === 'items') { // pick up a ghost potion + flash bomb, use both
+        const p = game.player, out = { items: world.items.length };
+        for (const kind of ['ghost', 'bomb']) { const it = world.items.find((x) => x.kind === kind && !x.taken); p.pos.set(it.x, 0, it.z); game.update(1 / 60); }
+        out.inv = [p.ghosts, p.bombs];
+        game.useGhost(); for (let i = 0; i < 30; i++) game.update(1 / 60); out.hiddenWhileGhost = p.hidden;
+        const h = game.hunters[0]; p.pos.set(h.pos.x + 20, 0, h.pos.z); game.useBomb(); out.stunned = h.stunT > 0;
+        for (let i = 0; i < 60; i++) game.update(1 / 60); out.stillStunned = h.stunT > 0; out.alive = p.state;
+        console.log('ITEMS', JSON.stringify(out));
+      } else if (demo === 'eatshot') { // freeze the eaten cutscene at t seconds
+        const h = game.hunters[0]; game.player.pos.set(h.pos.x + 2, 0, h.pos.z - 14); camYaw = Math.PI;
+        for (let i = 0; i < 60 * 3 && !game.cine; i++) game.update(1 / 60);
+        const T = +new URLSearchParams(location.search).get('t') || 1.5;
         for (let i = 0; i < 60 * T; i++) game.update(1 / 60);
         game.update = () => {};
       } else if (demo === 'touch') {
