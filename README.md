@@ -90,7 +90,7 @@ Then open http://localhost:8137 in Chrome/Firefox/Edge. Works with keyboard + mo
 wall-jumps, flashlight (F), and cutscenes for the intro, getting caught and escaping.
 Coins, upgrades and best time are saved in your browser.
 
-**Twelve levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
+**Fifteen levels, all unlocked** (pick one on the menu; escaping shows a *Next level* button):
 
 | Level | Areas | Monsters |
 |---|---|---|
@@ -105,7 +105,10 @@ Coins, upgrades and best time are saved in your browser.
 | 🏚 9. Haunted Manor | spooky mansions, pumpkin patch, swamp (water slows you), graveyard, hedge maze | 🧛 Vampire, 🐺 Werewolf, 😱 Banshee |
 | 🌴 10. Jungle Temple (rain) | step-pyramid temples with stone heads that watch you, deep jungle, rivers, mossy cliffs, swamp | 🐍 Serpent, 🦍 Jungle Brute, 🗿 Tiki Spirit |
 | 🧸 11. Midnight Toyland | toy town, giant blocks, ball pits you can hide in, toy train yard, dollhouses | 🧸 Teddy, 🪆 Broken Doll, 🎁 Jack-in-the-Box |
-| 🌀 12. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
+| 🦖 12. Dino Valley (ash) | fossil plains with dino nests, giant fern forest, sticky tar pits, caves, lava fields | 🦖 Raptor (very fast), 🦕 T-Rex (huge), 🪶 Pterodactyl (wings) |
+| 🏴‍☠️ 13. Pirate Cove | pirate port with taverns, moonlit beach, pirate ships and docks, lagoon (slows you), sea caves | 🏴‍☠️ Ghost Pirate, 🐙 Krakenling, 💀 Skull Captain |
+| 🤖 14. Cyber City 2099 (rain) | neon city with holograms, server farm, laser grid (burns stamina), rust yards, neon park | 🐕 Robo-Hound, 🤖 Sentinel, 👾 The Glitch |
+| 🌀 15. The Nightmare Mix | a random remix of areas from every level, new every round | 3 random monsters from the other levels, and the fastest monsters |
 
 Monsters get a little faster each level. Cutscenes: a level-specific intro, the monsters being released,
 the exit gate opening (and a monster hearing it), the last-45-seconds frenzy, getting caught, and escaping.
@@ -113,7 +116,7 @@ Every cutscene can be skipped (click, Space, Enter or Esc). Stamina lasts much l
 
 **Power-ups** are hidden around every map: 👻 **Ghost Potion** (press `Q`) makes you invisible for 7 seconds,
 💥 **Flash Bomb** (press `E`) stuns every monster near you for 5 seconds. When the exit opens, an arrow points to it.
-Getting caught now plays an **eaten** cutscene: the monster opens wide, pulls you into its mouth and *CHOMP*.
+Getting caught now plays an **eaten** cutscene: the monster grabs you and pulls you all the way into its mouth, down past the tongue to its throat; you turn around, see the teeth around the opening… and *CHOMP*, then chewing and a gulp.
 **Settings** (menu and pause screen): volume, look speed, and a *Fast* graphics mode for slower computers and phones.
 
 What else is different in the browser version:

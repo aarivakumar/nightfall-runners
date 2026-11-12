@@ -110,6 +110,27 @@ const MONSTERS = {
     hair: 0x4a2a10, eyeSize: 1.7, extraArms: true, ribs: false, spikes: 0, lightK: 0.4, voice: { roar: 420, scream: 1300, growl: 160, creak: true }, caption: 'The Broken Doll wants you to play forever.' },
   jackbox: { name: 'The Jack-in-the-Box', emoji: '🎁', eye: 0xb44aff, eyeCss: '#cf8bff', body: 0x3a1a6a, face: 0xf2ede4, scale: 1.25, speed: -0.5, sight: 120, hear: 32, posture: 'float', headY: 9.8, lunge: 4.6,
     clown: true, robe: 0x5a2aa0, spikes: 0, ribs: false, lightK: 0.5, voice: { roar: 360, scream: 1100, growl: 130, laugh: true }, caption: 'POP! goes the Jack-in-the-Box.' },
+  // ---- Level 12: Dino Valley
+  raptor: { name: 'The Raptor', emoji: '🦖', eye: 0xffe21a, eyeCss: '#ffe85a', body: 0x3a5228, bone: 0xe8dcc0, scale: 1.05, speed: 2.6, sight: 85, hear: 18, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    tail: true, spikes: 6, spikeLen: 0.8, eyeSize: 1.2, ribs: false, voice: { roar: 340, scream: 1200, growl: 130, click: true }, caption: 'The Raptor was too fast.' },
+  trex: { name: 'The T-Rex', emoji: '🦕', eye: 0xff6a1a, eyeCss: '#ff9a5a', body: 0x4a3a22, bone: 0xf0e8d0, scale: 2.2, speed: -1, sight: 110, hear: 26, posture: 'upright', headY: 8.5, lunge: 11,
+    bulk: 1.6, tail: true, armLen: 1.1, spikes: 7, spikeLen: 0.9, ribs: false, voice: { roar: 60, scream: 380, growl: 30 }, caption: 'The T-Rex had you for lunch.' },
+  ptero: { name: 'The Pterodactyl', emoji: '🪶', eye: 0xff2a4a, eyeCss: '#ff6a7a', body: 0x6a4a34, scale: 1.15, speed: -0.5, sight: 130, hear: 30, posture: 'float', headY: 9.8, lunge: 4.6,
+    wings: true, legsVisible: true, horns: true, ribs: false, spikes: 0, voice: { roar: 700, scream: 1600, growl: 260, wail: true }, caption: 'The Pterodactyl swooped down on you.' },
+  // ---- Level 13: Pirate Cove
+  ghostpirate: { name: 'The Ghost Pirate', emoji: '🏴‍☠️', eye: 0x5aff9a, eyeCss: '#8affb4', body: 0x2a4a3a, scale: 1.3, speed: 0.5, sight: 115, hear: 20, posture: 'upright', headY: 8.5, lunge: 7.2,
+    ghost: 0x0a3a20, hat: true, longClaws: true, ribs: true, spikes: 0, lightK: 0.6, voice: { roar: 150, scream: 750, growl: 55, laugh: true }, caption: 'The Ghost Pirate made you walk the plank.' },
+  krakenling: { name: 'The Krakenling', emoji: '🐙', eye: 0xff4ad0, eyeCss: '#ff7ae0', body: 0x5a1a4a, scale: 1.1, speed: 1.8, sight: 75, hear: 16, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    extraArms: true, tentacles: true, eyeSize: 1.5, ribs: false, spikes: 0, voice: { roar: 240, scream: 950, growl: 90, click: true }, caption: 'The Krakenling dragged you into the deep.' },
+  skullcaptain: { name: 'The Skull Captain', emoji: '💀', eye: 0xffc83a, eyeCss: '#ffd86a', body: 0x1a1a2a, scale: 1.2, speed: -1, sight: 125, hear: 36, posture: 'float', headY: 9.8, lunge: 4.6,
+    ghost: 0x1a1a3a, robe: 0x14142a, hat: true, boneFace: true, longClaws: true, flicker: true, ribs: false, spikes: 0, voice: { roar: 420, scream: 1250, growl: 160, laugh: true }, caption: 'The Skull Captain claimed your treasure.' },
+  // ---- Level 14: Cyber City 2099
+  robohound: { name: 'The Robo-Hound', emoji: '🐕', eye: 0xff2a2a, eyeCss: '#ff5a5a', body: 0x5a6070, bone: 0x9aa0b0, scale: 1.1, speed: 2.4, sight: 90, hear: 20, posture: 'crawl', headY: 4.6, lunge: 3.8,
+    metal: true, eyes: 1, eyeSize: 2.2, spikes: 5, spikeLen: 1, ribs: false, voice: { roar: 500, scream: 1400, growl: 200, click: true }, caption: 'The Robo-Hound locked on to you.' },
+  sentinel: { name: 'The Sentinel', emoji: '🤖', eye: 0x2ad8ff, eyeCss: '#6ae8ff', body: 0x3a4250, bone: 0x8a90a0, scale: 1.4, speed: 0.5, sight: 140, hear: 22, posture: 'upright', headY: 8.5, lunge: 7.5,
+    metal: true, eyes: 1, eyeSize: 2.6, bigHead: true, ribs: false, spikes: 0, voice: { roar: 220, scream: 900, growl: 80 }, caption: 'The Sentinel deleted you.' },
+  glitch: { name: 'The Glitch', emoji: '👾', eye: 0xff2ad8, eyeCss: '#ff6ae8', body: 0x2a0a3a, scale: 1.2, speed: -0.5, sight: 130, hear: 40, posture: 'float', headY: 9.8, lunge: 4.6,
+    ghost: 0x6a0a8a, robe: 0x1a0a2a, hood: 0x1a0a2a, boneFace: true, longClaws: true, flicker: true, ribs: false, spikes: 0, voice: { roar: 800, scream: 1800, growl: 300, wail: true }, caption: 'The Glitch corrupted you.' },
 };
 const LEVELS = [
   { name: 'Nightfall City', emoji: '🌃', color: '#ff6fb5', center: 'city', corners: ['forest', 'graveyard', 'factory', 'fields'], monsters: ['stalker', 'crawler', 'wraith'],
@@ -168,6 +189,21 @@ const LEVELS = [
     blurb: 'A giant toy room after midnight: toy town, giant blocks, ball pits to hide in, toy trains and dollhouses.',
     story: ['At midnight, the toys come out to play…', 'The only way out is the north gate.', 'Find 5 keys hidden between the toys…', 'Something just wound itself up.', 'They want to play with YOU.'],
     released: ['Playtime!', 'Hide in the ball pits!'], escape: 'You escaped Midnight Toyland!' },
+  { name: 'Dino Valley', emoji: '🦖', color: '#9ad84a', center: 'dinoplains', corners: ['ferns', 'tarpits', 'caves', 'lava'], monsters: ['raptor', 'trex', 'ptero'],
+    hemi: [0xc8a070, 0x1a120a, 0.75], sky: 0x1a0c06, wall: 0x4a3a2a, lair: 0xff6a1a, speedBonus: 2.5, weather: 'ash',
+    blurb: 'A prehistoric valley: open plains with fossils and dino nests, giant ferns, sticky tar pits, caves and a volcano.',
+    story: ['Millions of years ago… or is it tonight?', 'The only way out is the north gate.', 'Find 5 keys before the volcano erupts…', 'The ground is shaking.', 'Something BIG is coming.'],
+    released: ['The dinosaurs are hungry.', 'Watch out for the tar!'], escape: 'You escaped Dino Valley!' },
+  { name: 'Pirate Cove', emoji: '🏴‍☠️', color: '#ffc85a', center: 'piratetown', corners: ['beach', 'shipyard', 'lagoon', 'seacave'], monsters: ['ghostpirate', 'krakenling', 'skullcaptain'],
+    hemi: [0x90b0d0, 0x101820, 0.75], sky: 0x081420, wall: 0x5a4430, lair: 0x5aff9a, speedBonus: 2.5, weather: null,
+    blurb: 'A cursed pirate port: taverns and docks, a moonlit beach, pirate ships, a lagoon that slows you down and sea caves.',
+    story: ['Arr… the cursed crew returns every full moon…', 'The only way out is the north gate.', 'Find 5 keys hidden with the treasure…', 'A ghost ship is coming into the harbor.', 'And its crew wants YOU.'],
+    released: ['All hands on deck!', 'Stay out of the water!'], escape: 'You escaped Pirate Cove!' },
+  { name: 'Cyber City 2099', emoji: '🤖', color: '#2ad8ff', center: 'cybercity', corners: ['servers', 'lasergrid', 'factory', 'neonpark'], monsters: ['robohound', 'sentinel', 'glitch'],
+    hemi: [0x7aa0ff, 0x0a0a1a, 0.8], sky: 0x05050f, wall: 0x2a3050, lair: 0x2ad8ff, speedBonus: 3, weather: 'rain',
+    blurb: 'A neon future city in the rain: server farms, laser grids that burn your stamina, junkyards and a glowing neon park.',
+    story: ['The year is 2099. The machines run the city now…', 'The only way out is the north gate.', 'Find 5 keys hidden in the system…', 'Security has detected you.', 'Three hunter units are online.'],
+    released: ['Hunter units activated.', 'Don\'t touch the lasers!'], escape: 'You escaped Cyber City!' },
   { name: 'The Nightmare Mix', emoji: '🌀', color: '#ff4ad0', mix: true, center: 'city', corners: [], monsters: [],
     hemi: [0xb070e0, 0x200820, 0.7], sky: 0x120414, wall: 0x2a1030, lair: 0xff2ad0, speedBonus: 2, weather: 'embers',
     blurb: 'Different every round: random areas from every level and 3 random monsters. The hardest level.',
@@ -442,6 +478,22 @@ const ZONES = {
   ballpit: { name: '🔴 Ball Pits (hide in them!)', color: '#7ad8ff', ground: [56, 60, 84], fog: 0x0e1424, density: 0.009, map: '#3a3a5a', sight: 0.85 },
   trains: { name: '🚂 Toy Train Yard', color: '#ffb84a', ground: [64, 54, 50], fog: 0x1a1210, density: 0.009, map: '#4a3a34', sight: 0.85 },
   dollhouses: { name: '🏠 Dollhouse Lane', color: '#ffa0d0', ground: [80, 56, 76], fog: 0x1e0c1c, density: 0.0095, map: '#5a3a52', sight: 0.8 },
+  // Level 12
+  dinoplains: { name: '🦴 Dino Plains', color: '#d8c87a', ground: [70, 70, 40], fog: 0x1e1408, density: 0.0075, map: '#4a4a2a', sight: 1.1 },
+  ferns: { name: '🌿 Giant Fern Forest', color: '#7aff6a', ground: [30, 50, 22], fog: 0x0a1a08, density: 0.013, map: '#1a3a14', sight: 0.45 },
+  tarpits: { name: '⚫ Tar Pits (sticky!)', color: '#b0a090', ground: [40, 34, 28], fog: 0x140e0a, density: 0.01, map: '#2a2420', sight: 0.9 },
+  caves: { name: '🕳 Dino Caves', color: '#c8a07a', ground: [44, 36, 30], fog: 0x0e0a08, density: 0.013, map: '#3a2e26', sight: 0.5 },
+  // Level 13
+  piratetown: { name: '🍺 Pirate Port', color: '#ffc85a', ground: [70, 56, 40], fog: 0x0e1418, density: 0.0085, map: '#4a3a2a', sight: 1 },
+  beach: { name: '🏝 Moonlit Beach', color: '#ffe8a0', ground: [150, 130, 90], fog: 0x0c1a24, density: 0.0075, map: '#8a7a54', sight: 1.15 },
+  shipyard: { name: '⛵ Pirate Shipyard', color: '#d8b07a', ground: [60, 50, 38], fog: 0x0a141c, density: 0.009, map: '#3a3026', sight: 0.75 },
+  lagoon: { name: '🌊 The Lagoon (water slows you)', color: '#6ad8ff', ground: [60, 80, 70], fog: 0x081a24, density: 0.009, map: '#2a4a4a', sight: 1 },
+  seacave: { name: '🦀 Sea Caves', color: '#8ab0d0', ground: [30, 40, 46], fog: 0x040c14, density: 0.013, map: '#1a2a34', sight: 0.5 },
+  // Level 14
+  cybercity: { name: '🌆 Cyber City', color: '#2ad8ff', ground: [26, 26, 40], fog: 0x0a0a20, density: 0.0065, map: '#22223a', sight: 1 },
+  servers: { name: '🖥 Server Farm', color: '#5aff8a', ground: [30, 34, 40], fog: 0x081410, density: 0.0095, map: '#1e2a2a', sight: 0.6 },
+  lasergrid: { name: '🔴 Laser Grid (lasers burn your stamina!)', color: '#ff4a6a', ground: [24, 20, 30], fog: 0x1a0610, density: 0.009, map: '#2a1a2a', sight: 1 },
+  neonpark: { name: '🌳 Neon Park', color: '#ff6ae8', ground: [20, 24, 40], fog: 0x0e0a24, density: 0.011, map: '#1a1a3a', sight: 0.5 },
 };
 
 let world = null;
@@ -595,6 +647,8 @@ function buildWorld(seed, L = LEVELS[0]) {
     swampWater: std(0x1a3a2a, { roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.85 }),
     water: std(0x1a5a7a, { roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.8 }),
     toy: std(0xffffff, { roughness: 0.35 }),
+    tar: std(0x0a0806, { roughness: 0.05, metalness: 0.5 }), laserFloor: neon(0xff2a4a, 1.6),
+    neonWire: Object.assign(neon(0xffffff, 2.2), { wireframe: true }),
   });
   const lampMat = neon(0xffd08a, 3.2), sodiumMat = neon(0xff8a2a, 3.2), poleMat = std(0x1e1e24, { metalness: 0.6, roughness: 0.4 });
   const crateMat = std(0x96693c, { roughness: 1 }), crateMat2 = std(0x7d5632, { roughness: 1 });
@@ -728,13 +782,13 @@ function buildWorld(seed, L = LEVELS[0]) {
       if (Math.hypot(x - cc.x, z - cc.z) < (edge ? 8 : 5.5)) continue;
       if (placed.some((p) => Math.hypot(p[0] - x, p[1] - z) < 7.5)) continue;
       placed.push([x, z]); k++;
-      if (style === 'kelp' || style === 'alien' || style === 'candy' || style === 'jungle') fancyTree(x, z, style);
+      if (['kelp', 'alien', 'candy', 'jungle', 'fern', 'neon'].includes(style)) fancyTree(x, z, style);
       else if (style === 'dead' || style === 'ash' || rng.next() < 0.12) deadTree(x, z, style === 'ash'); else tree(x, z, style === 'snow');
     }
     if (!edge && !clearing && rng.next() < 0.4) {
       const a = rng.next() * Math.PI * 2;
       const x = cc.x + Math.cos(a) * 4, z = cc.z + Math.sin(a) * 4;
-      if (placed.every((p) => Math.hypot(p[0] - x, p[1] - z) > 6)) bush(x, z, i + j * 7, style === 'snow' ? SNOWBUSH() : style === 'dead' ? new THREE.Color(0x3a1a1a) : style === 'ash' ? new THREE.Color(0x4a4642) : style === 'kelp' ? new THREE.Color(0x1a4a3a) : style === 'alien' ? new THREE.Color(0x5a2a8a) : style === 'candy' ? new THREE.Color(0xff9ad0) : style === 'jungle' ? new THREE.Color(0x1a5a1a) : null);
+      if (placed.every((p) => Math.hypot(p[0] - x, p[1] - z) > 6)) bush(x, z, i + j * 7, style === 'snow' ? SNOWBUSH() : style === 'dead' ? new THREE.Color(0x3a1a1a) : style === 'ash' ? new THREE.Color(0x4a4642) : style === 'kelp' ? new THREE.Color(0x1a4a3a) : style === 'alien' ? new THREE.Color(0x5a2a8a) : style === 'candy' ? new THREE.Color(0xff9ad0) : style === 'jungle' ? new THREE.Color(0x1a5a1a) : style === 'fern' ? new THREE.Color(0x2a5a1a) : style === 'neon' ? new THREE.Color(0x3a1a5a) : null);
     }
     const shrooms = clearing ? 10 : rng.int(0, 3);
     for (let k = 0; k < shrooms; k++) {
@@ -1255,19 +1309,20 @@ function buildWorld(seed, L = LEVELS[0]) {
     W.patrol.push(cc);
   };
   const lavaCell = (cc, i, j, edge, style = '') => {
-    const choc = style === 'choco' || style === 'water', wet = style === 'water';
+    const tar = style === 'tar', laser = style === 'laser', wet = style === 'water' || tar, choc = style === 'choco' || wet;
     if (!edge && rng.next() < 0.6) { // a river of lava: walkable, but it burns
       const alongX = rng.next() < 0.5, off = rng.pick([-1, 1]) * 7, w = alongX ? C : 5, d = alongX ? 5 : C;
       const x = cc.x + (alongX ? 0 : off), z = cc.z + (alongX ? off : 0);
-      box(w, 0.12, d, wet ? MAT.water : choc ? MAT.choco : MAT.lava, x, 0.06, z, false);
-      if (!choc) glowDecal(x, z, 9, 0xff4a0a, 0.4);
+      box(w, 0.12, d, tar ? MAT.tar : wet ? MAT.water : laser ? MAT.laserFloor : choc ? MAT.choco : MAT.lava, x, 0.06, z, false);
+      if (!choc) glowDecal(x, z, 9, laser ? 0xff2a4a : 0xff4a0a, 0.4);
       W.hazards.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, kind: wet ? 'water' : choc ? 'choco' : 'lava' });
-      W.mapRects.push({ x, z, w, d, color: wet ? '#2a7aa0' : choc ? '#5a2e18' : '#ff4a0a' });
+      W.mapRects.push({ x, z, w, d, color: tar ? '#111' : wet ? '#2a7aa0' : laser ? '#ff2a4a' : choc ? '#5a2e18' : '#ff4a0a' });
     }
     const n = edge ? 0 : rng.int(1, 3);
     for (let k = 0; k < n; k++) { // obsidian spires
       const a = rng.next() * 6.3, rr = rng.range(6.5, 10), x = cc.x + Math.cos(a) * rr, z = cc.z + Math.sin(a) * rr, h = rng.range(9, 20), r0 = rng.range(1.5, 2.5);
       if (wet) rock(x, z, r0);
+      else if (laser) { inst('pylon', GEO.box, MAT.metal, x, h * 0.3, z, { sx: 1.4, sy: h * 0.6, sz: 1.4, color: 0x3a3a4a }); inst('pylonTop', GEO.sphere, MAT.laserFloor, x, h * 0.6 + 0.6, z, { s: 0.7, cast: false }); }
       else if (choc) inst('chunk', GEO.box, MAT.chocoBar, x, h * 0.25, z, { sx: r0 * 1.6, sy: h * 0.5, sz: r0 * 1.6, ry: rng.next() * 6, rz: rng.range(-0.2, 0.2) });
       else inst('obsidian', GEO.cone6, MAT.obsidian, x, h / 2, z, { sx: r0, sy: h, sz: r0, ry: rng.next() * 6, rz: rng.range(-0.1, 0.1) });
       solid(x, z, r0 * 1.6, r0 * 1.6, h);
@@ -1367,7 +1422,7 @@ function buildWorld(seed, L = LEVELS[0]) {
   };
   const mesaCols = [0x8a3a22, 0xa04a2a, 0x7a3220, 0xb85a32];
   const canyonCell = (cc, i, j, edge, style = '') => {
-    const mcols = style === 'trench' ? [0x1a2a3a, 0x22324a, 0x2a3a50] : style === 'moss' ? [0x3a4a2a, 0x4a5a3a, 0x2a3a22, 0x55604a] : mesaCols;
+    const mcols = style === 'trench' ? [0x1a2a3a, 0x22324a, 0x2a3a50] : style === 'moss' ? [0x3a4a2a, 0x4a5a3a, 0x2a3a22, 0x55604a] : style === 'cave' ? [0x3a3028, 0x2e2620, 0x4a3e32] : mesaCols;
     const n = edge ? rng.int(0, 1) : rng.int(2, 4), placed = [];
     for (let k = 0, tries = 0; k < n && tries < 40; tries++) {
       const x = cc.x + rng.range(-9, 9), z = cc.z + rng.range(-9, 9);
@@ -1435,6 +1490,18 @@ function buildWorld(seed, L = LEVELS[0]) {
       for (let k = 0; k < 5; k++) { const a = rng.next() * 6.3; inst('alienSpot', GEO.sphere, MAT.bulb, x + Math.cos(a) * r * 0.6, h + r * 0.3, z + Math.sin(a) * r * 0.6, { s: 0.45, color: col, cast: false }); }
       glowDecal(x, z, r * 1.4, col, 0.25);
       W.mapRects.push({ x, z, w: r * 2, d: r * 2, color: '#5a2a8a', round: true });
+    } else if (style === 'fern') { // giant prehistoric fern
+      h = rng.range(5, 9);
+      inst('fernTrunk', GEO.trunk, MAT.bark, x, h / 2, z, { sx: 0.8, sy: h, sz: 0.8, color: 0x5a4a2a });
+      for (let k = 0; k < 9; k++) { const a = (k / 9) * 6.3 + rng.next() * 0.3, len = rng.range(6, 9); inst('frondF', GEO.box, MAT.pine, x + Math.cos(a) * len * 0.42, h + 0.4, z + Math.sin(a) * len * 0.42, { sx: len, sy: 0.15, sz: 1.6, ry: -a, rz: -0.35, color: rng.pick([0x2a6a1a, 0x3a7a22, 0x22581a]) }); }
+      W.mapRects.push({ x, z, w: 9, d: 9, color: '#1a3a14', round: true });
+    } else if (style === 'neon') { // glowing wireframe tree
+      h = rng.range(10, 16);
+      const col = rng.pick([0xff2ad8, 0x2ad8ff, 0x5aff8a, 0xb44aff]);
+      inst('neonTrunk', GEO.cyl, MAT.metal, x, h / 2, z, { sx: 0.35, sy: h, sz: 0.35, color: 0x3a3a4a });
+      inst('neonCone', GEO.cone, MAT.neonWire, x, h * 0.65, z, { sx: 4.5, sy: h * 0.7, sz: 4.5, ry: rng.next() * 6, color: col, cast: false });
+      glowDecal(x, z, 5, col, 0.25);
+      W.mapRects.push({ x, z, w: 6, d: 6, color: hex6(col), round: true });
     } else if (style === 'jungle') { // big jungle tree with hanging vines
       h = rng.range(16, 26);
       inst('jTrunk', GEO.trunk, MAT.bark, x, h / 2, z, { sx: 1.2, sy: h, sz: 1.2, color: 0x4a3a20 });
@@ -1747,6 +1814,116 @@ function buildWorld(seed, L = LEVELS[0]) {
     W.patrol.push(cc);
   };
 
+  // ===== Level 12: Dino Valley =====
+  const nest = (x, z) => {
+    for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; inst('stick', GEO.cyl, MAT.bark, x + Math.cos(a) * 2.2, 0.4, z + Math.sin(a) * 2.2, { sx: 0.18, sy: 3, sz: 0.18, rz: Math.PI / 2, ry: -a + 1.2, cast: false }); }
+    for (let k = 0; k < 3; k++) inst('egg', GEO.sphere, MAT.boneM, x + (k - 1) * 0.9, 0.7, z + (k % 2) * 0.6, { sx: 0.55, sy: 0.75, sz: 0.55, color: rng.pick([0xe8f0d8, 0xd8e8b0, 0xe0d0c0]) });
+    glowDecal(x, z, 3, 0xffe8a0, 0.25);
+  };
+  const dinoplainsCell = (cc, i, j, edge) => {
+    const r = edge ? 1 : rng.next();
+    if (r < 0.25) { boneyardCell(cc, i, j, edge); return; }
+    if (r < 0.4) nest(cc.x + rng.pick([-1, 1]) * 7, cc.z + rng.pick([-1, 1]) * 7);
+    else if (r < 0.55) for (let k = 0; k < rng.int(1, 3); k++) { const a = rng.next() * 6.3; rock(cc.x + Math.cos(a) * 8.5, cc.z + Math.sin(a) * 8.5, rng.range(1.5, 2.6)); }
+    else if (r < 0.66) { for (let k = 0; k < rng.int(2, 3); k++) { const a = rng.next() * 6.3, rr = rng.range(3, 7); bush(cc.x + Math.cos(a) * rr, cc.z + Math.sin(a) * rr, i + j + k, new THREE.Color(0x3a6a22)); } W.patrol.push(cc); return; }
+    else if (r < 0.71) { speedPad(cc); W.patrol.push(cc); return; }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
+  // ===== Level 13: Pirate Cove =====
+  const tavern = (cc) => {
+    const w = rng.int(12, 15), d = rng.int(10, 13), h = rng.int(8, 11);
+    box(w, h, d, std(rng.pick([0x5a3a22, 0x4a3020, 0x6a4628]), { roughness: 1 }), cc.x, h / 2, cc.z);
+    for (const sd of [-1, 1]) { const p = box(w + 1.5, 0.6, d / 2 + 1.6, std(0x2a1a14), cc.x, h + 2, cc.z + sd * (d / 4 + 0.3)); p.rotation.x = sd * 0.5; }
+    for (const sx of [-1, 1]) box(2, 1.6, 0.2, neon(0xffb050, 1.6), cc.x + sx * w / 4, h * 0.55, cc.z - d / 2 - 0.1, false);
+    box(2.4, 4.4, 0.2, new THREE.MeshBasicMaterial({ color: 0x0a0604 }), cc.x, 2.2, cc.z - d / 2 - 0.1, false);
+    box(3.6, 1.4, 0.2, std(0x8a5a2a), cc.x, h * 0.8, cc.z - d / 2 - 0.4, false); // sign
+    solid(cc.x, cc.z, w, d, h);
+    W.mapRects.push({ x: cc.x, z: cc.z, w, d, color: '#6a4628' });
+  };
+  const piratetownCell = (cc, i, j, edge) => {
+    const r = edge ? 1 : rng.next();
+    if (r < 0.32) { tavern(cc); return; }
+    if (r < 0.45) {
+      for (let k = 0; k < rng.int(2, 4); k++) barrel(cc.x + rng.pick([-1, 1]) * rng.range(6, 9), cc.z + rng.pick([-1, 1]) * rng.range(6, 9));
+      for (let k = 0; k < 2; k++) { const x = cc.x + rng.pick([-1, 1]) * 8, z = cc.z + rng.range(-3, 3); inst('crateP', GEO.box, MAT.metal, x, 1.5, z, { s: 3, ry: rng.next(), color: 0x8a6a3a }); solid(x, z, 3.4, 3.4, 3); }
+      keyCandidates.push(cc); W.patrol.push(cc); return;
+    }
+    if (r < 0.56) { palm(cc.x + 7, cc.z - 7); bush(cc.x - 4, cc.z + 5, i + j, new THREE.Color(0x2a5a22)); W.patrol.push(cc); return; }
+    if (r < 0.61) { speedPad(cc); W.patrol.push(cc); return; }
+    if (rng.next() < 0.5) lamp(cc.x + C / 2 - 4, cc.z + C / 2 - 4, sodiumMat, 0xffa040);
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const beachCell = (cc, i, j, edge) => {
+    for (let k = 0; k < rng.int(1, 2); k++) { const a = rng.next() * 6.3, rr = rng.range(4, 9); inst('dune', GEO.sphere, MAT.sand, cc.x + Math.cos(a) * rr, -0.4, cc.z + Math.sin(a) * rr, { sx: rng.range(5, 8), sy: 1.3, sz: rng.range(4, 6), ry: rng.next() * 6, cast: false }); }
+    if (!edge && rng.next() < 0.55) palm(cc.x + rng.pick([-1, 1]) * 8, cc.z + rng.pick([-1, 1]) * 8);
+    if (!edge && rng.next() < 0.3) { // a beached rowboat
+      const x = cc.x - 6, z = cc.z + 6;
+      inst('rowboat', GEO.box, MAT.metal, x, 0.7, z, { sx: 2.6, sy: 1.2, sz: 6, ry: rng.next(), rz: 0.2, color: 0x6a4a2a });
+      solid(x, z, 4, 4, 1.4);
+    }
+    for (let k = 0; k < 4; k++) inst('shell', GEO.sphere, MAT.boneM, cc.x + rng.range(-10, 10), 0.1, cc.z + rng.range(-10, 10), { sx: 0.35, sy: 0.15, sz: 0.3, color: rng.pick([0xffd0c0, 0xf0e0ff, 0xfff0d0]), cast: false });
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+  const pirateShip = (cc) => {
+    const alongX = rng.next() < 0.5, Lh = 20, Wd = 6.5, h = 6, sd = rng.pick([-1, 1]);
+    const x = cc.x + (alongX ? 0 : sd * 6.5), z = cc.z + (alongX ? sd * 6.5 : 0);
+    const hull = std(0x4a2e1a, { roughness: 1 });
+    box(alongX ? Lh : Wd, h, alongX ? Wd : Lh, hull, x, h / 2, z);
+    for (const s of [-0.3, 0.25]) {
+      const mx = x + (alongX ? s * Lh : 0), mz = z + (alongX ? 0 : s * Lh);
+      box(0.6, 18, 0.6, std(0x3a2414), mx, h + 9, mz);
+      const sail = box(alongX ? 0.15 : 7, 7, alongX ? 7 : 0.15, std(0xe8e0c8, { side: THREE.DoubleSide, roughness: 1 }), mx, h + 10, mz, false);
+      sail.rotation.y = 0.1;
+    }
+    box(alongX ? 0.1 : 2.4, 1.6, alongX ? 2.4 : 0.1, new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide }), x, h + 18.6, z, false); // jolly roger
+    for (let k = -2; k <= 2; k++) box(0.8, 0.8, 0.8, neon(0xffb050, 1.4), x + (alongX ? k * 3.5 : -sd * 3.3), h - 2, z + (alongX ? -sd * 3.3 : k * 3.5), false);
+    solid(x, z, alongX ? Lh : Wd, alongX ? Wd : Lh, h);
+    W.mapRects.push({ x, z, w: alongX ? Lh : Wd, d: alongX ? Wd : Lh, color: '#5a3a22' });
+  };
+  const shipyardCell = (cc, i, j, edge) => {
+    if (!edge && rng.next() < 0.4) pirateShip(cc);
+    else if (!edge) { // a wooden dock
+      for (let k = -2; k <= 2; k++) inst('plank', GEO.box, MAT.bark, cc.x + k * 2.2, 0.15, cc.z + 7, { sx: 2, sy: 0.3, sz: 8, color: 0x6a4a2a, cast: false });
+      for (const px of [-5, 5]) { inst('post', GEO.cyl, MAT.bark, cc.x + px, 1.2, cc.z + 11, { sx: 0.4, sy: 2.4, sz: 0.4 }); solid(cc.x + px, cc.z + 11, 0.9, 0.9, 2.4); }
+      if (rng.next() < 0.5) barrel(cc.x - 7, cc.z - 6);
+    }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
+  // ===== Level 14: Cyber City 2099 =====
+  const hologram = (x, z) => {
+    const col = rng.pick([0x2ad8ff, 0xff2ad8, 0x5aff8a, 0xffe03a]);
+    const holo = new THREE.Group(); holo.position.set(x, 14 + rng.range(0, 8), z); group.add(holo);
+    const m = new THREE.Mesh(new THREE.OctahedronGeometry(2.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(1.8), wireframe: true, transparent: true, opacity: 0.8 }));
+    holo.add(m);
+    W.spinners.push({ obj: holo, axis: 'y', speed: 0.8 });
+    glowDecal(x, z, 5, col, 0.2);
+  };
+  const cybercityCell = (cc, i, j, edge) => {
+    cityCell(cc, i, j, edge);
+    if (!edge && rng.next() < 0.25) hologram(cc.x + C / 2 - 3, cc.z - C / 2 + 3);
+  };
+  const serversCell = (cc, i, j, edge) => {
+    for (const oz of [-7, 7]) {
+      if (edge || rng.next() < 0.2) continue;
+      for (let k = -2; k <= 2; k++) {
+        const x = cc.x + k * 4.2, z = cc.z + oz;
+        if (Math.abs(k) === 2 && rng.next() < 0.5) continue;
+        inst('rack', GEO.box, MAT.metal, x, 4, z, { sx: 3.6, sy: 8, sz: 2.4, color: 0x2a2e38 });
+        for (let l = 0; l < 4; l++) inst('led', GEO.box, MAT.bulb, x + rng.range(-1.2, 1.2), 1.5 + l * 1.7, z - 1.25, { sx: 0.6, sy: 0.12, sz: 0.05, color: rng.pick([0x3aff6a, 0x2ad8ff, 0xffb03a]), cast: false });
+        solid(x, z, 3.6, 2.4, 8);
+        W.mapRects.push({ x, z, w: 3.6, d: 2.4, color: '#3a4a4a' });
+      }
+    }
+    if (!edge) keyCandidates.push(cc);
+    W.patrol.push(cc);
+  };
+
   const builders = {
     city: cityCell, forest: forestCell, graveyard: graveCell, factory: factoryCell, fields: fieldsCell,
     village: villageCell, snowwoods: (cc, i, j, e) => forestCell(cc, i, j, e, 'snow'), lake: lakeCell, crystal: crystalCell, camp: campCell,
@@ -1760,6 +1937,9 @@ function buildWorld(seed, L = LEVELS[0]) {
     manor: manorCell, pumpkins: pumpkinsCell, swamp: swampCell,
     temple: templeCell, jungle: (cc, i, j, e) => forestCell(cc, i, j, e, 'jungle'), river: (cc, i, j, e) => lavaCell(cc, i, j, e, 'water'), mossrock: (cc, i, j, e) => canyonCell(cc, i, j, e, 'moss'),
     toytown: toytownCell, blocks: blocksCell, ballpit: ballpitCell, trains: trainsCell, dollhouses: dollhousesCell,
+    dinoplains: dinoplainsCell, ferns: (cc, i, j, e) => forestCell(cc, i, j, e, 'fern'), tarpits: (cc, i, j, e) => lavaCell(cc, i, j, e, 'tar'), caves: (cc, i, j, e) => canyonCell(cc, i, j, e, 'cave'),
+    piratetown: piratetownCell, beach: beachCell, shipyard: shipyardCell, lagoon: (cc, i, j, e) => lavaCell(cc, i, j, e, 'water'), seacave: (cc, i, j, e) => canyonCell(cc, i, j, e, 'trench'),
+    cybercity: cybercityCell, servers: serversCell, lasergrid: (cc, i, j, e) => lavaCell(cc, i, j, e, 'laser'), neonpark: (cc, i, j, e) => forestCell(cc, i, j, e, 'neon'),
   };
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
     const cc = cellCenter(i, j);
@@ -2095,7 +2275,7 @@ function buildMonsterMesh(typeKey) {
     for (let y = 0; y < 32; y += 4) { g2.fillStyle = `rgba(60,40,20,${0.25 + Math.random() * 0.35})`; g2.fillRect(0, y, 32, 1.5); }
     wraps = new THREE.CanvasTexture(c); wraps.wrapS = wraps.wrapT = THREE.RepeatWrapping; wraps.repeat.set(1, 3);
   }
-  const skin = T.ghost
+  const skin = T.metal ? std(T.body, { roughness: 0.25, metalness: 0.9 }) : T.ghost
     ? std(T.body, { roughness: 0.5, transparent: true, opacity: 0.88, emissive: T.ghost, emissiveIntensity: 0.8 })
     : std(T.body, { roughness: T.fur || T.mummy ? 0.95 : 0.42, metalness: T.fur || T.mummy ? 0 : 0.25, map: wraps });
   const bone = std(T.bone ?? 0xd8cfb8, { roughness: 0.55 });
@@ -2188,7 +2368,12 @@ function buildMonsterMesh(typeKey) {
     part(new THREE.ConeGeometry(0.45, 2.2, 8), std(s < 0 ? 0x6a1a8a : 0x1a8a4a), 0, 1.1, 0, tip);
     part(new THREE.SphereGeometry(0.2, 8, 6), neon(0xffd23a, 1.8), 0, 2.3, 0, tip);
   }
-  const eyes = T.eyes === 6 ? [[-0.42, 1.05], [0.42, 1.05], [-0.2, 1.17], [0.2, 1.17], [-0.5, 0.82], [0.5, 0.82]] : [[-0.33, 1.02], [0.33, 1.02]];
+  const eyes = T.eyes === 6 ? [[-0.42, 1.05], [0.42, 1.05], [-0.2, 1.17], [0.2, 1.17], [-0.5, 0.82], [0.5, 0.82]] : T.eyes === 1 ? [[0, 1.02]] : [[-0.33, 1.02], [0.33, 1.02]];
+  if (T.hat) { // pirate tricorn hat with a skull
+    const hat = part(new THREE.CylinderGeometry(0.95, 1.3, 0.55, 3), std(0x141414), 0, 1.78, 0.05, head); hat.rotation.y = Math.PI;
+    part(new THREE.CylinderGeometry(1.5, 1.5, 0.08, 16), std(0x141414), 0, 1.5, 0.05, head);
+    part(BOX(0.35, 0.3, 0.05), std(0xf0f0f0), 0, 1.82, 0.98, head);
+  }
   const eyeGlow = [];
   for (const [ex, ey] of eyes) {
     const es = T.eyeSize || 1;
@@ -2227,7 +2412,18 @@ function buildMonsterMesh(typeKey) {
     if (T.fur) { const f = part(new THREE.ConeGeometry(0.5, 1.8, 4), std(T.fur, { roughness: 1, flatShading: true }), 0, -len * 0.5, -0.2, sh); f.rotation.x = 2.6; }
     return { sh, el, hand };
   };
-  const armL = arm(-1, 3.25, 2.6), armR = arm(1, 3.25, 2.6);
+  const armL = arm(-1, 3.25, T.armLen || 2.6), armR = arm(1, 3.25, T.armLen || 2.6);
+  let wings = null;
+  if (T.wings) { // big leathery wings
+    wings = [-1, 1].map((sd) => {
+      const wp = pivot(sd * 1.1, 3.1, -0.4, body);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0.4, 0, sd * 7.5, 1.6, -0.6, sd * 5, -2.4, -1, 0, 0.4, 0, sd * 5, -2.4, -1, 0, -2, 0], 3));
+      geo.computeVertexNormals();
+      const m = new THREE.Mesh(geo, std(T.body, { side: THREE.DoubleSide, roughness: 0.9 })); m.castShadow = true; wp.add(m);
+      wp.userData.sd = sd; return wp;
+    });
+  }
   const armL2 = T.extraArms ? arm(-1, 1.7, 2.2) : null, armR2 = T.extraArms ? arm(1, 1.7, 2.2) : null;
   const leg = (side) => {
     const hip = pivot(side * 0.55 * bulk, 0, 0, body);
@@ -2256,8 +2452,35 @@ function buildMonsterMesh(typeKey) {
   const light = new THREE.PointLight(T.eye, 70, 30 * Math.max(1, T.scale * 0.7), 2); light.position.set(0, T.headY * T.scale * 0.5, 3 * Math.max(1, T.scale * 0.6)); g.add(light);
   const aura = new THREE.Mesh(new THREE.PlaneGeometry(10 * Math.max(1, T.scale * 0.6), 10 * Math.max(1, T.scale * 0.6)), glowMat(T.eye, 0.45));
   aura.rotation.x = -Math.PI / 2; aura.position.y = 0.08; g.add(aura);
-  g.userData = { inner, body, neck, head, jaw, headAnchor, armL, armR, armL2, armR2, legL, legR, light, eyeGlow, skin, strings, tail, tentacles };
+  g.userData = { inner, body, neck, head, jaw, headAnchor, armL, armR, armL2, armR2, legL, legR, light, eyeGlow, skin, strings, tail, tentacles, wings };
   return g;
+}
+
+// inside a monster's mouth (used by the "eaten" cutscene): a throat tunnel, tongue and a ring of teeth
+function buildMouthRoom(T, k) {
+  const g = new THREE.Group(), R = 2.4, L = 10;
+  const flesh = std(0x8a1428, { roughness: 0.3, metalness: 0.1, emissive: 0x4a0010, emissiveIntensity: 0.9, side: THREE.BackSide });
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.45, R, L, 24, 8, true), flesh);
+  tube.rotation.x = -Math.PI / 2; tube.position.z = -L / 2; g.add(tube);
+  const ridge = std(0x4a0814, { roughness: 0.4, side: THREE.DoubleSide });
+  for (let i = 1; i < 6; i++) { const rr = lerp(R, R * 0.45, i / 6) * 0.97; const ring = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.12, 6, 28), ridge); ring.position.z = -i * L / 6; g.add(ring); }
+  const pink = std(0xd04a6a, { roughness: 0.25, emissive: 0x3a0010, emissiveIntensity: 0.6 });
+  const tongue = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), pink); tongue.scale.set(R * 0.7, R * 0.25, L * 0.35); tongue.position.set(0, -R * 0.62, -L * 0.32); g.add(tongue);
+  const uvula = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), pink); uvula.scale.set(0.3, 0.7, 0.3); uvula.position.set(0, R * 0.25, -L * 0.82); g.add(uvula);
+  const hole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.46, 20), new THREE.MeshBasicMaterial({ color: 0x000000 })); hole.position.z = -L + 0.02; g.add(hole);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: 0xff2a2a, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.z = -L + 1; glow.scale.setScalar(R * 1.6); g.add(glow);
+  const bone = std(T.bone ?? 0xefe4c8, { roughness: 0.4 }), toothGeo = new THREE.ConeGeometry(0.26, 1.2, 5);
+  const top = new THREE.Group(), bot = new THREE.Group(); g.add(top, bot);
+  for (const [grp, a0] of [[top, 0], [bot, Math.PI]]) for (let i = 0; i <= 10; i++) {
+    const a = a0 + Math.PI * (0.06 + 0.88 * i / 10), dx = -Math.cos(a), dy = -Math.sin(a);
+    const tooth = new THREE.Mesh(toothGeo, bone);
+    tooth.position.set(Math.cos(a) * R * 0.95 + dx * 0.55, Math.sin(a) * R * 0.95 + dy * 0.55, 0.2);
+    tooth.rotation.z = a + Math.PI / 2; grp.add(tooth);
+  }
+  const lid = new THREE.Mesh(new THREE.CircleGeometry(R * 1.1, 24), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, side: THREE.DoubleSide }));
+  lid.position.z = 0.6; g.add(lid);
+  g.scale.setScalar(k);
+  return { g, top, bot, lid, R, L };
 }
 
 // ---------------------------------------------------------------------------
@@ -2312,6 +2535,7 @@ const sfx = {
     this.noise(1.2, 0.6, 4000, 'bandpass', 150); this.tone(45, 1.5, 'sine', 0.6, 0.05, 30);
   },
   chomp(v = 1) { this.noise(0.2, 0.9 * v, 900, 'lowpass', 120); this.tone(95, 0.35, 'sine', 0.7 * v, 0, 38); this.noise(0.12, 0.5 * v, 2600, 'bandpass', 800, 0.03); this.noise(0.1, 0.35 * v, 4000, 'highpass', null, 0.08); },
+  slurp() { this.noise(0.6, 0.5, 300, 'bandpass', 1600); this.tone(180, 0.5, 'sine', 0.3, 0, 520); this.noise(0.3, 0.3, 800, 'lowpass', 200, 0.3); },
   gulp() { this.tone(320, 0.55, 'sine', 0.45, 0, 70); this.noise(0.5, 0.3, 500, 'lowpass', 90, 0.05); this.tone(60, 0.6, 'sine', 0.5, 0.25, 35); },
   heartbeat(v) { this.tone(62, 0.16, 'sine', 0.55 * v); this.tone(54, 0.2, 'sine', 0.42 * v, 0.17); },
   boost() { this.noise(0.6, 0.35, 400, 'bandpass', 5000); },
@@ -2859,6 +3083,7 @@ class Hunter {
       if (u.tail) u.tail.forEach((t, k) => { t.rotation.z = Math.sin(this.anim * 3 + k * 0.6) * 0.12; if (k) t.rotation.x = 0.5 + Math.sin(this.anim * (hunting ? 6 : 2) + k) * 0.08; });
     } else if (P === 'float') {
       u.inner.position.y = 1.4 + Math.sin(this.anim * 1.8) * 0.5;
+      if (u.wings) u.wings.forEach((w) => { w.rotation.z = w.userData.sd * (0.15 + Math.sin(this.anim * (this.chasing ? 7 : 4)) * 0.55); });
       if (u.tentacles) u.tentacles.forEach((t, k) => { t.rotation.x = Math.sin(this.anim * 2 + k) * 0.35 - (this.chasing ? 0.4 : 0); t.rotation.z = Math.cos(this.anim * 1.7 + k * 1.3) * 0.3; });
       u.body.rotation.x = lerp(u.body.rotation.x, caught ? 0.6 : this.chasing ? 0.4 : 0.12, k);
       const reach = hunting ? -1.55 : -0.35;
@@ -3318,7 +3543,7 @@ const game = {
     ui.vignette.style.opacity = 0;
   },
   endCine() {
-    if (this.cine && this.cine.kind === 'death') { this.hideTeeth(); if (this.cine.hunter) this.cine.hunter.eatJaw = undefined; }
+    if (this.cine && this.cine.kind === 'death') this.cleanupDeath(this.cine);
     this.cine = null;
     document.body.classList.remove('cine');
     ui.skip.classList.add('hidden');
@@ -3632,48 +3857,75 @@ const game = {
     this.beginCine('death', { hunter, lookStart, hStart: hunter.pos.clone(), screamed: false, splashed: false });
     ui.skip.classList.add('hidden');
   },
-  // the monster lunges, opens wide… and eats you
+  // the monster lunges, grabs you, puts you ALL the way in its mouth… then CHOMP
   updateDeath(dt) {
     const c = this.cine, t = (c.t += dt), p = this.player, h = c.hunter, sc = h.T.scale;
-    const eye = V(p.pos.x, p.pos.y + 4.6, p.pos.z);
-    const flat = V(eye.x - c.hStart.x, 0, eye.z - c.hStart.z);
-    const fd = Math.max(0.01, flat.length()); flat.divideScalar(fd);
-    const lungeTo = V(eye.x - flat.x * h.T.lunge, h.pos.y, eye.z - flat.z * h.T.lunge);
-    const lu = smooth((t - 0.35) / 0.35);
-    h.pos.x = lerp(c.hStart.x, lungeTo.x, lu); h.pos.z = lerp(c.hStart.z, lungeTo.z, lu);
-    h.chasing = true; h.facing = Math.atan2(flat.x, flat.z);
+    const TIN = 1.4, TDEEP = 2.3, TTURN = 3.0, TCHOMP = 3.25, TEND = 5.8;
     const fire = (key, at, fn) => { if (!c[key] && t > at) { c[key] = true; fn(); } };
-    fire('screamed', 0.35, () => { sfx.scream(h.typeKey); this.shake = 1.6; h.flare = 1.4; flash('#ff0010', 0.6); burst(eye.clone().addScaledVector(flat, -1.5), h.T.eye, 30, 10, 0.8, 2); });
-    // jaw: wide open, CHOMP, then chewing
-    const chews = [1.75, 2.35, 2.95];
-    h.eatJaw = t < 0.75 ? 1.05 : t < 1.75 ? 1.55 : 0.35 * Math.abs(Math.sin((t - 1.75) * 5.2));
-    h.mesh.updateMatrixWorld(true);
-    const head = h.mesh.userData.headAnchor.getWorldPosition(V(0, 0, 0));
-    const mouth = head.clone().add(V(0, -0.35 * sc, 0));
-    const toCam = eye.clone().sub(mouth); toCam.y = 0; toCam.normalize();
-    // the camera gets pulled into the mouth
-    const pull = smooth((t - 0.75) / 1.0);
-    const inMouth = mouth.clone().addScaledVector(toCam, 0.9 * sc);
-    camera.position.copy(eye).lerp(inMouth, pull);
-    const look = c.lookStart.clone().lerp(head, smooth(t / 0.35)).lerp(mouth.clone().addScaledVector(toCam, -2 * sc), pull);
-    camera.lookAt(look);
-    camera.rotateZ(Math.sin(t * 3) * 0.06 * pull);
-    // teeth closing around the screen
-    let bite = 0;
-    if (t > 0.9 && t < 1.75) bite = smooth((t - 0.9) / 0.85) * 0.42;
-    else if (t >= 1.75) { const ph = (t - 1.75) * 5.2; bite = Math.min(1, 0.72 + 0.28 * Math.abs(Math.cos(ph))); }
-    ui.teethTop.style.transform = `translateY(${((bite - 1) * 100).toFixed(1)}%)`;
-    ui.teethBot.style.transform = `translateY(${((1 - bite) * 100).toFixed(1)}%)`;
-    ui.teeth.style.opacity = t > 0.85 ? 1 : 0;
-    chews.forEach((at, k) => fire('chew' + k, at, () => { sfx.chomp(k === 0 ? 1 : 0.7); this.shake = k === 0 ? 2.2 : 1.2; flash('#ff0010', k === 0 ? 0.75 : 0.35); }));
-    fire('splashed', 1.85, () => splash('EATEN!', h.T.caption, h.T.eyeCss));
-    fire('gulped', 3.45, () => sfx.gulp());
-    ui.static.style.opacity = t > 0.35 && t < 1.75 ? (0.06 + Math.random() * 0.1).toFixed(2) : 0;
-    ui.vignette.style.opacity = Math.min(1, t * 2).toFixed(2);
-    ui.fade.style.background = '#1a0002';
-    ui.fade.style.opacity = (t < 1.75 ? 0 : t < 3.4 ? 0.55 + 0.25 * Math.abs(Math.sin(t * 5.2)) : clamp(0.8 + (t - 3.4) / 0.8, 0, 1)).toFixed(3);
+    const eye = V(p.pos.x, p.pos.y + 4.6, p.pos.z);
+    if (t < TIN) {
+      // 1) it lunges at you and opens wide
+      const flat = V(eye.x - c.hStart.x, 0, eye.z - c.hStart.z);
+      const fd = Math.max(0.01, flat.length()); flat.divideScalar(fd);
+      const lungeTo = V(eye.x - flat.x * h.T.lunge, h.pos.y, eye.z - flat.z * h.T.lunge);
+      const lu = smooth((t - 0.35) / 0.35);
+      h.pos.x = lerp(c.hStart.x, lungeTo.x, lu); h.pos.z = lerp(c.hStart.z, lungeTo.z, lu);
+      h.chasing = true; h.facing = Math.atan2(flat.x, flat.z);
+      h.eatJaw = t < 0.7 ? 1.05 : 1.65;
+      fire('screamed', 0.35, () => { sfx.scream(h.typeKey); this.shake = 1.6; h.flare = 1.4; flash('#ff0010', 0.6); burst(eye.clone().addScaledVector(flat, -1.5), h.T.eye, 30, 10, 0.8, 2); });
+      // 2) it grabs you and pulls you toward its mouth
+      h.mesh.updateMatrixWorld(true);
+      const head = h.mesh.userData.headAnchor.getWorldPosition(V(0, 0, 0));
+      const mouth = head.clone().add(V(0, -0.35 * sc, 0));
+      const toCam = eye.clone().sub(mouth); toCam.y = 0; toCam.normalize();
+      c.mouth = mouth; c.toCam = toCam;
+      const pull = smooth((t - 0.7) / (TIN - 0.7));
+      camera.position.copy(eye).lerp(mouth.clone().addScaledVector(toCam, 0.5 * sc), pull);
+      camera.lookAt(c.lookStart.clone().lerp(head, smooth(t / 0.35)).lerp(mouth.clone().addScaledVector(toCam, -3 * sc), pull));
+      camera.rotateZ(Math.sin(t * 9) * 0.05 * pull); // you're struggling
+      ui.static.style.opacity = t > 0.35 ? (0.06 + Math.random() * 0.1).toFixed(2) : 0;
+      ui.vignette.style.opacity = Math.min(1, t * 2).toFixed(2);
+      ui.fade.style.opacity = 0;
+    } else {
+      // 3) you're INSIDE its mouth: throat ahead, tongue below, teeth all around the opening
+      if (!c.room) {
+        c.room = buildMouthRoom(h.T, Math.max(0.8, sc * 0.6));
+        c.room.g.position.copy(c.mouth); c.room.g.lookAt(c.mouth.clone().add(c.toCam));
+        scene.add(c.room.g); h.mesh.visible = false;
+        flash('#5a0010', 0.8); sfx.slurp(); this.shake = 0.6; ui.static.style.opacity = 0;
+      }
+      const R = c.room, g = R.g;
+      g.updateMatrixWorld(true);
+      const deep = smooth((t - TIN) / (TDEEP - TIN)), turn = smooth((t - TDEEP) / (TTURN - TDEEP));
+      const local = V(Math.sin(t * 2.2) * 0.15, -0.25 + Math.sin(t * 3) * 0.08, lerp(0.6, -R.L * 0.55, deep));
+      const phi = turn * Math.PI; // turn around to look back out of the mouth
+      const lookL = local.clone().add(V(Math.sin(phi) * 4, -0.1 + turn * 0.15, -Math.cos(phi) * 4));
+      camera.position.copy(g.localToWorld(local.clone()));
+      camera.lookAt(g.localToWorld(lookL));
+      camera.rotateZ(Math.sin(t * 2) * 0.04);
+      // 4) the jaws slam shut
+      const shut = clamp((t - TTURN) / (TCHOMP - TTURN), 0, 1) ** 2;
+      R.top.position.y = -R.R * 0.95 * shut; R.bot.position.y = R.R * 0.95 * shut;
+      R.lid.material.opacity = clamp((t - TCHOMP + 0.05) / 0.12, 0, 1);
+      fire('chomp0', TCHOMP, () => { sfx.chomp(1); this.shake = 2.4; flash('#ff0010', 0.8); });
+      // 5) darkness… chewing… gulp
+      const chew = t > TCHOMP ? Math.min(1, 0.72 + 0.28 * Math.abs(Math.cos((t - TCHOMP) * 5.2))) : 0;
+      ui.teeth.style.opacity = t > TCHOMP ? 1 : 0;
+      ui.teethTop.style.transform = `translateY(${((chew - 1) * 100).toFixed(1)}%)`;
+      ui.teethBot.style.transform = `translateY(${((1 - chew) * 100).toFixed(1)}%)`;
+      [0.6, 1.2].forEach((dtc, k) => fire('chew' + k, TCHOMP + dtc, () => { sfx.chomp(0.7); this.shake = 1.3; flash('#ff0010', 0.35); }));
+      fire('splashed', TCHOMP + 0.15, () => splash('EATEN!', h.T.caption, h.T.eyeCss));
+      fire('gulped', TCHOMP + 1.8, () => sfx.gulp());
+      ui.fade.style.background = '#1a0002';
+      ui.fade.style.opacity = (t < TCHOMP ? 0 : t < TCHOMP + 1.7 ? 0.55 + 0.25 * Math.abs(Math.sin(t * 5.2)) : clamp(0.8 + (t - TCHOMP - 1.7) / 0.8, 0, 1)).toFixed(3);
+    }
     this.applyShake(dt);
-    if (t > 4.4) { h.eatJaw = undefined; this.hideTeeth(); this.endCine(); this.endMine(); }
+    if (t > TEND) { this.endCine(); this.endMine(); }
+  },
+  cleanupDeath(c) {
+    if (c.room) { scene.remove(c.room.g); c.room.g.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); c.room = null; }
+    if (c.hunter) { c.hunter.eatJaw = undefined; c.hunter.mesh.visible = true; }
+    this.hideTeeth();
   },
   hideTeeth() { ui.teeth.style.opacity = 0; ui.teethTop.style.transform = 'translateY(-100%)'; ui.teethBot.style.transform = 'translateY(100%)'; },
 
@@ -4249,7 +4501,7 @@ if (demo) {
           if (firstChase === null && game.hunters[0].chasing) firstChase = t.toFixed(1);
         }
         const cineKind = game.cine && game.cine.kind;
-        for (let i = 0; i < 60 * 6; i++) game.update(1 / 60);
+        for (let i = 0; i < 60 * 7; i++) game.update(1 / 60);
         console.log('SIM', JSON.stringify({ firstChase, caughtAfter: t.toFixed(1), state: game.player.state, cine: cineKind, finalState: game.state }));
         const failed = [...world.keys, ...world.spawns, ...world.patrol].filter((k) => !findPath(world.nav, 0, 0, k.x, k.z));
         console.log('PATHS', JSON.stringify({ targets: world.keys.length + world.spawns.length + world.patrol.length, fails: failed.length, where: failed.map((k) => `${world.zoneAt(k.x, k.z)}@${k.x.toFixed(0)},${k.z.toFixed(0)}`) }));
@@ -4268,7 +4520,7 @@ if (demo) {
         for (let i = 0; i < 60 * 3 && !game.cine; i++) { game.update(1 / 60); }
         caughtAt = game.cine && game.cine.kind;
         if (demo === 'deathshot') { for (let i = 0; i < 60 * 0.9; i++) game.update(1 / 60); return; }
-        for (let i = 0; i < 60 * 6; i++) game.update(1 / 60);
+        for (let i = 0; i < 60 * 7; i++) game.update(1 / 60);
         console.log('DEATH', JSON.stringify({ cine: caughtAt, finalState: game.state, resultsShown: !ui.results.classList.contains('hidden') }));
       } else if (demo === 'escape' || demo === 'escapeshot') {
         game.keys = 4; game.collectKey(world.keys.find((k) => !k.taken)); game.skipCine();
