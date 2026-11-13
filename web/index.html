@@ -156,6 +156,7 @@
   #tSprint.on { background: rgba(255,150,40,0.75); }
   #tView { right: 40px; bottom: 140px; width: 58px; height: 58px; font-size: 20px; }
   #tLight { right: 110px; bottom: 120px; width: 58px; height: 58px; font-size: 20px; }
+  #tSlide { right: 118px; bottom: 150px; width: 58px; height: 58px; font-size: 22px; background: rgba(80,180,230,0.55); }
   #tGhost { right: 180px; bottom: 112px; width: 58px; height: 58px; font-size: 22px; background: rgba(120,60,200,0.55); }
   #tBomb { right: 210px; bottom: 30px; width: 58px; height: 58px; font-size: 22px; background: rgba(200,160,40,0.55); }
   .pill.item { color: #ffe9a0; border-color: rgba(255, 224, 90, 0.5); }
@@ -239,6 +240,33 @@
   .lobby .lvN { font-family: 'Russo One', Fredoka, sans-serif; text-transform: uppercase; font-size: 14px; text-align: left; }
   .lobby .lvM { font-size: 16px; }
   .lobby .lvB { font-size: 11px; color: #a8a8c0; }
+  .lobby .mkGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .lobby .mkGrid { grid-template-columns: 1fr; } }
+  .lobby .mkTwo { display: grid; grid-template-columns: minmax(180px, 320px) 1fr; gap: 12px; align-items: start; }
+  @media (max-width: 520px) { .lobby .mkTwo { grid-template-columns: 1fr; } }
+  #mkPreview { width: 100%; aspect-ratio: 1; background: radial-gradient(circle at 50% 40%, #2a1e3e, #0a0812 75%); border: 2px solid rgba(255,255,255,0.12); }
+  .lobby .mkFields { display: flex; flex-direction: column; gap: 8px; }
+  .lobby .mkFields.mkWide { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-top: 10px; }
+  .lobby .mkFields label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 800; color: #b8b8d0; }
+  .lobby .mkFields input:not([type=range]):not([type=color]), .lobby .mkFields select, .lobby #mpmBrush { background: #1a1a2c; color: #fff; border: 2px solid rgba(255,255,255,0.15); padding: 6px 8px; font: 700 14px Inter, sans-serif; min-width: 0; }
+  .lobby .mkFields input[type=color] { width: 100%; height: 34px; border: 2px solid rgba(255,255,255,0.15); background: #1a1a2c; padding: 2px; }
+  .lobby .mkRow { display: flex; gap: 8px; align-items: center; } .lobby .mkRow > label { flex: 1; } .lobby .mkRow #mpmBrush { flex: 1; }
+  .lobby .mkExtras { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 4px; }
+  .lobby .mkChk { font-size: 13px; font-weight: 700; color: #d8d8e8; display: inline-flex; gap: 5px; align-items: center; margin: 8px 0; }
+  .lobby .mkBtns { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .lobby .mkBtns button, .lobby .mkItem button { border-radius: 0; transform: skewX(-8deg); background: #26263c; font: 800 13px Inter, sans-serif; padding: 8px 12px; }
+  .lobby .mkBtns .mkGo { background: linear-gradient(180deg, #ffd85a, #ff9a1a); color: #1a0e00; }
+  .lobby .mkState { font-size: 12px; font-weight: 800; color: #7affd0; min-height: 16px; }
+  .lobby .mkSwatch { width: 34px; height: 34px; border: 2px solid #fff; flex: none; }
+  #mpmGrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; max-width: 420px; aspect-ratio: 1; touch-action: none; user-select: none; margin: 4px 0 6px; }
+  .mpmTile { position: relative; display: grid; place-items: center; font-size: 22px; border: 2px solid; cursor: crosshair; }
+  .mpmTile:hover { filter: brightness(1.4); }
+  .mpmTile b { position: absolute; top: -2px; right: 2px; font-size: 14px; }
+  .lobby .mkItem { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 800; }
+  .lobby .mkItem span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lobby .mkItem button.mkOn { background: linear-gradient(180deg, #7affd0, #2ab88a); color: #04140e; }
+  .lobby .mkEmpty { font-size: 13px; color: #8a8aa0; font-weight: 700; }
+  .lobby .lbLabel small { font-family: Inter, sans-serif; text-transform: none; letter-spacing: 0; color: #9a9ab0; font-size: 11px; margin-left: 6px; }
   .lobby .lbHowGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .lobby .stat { border-radius: 0; transform: skewX(-6deg); background: rgba(14,14,26,0.88); border-left: 4px solid var(--gold); }
   .lobby .shopItem { border-radius: 0; background: rgba(14,14,26,0.88); border-left: 4px solid var(--gold); }
@@ -271,6 +299,7 @@
   <button class="tbtn" id="tSprint">SPRINT</button>
   <button class="tbtn" id="tView">👁</button>
   <button class="tbtn" id="tLight">🔦</button>
+  <button class="tbtn" id="tSlide">💨</button>
   <button class="tbtn hidden" id="tGhost">👻</button>
   <button class="tbtn hidden" id="tBomb">💥</button>
   <button class="tbtn" id="tPause">❚❚</button>
@@ -279,7 +308,7 @@
 <div id="hud" class="hidden">
   <div id="crosshair"></div>
   <div id="topbar"><div id="phase">FIND THE KEYS</div><div id="timer">4:00</div></div>
-  <div id="pills"><div class="pill key" id="keysPill">🔑 0 / 5</div><div class="pill hunt" id="huntPill">👹 🕷 👻</div><div class="pill team hidden" id="teamPill">👥 1</div><div class="pill item hidden" id="itemPill"></div></div>
+  <div id="pills"><div class="pill key" id="keysPill">🔑 0 / 5</div><div class="pill hunt" id="huntPill">👹 🕷 👻</div><div class="pill team hidden" id="teamPill">👥 1</div><div class="pill item hidden" id="itemPill"></div><div class="pill quest hidden" id="questPill"></div></div>
   <canvas id="minimap" width="360" height="380"></canvas>
   <div id="toasts"></div>
   <div id="exitArrow" class="hidden"><div id="exitArrowIcon">⬆</div><div id="exitDist"></div></div>
@@ -288,7 +317,7 @@
     <div id="hiddenTag" class="hidden">🌿 HIDDEN</div>
     <div id="stamina"><div id="staminaFill"></div><span id="staminaText">STAMINA</span></div>
   </div>
-  <div id="hint"><kbd>WASD</kbd> move · <kbd>Mouse</kbd> look · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump / wall-jump · <kbd>V</kbd> view · <kbd>F</kbd> flashlight · <kbd>Q</kbd> 👻 · <kbd>E</kbd> 💥 · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</div>
+  <div id="hint"><kbd>WASD</kbd> move · <kbd>Mouse</kbd> look · <kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump / climb · <kbd>C</kbd> slide · <kbd>V</kbd> view · <kbd>F</kbd> flashlight · <kbd>Q</kbd> 👻 · <kbd>E</kbd> 💥 · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</div>
 </div>
 
 <div id="menu" class="overlay hidden lobby">
@@ -297,6 +326,7 @@
     <nav class="lbTabs" id="lbTabs">
       <button data-tab="play" class="on">▶ Play</button>
       <button data-tab="levels">🗺 Levels</button>
+      <button data-tab="create">🛠 Create</button>
       <button data-tab="squad">👥 Squad</button>
       <button data-tab="shop">🛒 Shop</button>
       <button data-tab="settings">⚙ Settings</button>
@@ -331,6 +361,68 @@
   <section class="lbPanel" data-panel="levels">
     <div class="lbTitle">Choose a level <small>all unlocked · click one to select it</small></div>
     <div class="levels" id="levelSeg"></div>
+  </section>
+
+  <section class="lbPanel" data-panel="create">
+    <div class="lbTitle">Create <small>design your own monsters and maps, then play them · saved in this browser</small></div>
+    <div class="mkGrid">
+      <div class="lbBox" id="mkMonForm">
+        <div class="lbLabel">👹 Monster Maker</div>
+        <div class="mkTwo">
+          <canvas id="mkPreview" width="320" height="320"></canvas>
+          <div class="mkFields">
+            <label>Name <input id="mkName" maxlength="24"></label>
+            <label>Icon <select id="mkEmoji"></select></label>
+            <label>Body type <select id="mkPosture"></select></label>
+            <div class="mkRow"><label>Body <input type="color" id="mkBody"></label><label>Eyes <input type="color" id="mkEye"></label></div>
+            <label>Size <span id="mkSizeV"></span><input type="range" id="mkSize" min="0.6" max="3" step="0.1"></label>
+            <label>Speed <select id="mkSpeed"></select></label>
+          </div>
+        </div>
+        <div class="mkFields mkWide">
+          <label>Head <select id="mkHead"></select></label>
+          <label>Face <select id="mkFace"></select></label>
+          <label>Horns &amp; ears <select id="mkHorns"></select></label>
+          <label>Back <select id="mkBack"></select></label>
+          <label>Hat <select id="mkHat"></select></label>
+          <label>Holding <select id="mkHeld"></select></label>
+          <label>Floating around it <select id="mkOrbit"></select></label>
+          <label>Eyes <select id="mkEyes"></select></label>
+          <label>Eye size <input type="range" id="mkEyeSize" min="0.5" max="3" step="0.1"></label>
+        </div>
+        <div class="mkExtras" id="mkExtras"></div>
+        <div class="mkBtns"><button id="mkRandom">🎲 Random</button><button id="mkNew">✨ New</button><button id="mkSave" class="mkGo">💾 Save monster</button></div>
+        <div class="mkState" id="mkSaveState"></div>
+        <div class="lbLabel">Your monsters</div>
+        <div id="mkMonList"></div>
+      </div>
+      <div class="lbBox" id="mkMapForm">
+        <div class="lbLabel">🗺 Map Maker</div>
+        <div class="mkFields mkWide">
+          <label>Name <input id="mpmName" maxlength="24"></label>
+          <label>Icon <select id="mpmEmoji"></select></label>
+          <label>Sky color <input type="color" id="mpmTint"></label>
+          <label>Weather <select id="mpmWeather"></select></label>
+          <label>Darkness <select id="mpmLight"></select></label>
+          <label>Gravity <select id="mpmGravity"></select></label>
+        </div>
+        <div class="lbLabel">Paint the map <small>pick an area, then click or drag on the tiles · 🚪 = exit gate (north) · 👹 = monster lair</small></div>
+        <div class="mkRow"><span id="mpmBrushSwatch" class="mkSwatch"></span><select id="mpmBrush"></select></div>
+        <div class="mkBtns"><button id="mpmFill">🪣 Fill all</button><button id="mpmShuffle">🎲 Random map</button></div>
+        <div id="mpmGrid"></div>
+        <div class="lbLabel">Monsters <small>⭐ = ones you made</small></div>
+        <div class="mkFields mkWide">
+          <label>Monster 1 <select id="mpmMon0"></select></label>
+          <label>Monster 2 <select id="mpmMon1"></select></label>
+          <label>Monster 3 <select id="mpmMon2"></select></label>
+          <label>Monster speed <select id="mpmSpeed"></select></label>
+        </div>
+        <label class="mkChk"><input type="checkbox" id="mpmBig"> ⭐ BIG level (10 cutscenes, bigger quest)</label>
+        <div class="mkBtns"><button id="mpmNew">✨ New</button><button id="mpmSave">💾 Save map</button><button id="mpmPlay" class="mkGo">▶ Save &amp; PLAY</button></div>
+        <div class="lbLabel">Your maps</div>
+        <div id="mkMapList"></div>
+      </div>
+    </div>
   </section>
 
   <section class="lbPanel" data-panel="squad">
@@ -379,10 +471,11 @@
         <li>🌿 Hide in <b>bushes</b>, <b>corn</b> and <b>ball pits</b></li>
         <li>👻 <b>Ghost Potion</b> (<kbd>Q</kbd>) makes you invisible · 💥 <b>Flash Bomb</b> (<kbd>E</kbd>) stuns monsters</li>
         <li>⚡ Speed pads · 🥤 Energy drinks refill stamina</li>
-        <li>🧱 Jump at a wall, then jump again to <b>wall-jump</b> (rooftops are safe!)</li></ul></div>
+        <li>🧱 Jump at a wall, then jump again to <b>wall-jump</b> (rooftops are safe!)</li>
+        <li>🤸 <b>Parkour</b>: sprint into a low wall to <b>vault</b> it, jump at a ledge to <b>climb</b> up, <kbd>C</kbd> to <b>slide</b> (harder to grab), land a big drop while running to <b>roll</b>. Chain moves for combos!</li></ul></div>
       <div class="lbBox"><div class="lbLabel">Controls</div><ul class="how">
         <li><kbd>W A S D</kbd> move · <kbd>Mouse</kbd> look (click to lock)</li>
-        <li><kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump · <kbd>V</kbd> camera · <kbd>F</kbd> flashlight</li>
+        <li><kbd>Shift</kbd> sprint · <kbd>Space</kbd> jump · <kbd>C</kbd> slide · <kbd>V</kbd> camera · <kbd>F</kbd> flashlight</li>
         <li><kbd>Q</kbd> ghost · <kbd>E</kbd> flash bomb · <kbd>M</kbd> map · <kbd>Esc</kbd> pause</li>
         <li>📱 Touch: left joystick, drag the right side to look</li></ul></div>
     </div>
