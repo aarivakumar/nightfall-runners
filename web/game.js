@@ -6905,7 +6905,7 @@ const game = {
     this.cine = { kind, t: 0, ...data };
     if (kind !== 'death' && this.state === 'play') {
       this.cineSeen = this.cineSeen || new Set(); this.cineSeen.add(kind);
-      const NM = { intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', backflip: 'BACKFLIP', chase: 'THE CHASE', frontflip: 'DOUBLE FRONT FLIP', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
+      const NM = { intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', vault: 'ONE-HAND VAULT', chase: 'THE CHASE', dualvault: 'DOUBLE VAULT', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
       const b = $('cineBadge'); if (b) { b.textContent = `🎬 CUTSCENE ${Math.min(15, this.cineSeen.size)}/15 · ${NM[kind] || kind.toUpperCase()}`; b.style.opacity = 1; clearTimeout(this.badgeT); this.badgeT = setTimeout(() => { b.style.opacity = 0; }, 2600); }
     }
     const sc = $('storyCard'); if (sc) sc.style.opacity = 0;
@@ -6930,7 +6930,7 @@ const game = {
   // a cutscene made of camera shots: { d, cap, pos(u), look(u), tick(u, c, dt) }
   playShots(kind, shots, onEnd) {
     for (const h of this.hunters) h.vel.set(0, 0, 0);
-    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, backflip: 1.8, frontflip: 1.8, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.6; // shorter scenes: play more!
+    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, vault: 1.7, dualvault: 1.7, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.6; // shorter scenes: play more!
     this.beginCine(kind, { shots, idx: -1, local: 0, onEnd, freeze: true, fired: {}, speedUp });
   },
   updateShots(dt) {
@@ -7098,9 +7098,9 @@ const game = {
     const due = (k, frac, prev) => this.keys >= k || this.elapsed >= frac * rt;
     const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 16; return !!this.cine; };
     if (!F.sighted && due(1, 0.07)) return go('sighted', () => this.startSighted());
-    if (!F.backflip && F.sighted && due(1, 0.12)) return go('backflip', () => this.startBackflip());
+    if (!F.vault && F.sighted && due(1, 0.12)) return go('vault', () => this.startVault());
     if (!F.chase && due(2, 0.19)) return go('chase', () => this.startRunScene('chase'));
-    if (!F.frontflip && F.chase && due(2, 0.26)) return go('frontflip', () => this.startFrontFlip());
+    if (!F.dualvault && F.chase && due(2, 0.26)) return go('dualvault', () => this.startDualVault());
     if (!F.surge && L.battle && this.keys >= 3) return go('surge', () => this.startSurge());
     if (!F.midnight && (this.elapsed >= rt * 0.33 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
     if (!F.rooftop && F.midnight && due(3, 0.4)) return go('rooftop', () => this.startRooftop());
@@ -7285,16 +7285,22 @@ const game = {
     const p = this.player, a = o.a ?? 0.15, b = o.b ?? 0.85;
     const slowAt = (u) => (typeof o.slow === 'function' ? o.slow(u) : (o.slow ?? 1));
     return { d: o.d, cap, ...cam, tick: (u, c, dt) => {
-      if (o.blocker && !c.fired.m) { // park the monster exactly where the runner will be at the top of the jump
+      if ((o.blocker || o.prop) && !c.fired.m) { // put the monster / the obstacle exactly where the runner will be at the top of the jump
         c.fired.m = true; let s = 0; const um = (a + b) / 2;
         for (let i = 0; i < 40; i++) s += slowAt(um * (i + 0.5) / 40) * um / 40;
-        this.placeBlocker(c0, c0.dist + s * o.d * c0.speed, o.blocker);
+        const at = c0.dist + s * o.d * c0.speed;
+        if (o.blocker) this.placeBlocker(c0, at, o.blocker);
+        if (o.prop) this.makeProp(c0, at, o.prop);
       }
       const t = clamp((u - a) / (b - a), 0, 1), air = u > a && u < b;
       this.runStep(c0, dt, slowAt(u), air ? Math.sin(t * Math.PI) * o.hop : 0);
       if (air) {
-        const e = smooth(t);
-        this.acro((o.pitch || 0) * Math.PI * 2 * e, (o.roll || 0) * Math.PI * 2 * e, o.tuck ?? 1);
+        const e = smooth(t), sn = Math.sin(t * Math.PI);
+        if (o.vault) { // one-arm vault: lean over, one hand planted on top of the object, legs swing over the side
+          this.acro(0.2 * sn, o.vault * sn * c0.side, 0);
+          const U = this.player.mesh.userData; U.armR.rotation.x = 0.15; U.armL.rotation.x = -1.0; U.legL.rotation.x = -0.5; U.legR.rotation.x = -0.25;
+          if (!c.fired.h && t > 0.45) { c.fired.h = true; sfx.step(1.6); burst(V(p.pos.x, o.prop + 0.5, p.pos.z), 0xd8d0ff, 14, 7, 0.5, 1); }
+        } else this.acro((o.pitch || 0) * Math.PI * 2 * e, (o.roll || 0) * Math.PI * 2 * e, o.tuck ?? 1);
         if (!c.fired.j) { c.fired.j = true; sfx.jump(); }
         c.tr = (c.tr || 0) - dt; if (c.tr <= 0) { c.tr = 0.05; burst(p.pos.clone().add(V(0, 3, 0)), o.col ?? 0x7affd0, 4, 5, 0.5, 1); }
       } else if (u >= b) {
@@ -7303,8 +7309,16 @@ const game = {
       if (o.extra) o.extra(u, c, dt);
     } };
   },
+  makeProp(c0, d, h) { // a low wall / crate to vault over
+    const q = c0.run.at(d), g = new THREE.Group();
+    const b = new THREE.Mesh(BOX(7, h, 2.6), std(0x4a4660)); b.position.y = h / 2; g.add(b);
+    const t = new THREE.Mesh(BOX(7.2, 0.3, 2.8), neon(0xffd257, 2)); t.position.y = h; g.add(t);
+    g.position.set(q.p.x, 0, q.p.z); g.rotation.y = Math.atan2(q.dir.x, q.dir.z); scene.add(g);
+    (this.acroProps = this.acroProps || []).push(g);
+  },
+  clearProps() { for (const g of this.acroProps || []) scene.remove(g); this.acroProps = []; },
   finishAcro(c0, gaps, blocker, msg) {
-    this.acroReset(); this.endRunScene(c0, gaps); this.player.moves += 3;
+    this.clearProps(); this.acroReset(); this.endRunScene(c0, gaps); this.player.moves += 3;
     if (blocker) { blocker.pos.y = 0; collide(blocker.pos, 1.5); blocker.stunT = 2.4; blocker.chasing = true; blocker.lastKnown = this.player.pos.clone(); blocker.path = null; }
     toast(msg, '#7affd0');
   },
@@ -7315,30 +7329,29 @@ const game = {
     burst(V(x, 1.5, z), 0xe0c8ff, 40, 24, 0.8, 8, 2); flash('#ffffff', 0.55); this.shake = Math.max(this.shake, 1.2); sfx.boom(); sfx.noise(0.5, 0.25, 2500, 'highpass');
     if (hit) { hit.flare = 1.4; sfx.scream(hit.typeKey); }
   },
-  // 1) the monster blocks the road: BACKFLIP over its claws (orbit camera, slow motion)
-  startBackflip() {
-    const h = this.nearestHunter(), A = this.acroPrep(48, 15);
-    if (!A) { this.roarScene('backflip', h); return; }
+  // 1) PARKOUR: a one-hand vault over a wall while the monster chases (and smashes through it afterwards)
+  startVault() {
+    const h = this.nearestHunter(), A = this.acroPrep(50, 16, [h], [14]);
+    if (!A) { this.roarScene('vault', h); return; }
     const { c0, K } = A;
-    this.playShots('backflip', [
-      { d: 1.5, cap: `${h.T.name} blocks the road…`, ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt); if (c0.dist > 6) this.swing(h, 0.2); } },
-      this.flipShot(c0, 'BACKFLIP!', K.orbit(11, 1.5, 1.2, 4.4), { d: 2.8, hop: 7, pitch: -1, slow: 0.45, blocker: h,
-        extra: (u, c) => { this.swing(h, Math.sin(clamp(u / 0.75, 0, 1) * Math.PI)); this.roarShot(h, c, 'r', u, 0.3); } }),
-      { d: 1.6, cap: 'Stuck the landing!', ...K.low, tick: (u, c, dt) => { this.runStep(c0, dt); this.acroReset(); this.swing(h, 0); } },
-    ], () => this.finishAcro(c0, [], h, '🤸 BACKFLIP! Keep running!'));
+    this.playShots('vault', [
+      { d: 1.2, cap: 'Cut through the yard!', ...K.front, tick: (u, c, dt) => this.runStep(c0, dt) },
+      this.flipShot(c0, 'ONE-HAND VAULT!', K.orbit(10, 1.2, 1.5, 2.6), { d: 1.8, hop: 4.6, vault: 1.0, prop: 3, slow: 0.6, a: 0.2, b: 0.8 }),
+      { d: 1.4, cap: 'It smashes right through!', ...K.behind, tick: (u, c, dt) => { this.runStep(c0, dt); this.acroReset(); if (!c.fired.s && u > 0.3) { c.fired.s = true; const g = (this.acroProps || [])[0]; if (g) { burst(g.position.clone().add(V(0, 2, 0)), 0xd8d0ff, 50, 22, 1, 6, 3); this.clearProps(); } this.shake = 1; sfx.boom(); this.roarShot(h, c, 'r', 1, 0); } } },
+    ], () => this.finishAcro(c0, [22], null, '🧗 Smooth vault! Keep running!'));
     this.cine.showPlayer = true;
   },
-  // 2) a DOUBLE front flip over a tail sweep, with a frozen-in-time moment at the top
-  startFrontFlip() {
-    const h = this.nearestHunter(), A = this.acroPrep(48, 16);
-    if (!A) { this.roarScene('frontflip', h); return; }
+  // 2) two one-arm vaults in a row, over a low wall and then a tall one
+  startDualVault() {
+    const h = this.nearestHunter(), A = this.acroPrep(60, 17, [h], [15]);
+    if (!A) { this.roarScene('dualvault', h); return; }
     const { c0, K } = A;
-    this.playShots('frontflip', [
-      { d: 1.4, cap: 'It swings low…', ...K.side, tick: (u, c, dt) => { this.runStep(c0, dt); } },
-      this.flipShot(c0, 'DOUBLE FRONT FLIP!', K.orbit(9, 0.5, 2.0, -1.6), { d: 3.0, hop: 9, pitch: 2, slow: (u) => (u > 0.4 && u < 0.6 ? 0.12 : 0.55), blocker: h, col: 0xffd257,
-        extra: (u, c) => { this.swing(h, 0.4 + 0.6 * Math.sin(clamp(u / 0.6, 0, 1) * Math.PI)); h.mesh.rotation.z = Math.sin(clamp((u - 0.2) / 0.5, 0, 1) * Math.PI) * 0.5; if (!c.fired.x && u > 0.45) { c.fired.x = true; flash('#ffe05a', 0.35); this.shake = 0.8; sfx.punch(); } } }),
-      { d: 1.6, cap: 'It never even touched you!', ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt); h.mesh.rotation.z = 0; this.roarShot(h, c, 'r', u, 0.4); } },
-    ], () => { h.mesh.rotation.z = 0; this.finishAcro(c0, [], h, '🤸 DOUBLE FRONT FLIP!'); });
+    this.playShots('dualvault', [
+      { d: 1.0, cap: 'Obstacles ahead!', ...K.side, tick: (u, c, dt) => this.runStep(c0, dt) },
+      this.flipShot(c0, 'VAULT!', K.side, { d: 1.5, hop: 3.8, vault: 1.0, prop: 2.4, slow: 0.65, a: 0.2, b: 0.8 }),
+      this.flipShot(c0, 'AND ANOTHER!', K.low, { d: 1.7, hop: 5.2, vault: -1.0, prop: 3.6, slow: 0.65, a: 0.2, b: 0.8, col: 0xffd257 }),
+      { d: 1.2, cap: 'Clean.', ...K.behind, tick: (u, c, dt) => { c0.gapK = lerp(1, 1.8, u); this.runStep(c0, dt); this.acroReset(); } },
+    ], () => this.finishAcro(c0, [24], null, '🧗 Double vault!'));
     this.cine.showPlayer = true;
   },
   // 3) a huge rooftop-style leap: the ground falls away, a triple flip, and a backflip to land
@@ -7348,9 +7361,9 @@ const game = {
     const { c0, K } = A;
     this.playShots('rooftop', [
       { d: 1.5, cap: 'Cornered at the edge!', ...K.behind, tick: (u, c, dt) => { this.runStep(c0, dt); this.roarShot(h, c, 'r', u, 0.2); } },
-      this.flipShot(c0, 'LEAP!', K.aerial, { d: 2.2, hop: 24, pitch: 3, slow: 0.55, col: 0x5fd8ff, a: 0.1, b: 0.92,
+      this.flipShot(c0, 'LEAP!', K.aerial, { d: 2.2, hop: 20, pitch: 0, slow: 0.55, col: 0x5fd8ff, a: 0.1, b: 0.92,
         extra: (u, c) => { if (!c.fired.t && u > 0.5) { c.fired.t = true; burst(this.player.pos.clone().add(V(0, 3, 0)), 0x5fd8ff, 50, 25, 1, 0, 3); flash('#5fd8ff', 0.3); sfx.boom(); } } }),
-      this.flipShot(c0, 'TRIPLE FLIP!', K.orbit(13, 2, 0.4, 3.6), { d: 2.4, hop: 12, pitch: -2, roll: 1, slow: 0.4, col: 0xff5aa8, tuck: 1,
+      this.flipShot(c0, 'FRONT FLIP!', K.orbit(13, 2, 0.4, 2.6), { d: 2.0, hop: 10, pitch: 1, slow: 0.4, col: 0xff5aa8, tuck: 1,
         extra: (u, c) => { if (!c.fired.t && u > 0.5) { c.fired.t = true; this.shake = 1; flash('#ff5aa8', 0.3); sfx.boom(); } } }),
       { d: 1.5, cap: 'You left it in the dust!', ...K.front, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.4, u); this.runStep(c0, dt); this.acroReset(); } },
     ], () => this.finishAcro(c0, [26], null, '🌟 What a leap! Keep going!'));
@@ -7364,9 +7377,9 @@ const game = {
     const ahead = (d, s = 0) => { const q = c0.run.at(c0.dist + d); return V(q.p.x + q.dir.z * s, 0, q.p.z - q.dir.x * s); };
     this.playShots('storm', [
       { d: 1.8, cap: 'The sky splits open!', ...K.aerial, tick: (u, c, dt) => { this.runStep(c0, dt); if (!c.fired.s && u > 0.5) { c.fired.s = true; const q = ahead(26, 7); this.strike(q.x, q.z); } } },
-      this.flipShot(c0, 'DODGE!', K.orbit(9, 1, 0.9, 2.7), { d: 2.2, hop: 4, roll: 1, slow: 0.45, col: 0xe0c8ff, a: 0.2, b: 0.9,
+      this.flipShot(c0, 'DODGE!', K.orbit(9, 1, 0.9, 2.2), { d: 1.8, hop: 4.2, vault: 1.0, prop: 2.8, slow: 0.55, col: 0xe0c8ff, a: 0.2, b: 0.85,
         extra: (u, c) => { if (!c.fired.s && u > 0.3) { c.fired.s = true; const q = ahead(1, 0); this.strike(q.x, q.z); } } }),
-      this.flipShot(c0, 'CORKSCREW!', K.low, { d: 2.2, hop: 6, pitch: 1, roll: 1, slow: 0.45, col: 0xe0c8ff, a: 0.2, b: 0.9,
+      this.flipShot(c0, 'DODGE AGAIN!', K.low, { d: 1.8, hop: 4.6, vault: -1.0, prop: 3.2, slow: 0.55, col: 0xe0c8ff, a: 0.2, b: 0.85,
         extra: (u, c) => { if (!c.fired.s && u > 0.3) { c.fired.s = true; const q = ahead(2, -4); this.strike(q.x, q.z); } } }),
       { d: 1.8, cap: `The lightning hits ${h.T.name}!`, ...K.behind, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.2, u); this.runStep(c0, dt); this.acroReset(); if (!c.fired.s && u > 0.3) { c.fired.s = true; this.strike(h.pos.x, h.pos.z, h); } } },
     ], () => this.finishAcro(c0, [30], null, '⚡ Dodged the storm!'));
@@ -7380,11 +7393,10 @@ const game = {
     const fw = (u, c, dt) => { c.fw = (c.fw || 0) - dt; if (c.fw <= 0) { c.fw = 0.14; burst(p.pos.clone().add(V((Math.random() - 0.5) * 24, 6 + Math.random() * 18, (Math.random() - 0.5) * 24)), [0x78ff8f, 0xffd257, 0xff5aa8, 0x5fd8ff][Math.floor(Math.random() * 4)], 26, 22, 1.2, 0, 3); } };
     this.playShots('combo', [
       { d: 1.2, cap: 'PARKOUR!', ...K.front, tick: (u, c, dt) => this.runStep(c0, dt) },
-      this.flipShot(c0, 'VAULT!', K.side, { d: 1.0, hop: 3.5, tuck: 0.5 }),
-      this.flipShot(c0, 'BACKFLIP!', K.orbit(10, 1, 1.3, 3.2), { d: 1.6, hop: 6, pitch: -1, slow: 0.7 }),
-      this.flipShot(c0, 'FRONT FLIP!', K.low, { d: 1.6, hop: 6.5, pitch: 1, slow: 0.7, col: 0xffd257 }),
-      this.flipShot(c0, 'CORKSCREW!', K.orbit(11, 3, 0.6, 3.6), { d: 2.0, hop: 9, pitch: 1, roll: 2, slow: 0.5, col: 0xff5aa8, extra: fw }),
-      this.flipShot(c0, 'DOUBLE BACKFLIP!!!', K.orbit(15, 4, 3.6, 0.4), { d: 2.4, hop: 13, pitch: -2, slow: 0.4, col: 0x5fd8ff, extra: (u, c, dt) => { fw(u, c, dt); if (!c.fired.b && u > 0.5) { c.fired.b = true; sfx.boom(); flash('#ffffff', 0.4); this.shake = 1.2; } } }),
+      this.flipShot(c0, 'VAULT!', K.side, { d: 1.3, hop: 3.8, vault: 1.0, prop: 2.5, slow: 0.7, a: 0.2, b: 0.8 }),
+      this.flipShot(c0, 'ANOTHER ONE!', K.low, { d: 1.4, hop: 4.6, vault: -1.0, prop: 3.2, slow: 0.7, a: 0.2, b: 0.8 }),
+      this.flipShot(c0, 'WALL HOP!', K.orbit(10, 1.5, 1.4, 2.8), { d: 1.6, hop: 6, vault: 1.0, prop: 4.2, slow: 0.6, a: 0.2, b: 0.8, extra: fw }),
+      this.flipShot(c0, 'BACKFLIP!', K.orbit(14, 3, 3.6, 0.6), { d: 2.2, hop: 9, pitch: -1, slow: 0.4, col: 0x5fd8ff, extra: (u, c, dt) => { fw(u, c, dt); if (!c.fired.b && u > 0.5) { c.fired.b = true; sfx.boom(); flash('#ffffff', 0.4); this.shake = 1.2; } } }),
       { d: 1.8, cap: 'UNSTOPPABLE!', ...K.behind, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.6, u); this.runStep(c0, dt); this.acroReset(); fw(u, c, dt); if (!c.fired.w) { c.fired.w = true; sfx.escape(); } } },
     ], () => this.finishAcro(c0, [34], null, '🏅 PARKOUR LEGEND!'));
     this.cine.showPlayer = true;
@@ -8454,7 +8466,7 @@ function renderMenu() {
   $('levelBlurb').textContent = base.blurb;
   $('heroMonsters').innerHTML = (base.mix ? '<span class="mChip" style="border-color:#ff4ad0;color:#ff9af0">❓ 3 random monsters every round</span>' : '')
     + (base.mix ? '' : L.monsters.map((m) => `<span class="mChip" style="border-color:${MONSTERS[m].eyeCss};color:${MONSTERS[m].eyeCss}">${MONSTERS[m].emoji} ${MONSTERS[m].name}</span>`).join(''));
-  if (!base.mix) { const Q = questOf(base); $('heroMonsters').innerHTML += `<span class="mChip" style="border-color:${hex6(Q.col)};color:${hex6(Q.col)}">📜 Quest: ${Q.title}</span>` + (base.big ? '<span class="mChip" style="border-color:#ffd23a;color:#ffd23a">⭐ BIG LEVEL · bigger quest</span>' : '') + '<span class="mChip" style="border-color:#ff9a3a;color:#ffb066">🎬 15 cutscenes · flips!</span>'; }
+  if (!base.mix) { const Q = questOf(base); $('heroMonsters').innerHTML += `<span class="mChip" style="border-color:${hex6(Q.col)};color:${hex6(Q.col)}">📜 Quest: ${Q.title}</span>` + (base.big ? '<span class="mChip" style="border-color:#ffd23a;color:#ffd23a">⭐ BIG LEVEL · bigger quest</span>' : '') + '<span class="mChip" style="border-color:#ff9a3a;color:#ffb066">🎬 15 cutscenes · parkour!</span>'; }
   const hb = save.levelBest && save.levelBest[game.level];
   $('heroBest').textContent = hb !== undefined ? `🏆 Your best: ${fmtTime(hb)}` : 'Not escaped yet';
   $('hdrCoins').textContent = save.coins; $('hdrName').textContent = save.name;
@@ -8645,8 +8657,10 @@ if (demo) {
       }
       if (demo === 'flips') { // every new acrobatic scene must play through, and endless levels must build
         const out = {}; CFG.catchRadius = 0; game.released = true;
-        for (const n of ['Backflip', 'FrontFlip', 'Rooftop', 'Storm', 'Combo']) {
-          game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); game['start' + n]();
+        for (const n of ['Vault', 'DualVault', 'Rooftop', 'Storm', 'Combo']) {
+          game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); camYaw = 0; game['start' + n]();
+          const qs2 = new URLSearchParams(location.search), only = qs2.get('only'), T2 = +(qs2.get('t') || 0);
+          if (only === n) { while (game.cine && game.cine.t < T2) game.update(1 / 60); game.update = () => {}; ui.hud.classList.add('hidden'); return; }
           let t = 0; for (; t < 60 * 25 && game.cine; t++) game.update(1 / 60);
           out[n] = { secs: +(t / 60).toFixed(1), ended: !game.cine, rotX: +game.player.mesh.rotation.x.toFixed(2), y: +game.player.pos.y.toFixed(2) };
         }
