@@ -7300,7 +7300,7 @@ const game = {
       { d: 2.6, cap: 'Midnight.', pos: (u) => V(lerp(-half * 0.6, half * 0.6, u), 150, -half * 0.5), look: () => V(0, 0, 40), tick: (u, c) => { if (!c.fired.m && u > 0.5) { c.fired.m = true; moonMesh.material.color.set(0xff1a1a).multiplyScalar(2.4); moonMesh.scale.setScalar(Math.max(2, moonMesh.scale.x)); flash('#ff0020', 0.5); sfx.howl(); } } },
       { d: 2.2, cap: 'The moon turns red…', pos: (u) => V(0, 12 + u * 6, 0), look: () => moonMesh.position.clone() },
       ...hs.slice(0, 3).map((h, k) => ({ d: 1.3, cap: ['…and they grow stronger.', 'Faster.', 'Hungrier.'][k], ...this.faceCam(h, 4.5, 8), tick: (u, c) => this.roarShot(h, c, 'm' + k, u, 0.15) })),
-    ], () => { kit.restore.forEach((fn) => fn()); this.midnight = true; splash('MIDNIGHT', 'The monsters are FASTER now', '#ff3344'); });
+    ], () => { kit.restore.slice().reverse().forEach((fn) => fn()); this.midnight = true; splash('MIDNIGHT', 'The monsters are FASTER now', '#ff3344'); });
     const sh = this.cine.shots; sh.forEach((x, i) => { if (i < 2) { const t0 = x.tick; x.tick = (u, c, dt) => { if (t0) t0(u, c, dt); mfx.f(u, mst, dt); }; } });
   },
   // 'surge' (boss levels): the power is building
@@ -7661,7 +7661,7 @@ const game = {
       { d: 2.4, cap: E.cap, ...Cm, tick: (u, c, dt) => { if (A) this.runStep(c0, dt, 0.3); fxTick(u, c, dt); } },
       ACTSHOT[act](),
       { d: 2.4, cap: E2.cap, ...(A ? K.behind : Cm2), tick: (u, c, dt) => { if (A) { this.runStep(c0, dt); this.acroReset(); } fxTick(0.5 + u * 0.4, c, dt); this.roarShot(h, c, 'r', u, 0.3); } },
-    ], () => { restore.forEach((fn) => fn()); this.acroReset(); pm.rotation.y = camYaw; this.clearProps(); toast(payoff, '#cdb8ff'); if (A) this.finishAcro(c0, [26], null, `✨ ${E.n} + ${E2.n}!`); else toast(`✨ ${E.n} + ${E2.n}!`, '#ffd257'); });
+    ], () => { restore.slice().reverse().forEach((fn) => fn()); this.acroReset(); pm.rotation.y = camYaw; this.clearProps(); toast(payoff, '#cdb8ff'); if (A) this.finishAcro(c0, [26], null, `✨ ${E.n} + ${E2.n}!`); else toast(`✨ ${E.n} + ${E2.n}!`, '#ffd257'); });
     this.cine.showPlayer = true;
   },
 
@@ -8932,6 +8932,13 @@ if (demo) {
         game.showMenu(); $('endlessGo').click(); for (let i = 0; i < 120; i++) game.update(1 / 60);
         console.log('ENDLESS', JSON.stringify({ bad, state: game.state, endless: game.endless }));
         return;
+      }
+      if (demo === 'fx16') { // run every one of the 16 events + the midnight scene
+        game.playEndless(3); for (let i = 0; i < 30; i++) game.update(1 / 60); game.cine && game.skipCine(); game.released = true; game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z);
+        const kit = game.sigKit(), bad = []; const od = scene.fog.density;
+        kit.FX.forEach((f, i) => { try { const st = {}; for (let k = 0; k < 150; k++) { f.f(k / 150, st, 1 / 60); game.update(1 / 60); } } catch (e) { bad.push([f.n, e.message.slice(0, 80)]); } });
+        const dBefore = scene.fog.density; kit.restore.slice().reverse().forEach((fn) => fn()); const dAfter = scene.fog.density; game.startMidnight(); window.__fd = [od, dBefore, dAfter]; let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60);
+        console.log('FX16', JSON.stringify({ n: kit.FX.length, cams: kit.CAMS.length, bad, midnight: +(t / 60).toFixed(1), fog: window.__fd })); return;
       }
       if (demo === 'sigs') { // npc meet, epic dab, and 36 different signature scenes
         const out = { bad: [], kinds: [] }; CFG.catchRadius = 0;
