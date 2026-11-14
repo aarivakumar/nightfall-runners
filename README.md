@@ -251,3 +251,9 @@ What else is different in the browser version:
 - **Scarier monsters**: jaws that snap open, teeth, long claws, eyes that glow through the fog, jerky head twitches,
   the Crawler's six eyes and spider legs, the Wraith flickering in and out. Up close you get growls, whispers,
   a screech when you're spotted, TV static, red fog and a flickering flashlight. Sprinting is loud, so they hear you from further away.
+
+## Web version: 15 cutscenes per level + endless auto-made levels
+
+- Every level now has 15 cutscenes, including five acrobatic ones (backflip, double front flip, rooftop leap, lightning-storm dodge, and a flip combo finale).
+- **Endless mode** (Levels tab) builds a new map and three new monsters for every number, so it never runs out.
+- The Create tab has **Auto-make** buttons for monsters and for whole maps (with 3 new monsters).

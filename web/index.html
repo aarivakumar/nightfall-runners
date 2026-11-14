@@ -360,6 +360,7 @@
 
   <section class="lbPanel" data-panel="levels">
     <div class="lbTitle">Choose a level <small>all unlocked · click one to select it</small></div>
+    <div class="lbBox" id="endlessBox"><div class="lbLabel">♾ ENDLESS MODE <small>auto-made maps &amp; monsters · it never runs out</small></div><div id="endlessInfo"></div><div class="mkBtns"><button id="endlessGo" class="mkGo">▶ Play</button><button id="endlessRandom">🎲 Surprise me</button></div></div>
     <div class="levels" id="levelSeg"></div>
   </section>
 
@@ -391,7 +392,7 @@
           <label>Eye size <input type="range" id="mkEyeSize" min="0.5" max="3" step="0.1"></label>
         </div>
         <div class="mkExtras" id="mkExtras"></div>
-        <div class="mkBtns"><button id="mkRandom">🎲 Random</button><button id="mkNew">✨ New</button><button id="mkSave" class="mkGo">💾 Save monster</button></div>
+        <div class="mkBtns"><button id="mkRandom">🎲 Random</button><button id="mkAuto">🤖 Auto-make</button><button id="mkNew">✨ New</button><button id="mkSave" class="mkGo">💾 Save monster</button></div>
         <div class="mkState" id="mkSaveState"></div>
         <div class="lbLabel">Your monsters</div>
         <div id="mkMonList"></div>
@@ -408,7 +409,7 @@
         </div>
         <div class="lbLabel">Paint the map <small>pick an area, then click or drag on the tiles · 🚪 = exit gate (north) · 👹 = monster lair</small></div>
         <div class="mkRow"><span id="mpmBrushSwatch" class="mkSwatch"></span><select id="mpmBrush"></select></div>
-        <div class="mkBtns"><button id="mpmFill">🪣 Fill all</button><button id="mpmShuffle">🎲 Random map</button></div>
+        <div class="mkBtns"><button id="mpmFill">🪣 Fill all</button><button id="mpmShuffle">🎲 Random map</button><button id="mpmAuto">🤖 Auto-make map + monsters</button></div>
         <div id="mpmGrid"></div>
         <div class="lbLabel">Monsters <small>⭐ = ones you made</small></div>
         <div class="mkFields mkWide">
@@ -417,7 +418,7 @@
           <label>Monster 3 <select id="mpmMon2"></select></label>
           <label>Monster speed <select id="mpmSpeed"></select></label>
         </div>
-        <label class="mkChk"><input type="checkbox" id="mpmBig"> ⭐ BIG level (10 cutscenes, bigger quest)</label>
+        <label class="mkChk"><input type="checkbox" id="mpmBig"> ⭐ BIG level (bigger quest, slow-mo escape)</label>
         <div class="mkBtns"><button id="mpmNew">✨ New</button><button id="mpmSave">💾 Save map</button><button id="mpmPlay" class="mkGo">▶ Save &amp; PLAY</button></div>
         <div class="lbLabel">Your maps</div>
         <div id="mkMapList"></div>

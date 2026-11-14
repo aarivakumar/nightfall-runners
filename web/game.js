@@ -674,7 +674,7 @@ LEVELS.splice(LEVELS.findIndex((l) => l.mix), 0, ...KIT.map((K, k) => {
     story: [`Welcome to ${K.n}. Nobody comes here after dark…`, 'The only way out is the north gate.', 'Find 5 keys before it is too late…', `${first} is waking up.`, 'And it is not alone.'],
     released: [`${K.n} comes alive!`, 'RUN!'], escape: `You escaped ${K.n}!` };
 }));
-// BIG levels (10 cutscenes, 5 quest items): the boss battles and every 10th level
+// BIG levels (5 quest items, slow-motion escape): the boss battles and every 10th level
 LEVELS.forEach((L, k) => { L.big = !L.mix && (!!L.battle || (k + 1) % 10 === 0); });
 const tintFog = (hex) => { const L = game.L; return L && L.tint ? new THREE.Color(hex).lerp(new THREE.Color(L.tint[0]).multiplyScalar(0.22), Math.min(1, L.tint[1] * 1.6)).getHex() : hex; }; // darker tint so the night stays dark
 // level 6 rolls a new mix of areas and monsters every round
@@ -6838,10 +6838,16 @@ const game = {
     scene.fog.color.setHex(tintFog(Z.fog)); scene.fog.density = Z.density; scene.background.setHex(L.sky);
     moonMesh.material.color.set(L.moon || 0xe8e4ff).multiplyScalar(2.2); moonMesh.scale.setScalar(L.final ? 3.2 : 1); // a HUGE blood moon for the finale
   },
+  playEndless(n, practice = false) {
+    if (net.on) { toast('Endless mode is solo only for now', '#ff9a5a'); return; }
+    this.endless = Math.max(1, n | 0); this.practice = practice;
+    this.custom = endlessLevel(this.endless);
+    this.start(true);
+  },
   setLevel(n, fromHost = false) {
     if (net.isClient && !fromHost) { toast('Only the host can pick the level', '#cdb8ff'); return; }
     if (n === this.level && world) { renderMenu(); return; }
-    this.custom = null; this.level = n; save.level = n; writeSave();
+    this.custom = null; this.endless = null; this.level = n; save.level = n; writeSave();
     if (this.state === 'menu') this.newWorld();
     renderMenu();
     if (net.isHost) net.syncLobby();
@@ -6852,7 +6858,7 @@ const game = {
   },
 
   showMenu() {
-    this.custom = null;
+    this.custom = null; this.endless = null;
     this.state = 'menu'; this.paused = false; this.cine = null; this.catcher = null;
     document.body.classList.remove('cine'); setCaption(''); ui.skip.classList.add('hidden'); ui.fade.style.opacity = 0;
     sfx.drone(false);
@@ -7078,16 +7084,23 @@ const game = {
     ], () => { splash('FRENZY!', 'Hide or run!', '#ff3344'); if (then) then(); });
   },
 
-  // ---------------- BIG levels: 5 extra cutscenes (10 in all), with epic running scenes ----------------
+  // ---------------- 15 cutscenes on EVERY level: intro, release, sighted, backflip, chase, front flip, midnight, rooftop leap,
+  // storm, ambush, flip combo, exit, final run, frenzy, and the escape / eaten ending (boss levels add 'surge' + the battle) ----------------
   checkBigScenes() {
-    const L = LV(), F = this.bigFired, p = this.player;
-    if (!L.big || net.on || this.cine || !this.released || p.state !== 'alive' || this.exitOpen) return false;
-    const go = (key, fn) => { F[key] = true; fn(); return !!this.cine; };
-    if (!F.sighted && this.keys >= 1) return go('sighted', () => this.startSighted());
-    if (!F.chase && this.keys >= 2) return go('chase', () => this.startRunScene('chase'));
+    const L = LV(), F = this.bigFired, p = this.player, rt = CFG.roundTime;
+    if (net.on || this.cine || !this.released || p.state !== 'alive' || this.exitOpen || this.time < (this.sceneAt || 0) || p.pos.y > 4) return false;
+    const due = (k, frac, prev) => this.keys >= k || this.elapsed >= frac * rt;
+    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 7; return !!this.cine; };
+    if (!F.sighted && due(1, 0.1)) return go('sighted', () => this.startSighted());
+    if (!F.backflip && F.sighted && due(1, 0.18)) return go('backflip', () => this.startBackflip());
+    if (!F.chase && due(2, 0.28)) return go('chase', () => this.startRunScene('chase'));
+    if (!F.frontflip && F.chase && due(2, 0.36)) return go('frontflip', () => this.startFrontFlip());
     if (!F.surge && L.battle && this.keys >= 3) return go('surge', () => this.startSurge());
-    if (!F.midnight && (this.elapsed >= CFG.roundTime / 2 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
-    if (!F.ambush && this.keys >= 4) return go('ambush', () => this.startAmbush());
+    if (!F.midnight && (this.elapsed >= rt / 2 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
+    if (!F.rooftop && F.midnight && due(3, 0.56)) return go('rooftop', () => this.startRooftop());
+    if (!F.storm && F.rooftop && due(3, 0.64)) return go('storm', () => this.startStorm());
+    if (!F.ambush && due(4, 0.72)) return go('ambush', () => this.startAmbush());
+    if (!F.combo && F.ambush && due(4, 0.78)) return go('combo', () => this.startCombo());
     return false;
   },
   // a running route along the monsters' paths: at(d) gives the point d units along it and the direction there
@@ -7229,6 +7242,148 @@ const game = {
     this.cine.showPlayer = true;
   },
 
+  // ---------------- 5 acrobatic scenes: backflips, front flips, a rooftop leap, a lightning storm and a flip combo ----------------
+  // rotate the runner around the middle of their body (not their feet) so flips look right
+  acro(pitch = 0, roll = 0, tuck = 1) {
+    const p = this.player, pm = p.mesh, U = pm.userData;
+    pm.rotation.order = 'YXZ'; pm.rotation.x = pitch; pm.rotation.z = roll;
+    const off = V(0, 3, 0).applyEuler(pm.rotation);
+    pm.position.set(p.pos.x - off.x, p.pos.y + 3 - off.y, p.pos.z - off.z);
+    U.armL.rotation.x = U.armR.rotation.x = -2.4 * tuck; U.legL.rotation.x = -1.5 * tuck; U.legR.rotation.x = -1.3 * tuck;
+  },
+  acroReset() { const pm = this.player.mesh; pm.rotation.x = 0; pm.rotation.z = 0; },
+  // a straight running route in front of you + camera rigs (incl. an orbit camera that circles the runner)
+  acroPrep(len, speed, hs = [], gaps = []) {
+    const p = this.player, f = V(Math.sin(camYaw), 0, Math.cos(camYaw));
+    const run = this.makeRun(p.pos, p.pos.clone().addScaledVector(f, len + 8));
+    if (!run || run.len < len * 0.7) return null;
+    const c0 = { run, dist: 0, endD: Math.min(run.len - 2, len), speed, pp: p.pos.clone(), dir: run.at(0).dir.clone(), hs, gaps, side: 1 };
+    const o = p.pos.clone().add(V(0, 3, 0));
+    c0.side = rayDistance(o, V(c0.dir.z, 0, -c0.dir.x), 12) > rayDistance(o, V(-c0.dir.z, 0, c0.dir.x), 12) ? 1 : -1;
+    const K = this.runCams(c0);
+    const P = () => c0.pp.clone().add(V(0, 3, 0)), sd = () => V(c0.dir.z, 0, -c0.dir.x).multiplyScalar(c0.side);
+    K.orbit = (r, y, a0, a1) => ({
+      pos: (u) => {
+        const a = lerp(a0, a1, smooth(u)), from = P(), to = from.clone().addScaledVector(c0.dir, Math.cos(a) * r).addScaledVector(sd(), Math.sin(a) * r).add(V(0, y, 0));
+        const d = to.clone().sub(from), L = d.length(); d.divideScalar(L);
+        return from.addScaledVector(d, Math.max(2.2, Math.min(L, rayDistance(from, d, L) - 0.8)));
+      },
+      look: () => P(),
+    });
+    return { c0, K };
+  },
+  placeBlocker(c0, d, h) { const q = c0.run.at(d); h.pos.set(q.p.x, 0, q.p.z); h.vel.set(0, 0, 0); h.facing = Math.atan2(-q.dir.x, -q.dir.z); h.chasing = true; return q; },
+  swing(h, a) { const U = h.mesh.userData; U.armL.sh.rotation.x = U.armR.sh.rotation.x = -2.6 * a; },
+  // one camera shot in which the runner does a move: o = { d, hop, pitch (turns), roll (turns), slow, a, b, blocker, extra }
+  flipShot(c0, cap, cam, o) {
+    const p = this.player, a = o.a ?? 0.15, b = o.b ?? 0.85;
+    const slowAt = (u) => (typeof o.slow === 'function' ? o.slow(u) : (o.slow ?? 1));
+    return { d: o.d, cap, ...cam, tick: (u, c, dt) => {
+      if (o.blocker && !c.fired.m) { // park the monster exactly where the runner will be at the top of the jump
+        c.fired.m = true; let s = 0; const um = (a + b) / 2;
+        for (let i = 0; i < 40; i++) s += slowAt(um * (i + 0.5) / 40) * um / 40;
+        this.placeBlocker(c0, c0.dist + s * o.d * c0.speed, o.blocker);
+      }
+      const t = clamp((u - a) / (b - a), 0, 1), air = u > a && u < b;
+      this.runStep(c0, dt, slowAt(u), air ? Math.sin(t * Math.PI) * o.hop : 0);
+      if (air) {
+        const e = smooth(t);
+        this.acro((o.pitch || 0) * Math.PI * 2 * e, (o.roll || 0) * Math.PI * 2 * e, o.tuck ?? 1);
+        if (!c.fired.j) { c.fired.j = true; sfx.jump(); }
+        c.tr = (c.tr || 0) - dt; if (c.tr <= 0) { c.tr = 0.05; burst(p.pos.clone().add(V(0, 3, 0)), o.col ?? 0x7affd0, 4, 5, 0.5, 1); }
+      } else if (u >= b) {
+        if (!c.fired.l && o.hop > 0) { c.fired.l = true; this.acroReset(); sfx.land(0.7); this.shake = Math.max(this.shake, 0.5); burst(V(p.pos.x, 0.6, p.pos.z), 0xffffff, 18, 9, 0.5, 2); }
+      } else this.acroReset();
+      if (o.extra) o.extra(u, c, dt);
+    } };
+  },
+  finishAcro(c0, gaps, blocker, msg) {
+    this.acroReset(); this.endRunScene(c0, gaps); this.player.moves += 3;
+    if (blocker) { blocker.pos.y = 0; collide(blocker.pos, 1.5); blocker.stunT = 2.4; blocker.chasing = true; blocker.lastKnown = this.player.pos.clone(); blocker.path = null; }
+    toast(msg, '#7affd0');
+  },
+  strike(x, z, hit = null) { // a lightning bolt from the sky
+    const m = new THREE.Mesh(BOX(1.4, 150, 1.4), neon(0xe0c8ff, 5)); m.position.set(x, 75, z); scene.add(m);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1, 7, 24), glowMat(0xc8a0ff, 0.9)); ring.rotation.x = -Math.PI / 2; ring.position.set(x, 0.2, z); scene.add(ring);
+    setTimeout(() => { scene.remove(m); scene.remove(ring); }, 260);
+    burst(V(x, 1.5, z), 0xe0c8ff, 40, 24, 0.8, 8, 2); flash('#ffffff', 0.55); this.shake = Math.max(this.shake, 1.2); sfx.boom(); sfx.noise(0.5, 0.25, 2500, 'highpass');
+    if (hit) { hit.flare = 1.4; sfx.scream(hit.typeKey); }
+  },
+  // 1) the monster blocks the road: BACKFLIP over its claws (orbit camera, slow motion)
+  startBackflip() {
+    const h = this.nearestHunter(), A = this.acroPrep(48, 15);
+    if (!A) { this.roarScene('backflip', h); return; }
+    const { c0, K } = A;
+    this.playShots('backflip', [
+      { d: 1.5, cap: `${h.T.name} blocks the road…`, ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt); if (c0.dist > 6) this.swing(h, 0.2); } },
+      this.flipShot(c0, 'BACKFLIP!', K.orbit(11, 1.5, 1.2, 4.4), { d: 2.8, hop: 7, pitch: -1, slow: 0.45, blocker: h,
+        extra: (u, c) => { this.swing(h, Math.sin(clamp(u / 0.75, 0, 1) * Math.PI)); this.roarShot(h, c, 'r', u, 0.3); } }),
+      { d: 1.6, cap: 'Stuck the landing!', ...K.low, tick: (u, c, dt) => { this.runStep(c0, dt); this.acroReset(); this.swing(h, 0); } },
+    ], () => this.finishAcro(c0, [], h, '🤸 BACKFLIP! Keep running!'));
+    this.cine.showPlayer = true;
+  },
+  // 2) a DOUBLE front flip over a tail sweep, with a frozen-in-time moment at the top
+  startFrontFlip() {
+    const h = this.nearestHunter(), A = this.acroPrep(48, 16);
+    if (!A) { this.roarScene('frontflip', h); return; }
+    const { c0, K } = A;
+    this.playShots('frontflip', [
+      { d: 1.4, cap: 'It swings low…', ...K.side, tick: (u, c, dt) => { this.runStep(c0, dt); } },
+      this.flipShot(c0, 'DOUBLE FRONT FLIP!', K.orbit(9, 0.5, 2.0, -1.6), { d: 3.0, hop: 9, pitch: 2, slow: (u) => (u > 0.4 && u < 0.6 ? 0.12 : 0.55), blocker: h, col: 0xffd257,
+        extra: (u, c) => { this.swing(h, 0.4 + 0.6 * Math.sin(clamp(u / 0.6, 0, 1) * Math.PI)); h.mesh.rotation.z = Math.sin(clamp((u - 0.2) / 0.5, 0, 1) * Math.PI) * 0.5; if (!c.fired.x && u > 0.45) { c.fired.x = true; flash('#ffe05a', 0.35); this.shake = 0.8; sfx.punch(); } } }),
+      { d: 1.6, cap: 'It never even touched you!', ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt); h.mesh.rotation.z = 0; this.roarShot(h, c, 'r', u, 0.4); } },
+    ], () => { h.mesh.rotation.z = 0; this.finishAcro(c0, [], h, '🤸 DOUBLE FRONT FLIP!'); });
+    this.cine.showPlayer = true;
+  },
+  // 3) a huge rooftop-style leap: the ground falls away, a triple flip, and a backflip to land
+  startRooftop() {
+    const h = this.nearestHunter(), A = this.acroPrep(70, 20, [h], [13]);
+    if (!A) { this.roarScene('rooftop', h); return; }
+    const { c0, K } = A;
+    this.playShots('rooftop', [
+      { d: 1.5, cap: 'Cornered at the edge!', ...K.behind, tick: (u, c, dt) => { this.runStep(c0, dt); this.roarShot(h, c, 'r', u, 0.2); } },
+      this.flipShot(c0, 'LEAP!', K.aerial, { d: 2.2, hop: 24, pitch: 3, slow: 0.55, col: 0x5fd8ff, a: 0.1, b: 0.92,
+        extra: (u, c) => { if (!c.fired.t && u > 0.5) { c.fired.t = true; burst(this.player.pos.clone().add(V(0, 3, 0)), 0x5fd8ff, 50, 25, 1, 0, 3); flash('#5fd8ff', 0.3); sfx.boom(); } } }),
+      this.flipShot(c0, 'TRIPLE FLIP!', K.orbit(13, 2, 0.4, 3.6), { d: 2.4, hop: 12, pitch: -2, roll: 1, slow: 0.4, col: 0xff5aa8, tuck: 1,
+        extra: (u, c) => { if (!c.fired.t && u > 0.5) { c.fired.t = true; this.shake = 1; flash('#ff5aa8', 0.3); sfx.boom(); } } }),
+      { d: 1.5, cap: 'You left it in the dust!', ...K.front, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.4, u); this.runStep(c0, dt); this.acroReset(); } },
+    ], () => this.finishAcro(c0, [26], null, '🌟 What a leap! Keep going!'));
+    this.cine.showPlayer = true;
+  },
+  // 4) a lightning storm: cartwheel and corkscrew between the bolts while the monster chases
+  startStorm() {
+    const h = this.nearestHunter(), A = this.acroPrep(64, 17, [h], [16]);
+    if (!A) { this.roarScene('storm', h); return; }
+    const { c0, K } = A, p = this.player;
+    const ahead = (d, s = 0) => { const q = c0.run.at(c0.dist + d); return V(q.p.x + q.dir.z * s, 0, q.p.z - q.dir.x * s); };
+    this.playShots('storm', [
+      { d: 1.8, cap: 'The sky splits open!', ...K.aerial, tick: (u, c, dt) => { this.runStep(c0, dt); if (!c.fired.s && u > 0.5) { c.fired.s = true; const q = ahead(26, 7); this.strike(q.x, q.z); } } },
+      this.flipShot(c0, 'DODGE!', K.orbit(9, 1, 0.9, 2.7), { d: 2.2, hop: 4, roll: 1, slow: 0.45, col: 0xe0c8ff, a: 0.2, b: 0.9,
+        extra: (u, c) => { if (!c.fired.s && u > 0.3) { c.fired.s = true; const q = ahead(1, 0); this.strike(q.x, q.z); } } }),
+      this.flipShot(c0, 'CORKSCREW!', K.low, { d: 2.2, hop: 6, pitch: 1, roll: 1, slow: 0.45, col: 0xe0c8ff, a: 0.2, b: 0.9,
+        extra: (u, c) => { if (!c.fired.s && u > 0.3) { c.fired.s = true; const q = ahead(2, -4); this.strike(q.x, q.z); } } }),
+      { d: 1.8, cap: `The lightning hits ${h.T.name}!`, ...K.behind, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.2, u); this.runStep(c0, dt); this.acroReset(); if (!c.fired.s && u > 0.3) { c.fired.s = true; this.strike(h.pos.x, h.pos.z, h); } } },
+    ], () => this.finishAcro(c0, [30], null, '⚡ Dodged the storm!'));
+    this.cine.showPlayer = true;
+  },
+  // 5) the grand finale: vault, backflip, front flip, corkscrew and a double backflip, with fireworks
+  startCombo() {
+    const h = this.nearestHunter(), A = this.acroPrep(86, 22, [h], [15]);
+    if (!A) { this.roarScene('combo', h); return; }
+    const { c0, K } = A, p = this.player;
+    const fw = (u, c, dt) => { c.fw = (c.fw || 0) - dt; if (c.fw <= 0) { c.fw = 0.14; burst(p.pos.clone().add(V((Math.random() - 0.5) * 24, 6 + Math.random() * 18, (Math.random() - 0.5) * 24)), [0x78ff8f, 0xffd257, 0xff5aa8, 0x5fd8ff][Math.floor(Math.random() * 4)], 26, 22, 1.2, 0, 3); } };
+    this.playShots('combo', [
+      { d: 1.2, cap: 'PARKOUR!', ...K.front, tick: (u, c, dt) => this.runStep(c0, dt) },
+      this.flipShot(c0, 'VAULT!', K.side, { d: 1.0, hop: 3.5, tuck: 0.5 }),
+      this.flipShot(c0, 'BACKFLIP!', K.orbit(10, 1, 1.3, 3.2), { d: 1.6, hop: 6, pitch: -1, slow: 0.7 }),
+      this.flipShot(c0, 'FRONT FLIP!', K.low, { d: 1.6, hop: 6.5, pitch: 1, slow: 0.7, col: 0xffd257 }),
+      this.flipShot(c0, 'CORKSCREW!', K.orbit(11, 3, 0.6, 3.6), { d: 2.0, hop: 9, pitch: 1, roll: 2, slow: 0.5, col: 0xff5aa8, extra: fw }),
+      this.flipShot(c0, 'DOUBLE BACKFLIP!!!', K.orbit(15, 4, 3.6, 0.4), { d: 2.4, hop: 13, pitch: -2, slow: 0.4, col: 0x5fd8ff, extra: (u, c, dt) => { fw(u, c, dt); if (!c.fired.b && u > 0.5) { c.fired.b = true; sfx.boom(); flash('#ffffff', 0.4); this.shake = 1.2; } } }),
+      { d: 1.8, cap: 'UNSTOPPABLE!', ...K.behind, tick: (u, c, dt) => { c0.gapK = lerp(1, 2.6, u); this.runStep(c0, dt); this.acroReset(); fw(u, c, dt); if (!c.fired.w) { c.fired.w = true; sfx.escape(); } } },
+    ], () => this.finishAcro(c0, [34], null, '🏅 PARKOUR LEGEND!'));
+    this.cine.showPlayer = true;
+  },
+
   // ---------------- multiplayer ----------------
   hostStart() {
     sfx.init();
@@ -7359,7 +7514,7 @@ const game = {
     for (const h of this.hunters) { h.pos.y = 0; h.chasing = false; h.flare = 0; }
     this.endCine();
     camYaw = 0; camPitch = firstPerson ? 0.05 : 0.32;
-    splash('RUN!', `${this.custom ? '🛠 Your map' : 'Level ' + this.level}: ${LV().name}. ` + (LV().battle ? `Collect ${CFG.keysNeeded} ${LV().keyWord}s to grow GIANT` : `Find ${CFG.keysNeeded} keys and escape`), '#ffd257');
+    splash('RUN!', `${this.endless ? '♾ Endless ' + this.endless : this.custom ? '🛠 Your map' : 'Level ' + this.level}: ${LV().name}. ` + (LV().battle ? `Collect ${CFG.keysNeeded} ${LV().keyWord}s to grow GIANT` : `Find ${CFG.keysNeeded} keys and escape`), '#ffd257');
     { const Q = world.quest.q; setTimeout(() => storyCard(`${Q.icon} STORY QUEST: ${Q.title}`, `Find ${world.quest.items.length} ${Q.item}s (${Q.icon} on your map). ${LV().big ? '⭐ BIG LEVEL: bigger quest, bigger reward!' : ''}`, hex6(Q.col)), 2600); }
     if (isTouch) toast('Left side: move · Right side: look', '#cdb8ff');
     else toast('Click the game to lock your mouse · V camera · F flashlight', '#cdb8ff');
@@ -7455,7 +7610,7 @@ const game = {
     const chaser = !net.on && this.hunters.filter((h) => h.active).length ? this.nearestHunter() : null;
     if (chaser) { chaser.pos.set(world.exit.x + 3, 0, world.half - 16 * Math.max(1, chaser.T.scale * 0.5)); chaser.chasing = true; }
     this.beginCine('escape', { fireworks: 0, chaser, freeze: !!chaser, big: LV().big });
-    setCaption(this.custom ? `🛠 You beat your own map: ${this.custom.name}!` : this.level < LEVELS.length ? `Next: ${LEVELS[this.level].emoji} ${LEVELS[this.level].name}…` : '🏆 You survived all three nightmares!');
+    setCaption(this.endless ? `♾ Endless ${this.endless} cleared! Next: Endless ${this.endless + 1}…` : this.custom ? `🛠 You beat your own map: ${this.custom.name}!` : this.level < LEVELS.length ? `Next: ${LEVELS[this.level].emoji} ${LEVELS[this.level].name}…` : '🏆 You survived all three nightmares!');
   },
   updateEscape(dt) {
     const c = this.cine; if (c.big && c.t < 2.2) dt *= 0.45;
@@ -7613,7 +7768,7 @@ const game = {
       { d: 2.8, cap: 'The gate is unlocking…', pos: (u) => V(e.x + lerp(-20, 20, u), lerp(9, 14, u), world.half - lerp(46, 36, u)), look: () => V(e.x, 10, e.z),
         tick: (u, c) => { if (!c.fired.g && u > 0.4) { c.fired.g = true; this.showGateOpen(); } } },
       { d: 2.4, cap: `…and ${h.T.name} heard it.`, ...this.faceCam(h, 5, 10), tick: (u, c) => this.roarShot(h, c, 'e', u, 0.25) },
-    ], () => { this.showGateOpen(); h.chasing = false; splash('THE EXIT IS OPEN!', 'Get to the gate. The monsters are enraged!', '#78ff8f'); const enrage = () => { if (!this.frenzy) this.startFrenzy(); }; if (LV().big && !this.bigFired.finalrun) { this.bigFired.finalrun = true; this.startRunScene('finalrun', enrage); } else enrage(); });
+    ], () => { this.showGateOpen(); h.chasing = false; splash('THE EXIT IS OPEN!', 'Get to the gate. The monsters are enraged!', '#78ff8f'); const enrage = () => { if (!this.frenzy) this.startFrenzy(); }; if (!this.bigFired.finalrun) { this.bigFired.finalrun = true; this.startRunScene('finalrun', enrage); } else enrage(); });
   },
   caught(hunter) {
     if (this.player.state !== 'alive') return;
@@ -7665,7 +7820,8 @@ const game = {
     }
     writeSave();
     const last = this.level >= LEVELS.length && !this.custom;
-    $('nextBtn').classList.toggle('hidden', !!this.custom || net.isClient || (net.isHost ? last : !(this.result.win && !last)));
+    if (this.endless && this.result.win && !this.practice) { save.endless = Math.max(save.endless || 0, this.endless); writeSave(); }
+    $('nextBtn').classList.toggle('hidden', this.endless ? !(this.result.win && !net.on) : !!this.custom || net.isClient || (net.isHost ? last : !(this.result.win && !last)));
     $('againBtn').classList.toggle('hidden', net.isClient);
     $('againBtn').textContent = net.isHost ? 'Play again (everyone)' : 'Play again';
     $('menuBtn').textContent = net.on ? 'Room lobby' : 'Menu';
@@ -7990,6 +8146,54 @@ function customLevel(m) {
 }
 for (const d of creations().monsters) registerCreation(d);
 
+// ---------------------------------------------------------------------------
+// AUTO MAKERS: a never-ending supply of new monsters and maps (used by Endless mode and the Create tab)
+// ---------------------------------------------------------------------------
+const GEN = {
+  A: ['Grim', 'Night', 'Shadow', 'Bone', 'Hollow', 'Rot', 'Gloom', 'Fang', 'Creep', 'Howl', 'Ash', 'Venom', 'Mire', 'Dusk', 'Wretch', 'Husk', 'Thorn', 'Gore', 'Pale', 'Sorrow', 'Cinder', 'Frost', 'Rust', 'Moth', 'Plague', 'Drip', 'Static', 'Void'],
+  B: ['crawler', 'stalker', 'walker', 'wraith', 'beast', 'maw', 'lurker', 'grinner', 'gnasher', 'creeper', 'shambler', 'render', 'screamer', 'biter', 'horror', 'wisp', 'titan', 'warden', 'hound', 'widow'],
+  PA: ['Hollow', 'Crimson', 'Forgotten', 'Drowned', 'Silent', 'Burning', 'Frozen', 'Twisted', 'Neon', 'Rusted', 'Haunted', 'Lost', 'Shattered', 'Sunken', 'Whispering', 'Endless', 'Bleeding', 'Gilded', 'Toxic', 'Electric'],
+  PB: ['Marrows', 'Docks', 'Gardens', 'Heights', 'Catacombs', 'Wastes', 'Carnival', 'Station', 'Orchard', 'Reef', 'Foundry', 'Canyon', 'Quarter', 'Hollows', 'Citadel', 'Fields', 'Tunnels', 'Peaks', 'Mall', 'Sanctum'],
+};
+const rngPick = (r, a) => a[Math.floor(r() * a.length)];
+// a brand-new monster design (same format the Monster Maker uses); n = how deep into Endless we are (bigger = nastier)
+function genMonster(r, id, n = 1) {
+  const hue = r(), col = (h, sa, l) => new THREE.Color().setHSL(h % 1, sa, l).getHex(), pick = (a) => rngPick(r, a);
+  const d = { id, name: `The ${pick(GEN.A)}${pick(GEN.B)}`, emoji: pick(MAKER.emojis), posture: pick(['upright', 'upright', 'crawl', 'float']),
+    body: col(hue, 0.45 + r() * 0.45, 0.14 + r() * 0.2), eye: col(hue + 0.4 + r() * 0.2, 1, 0.55), size: +Math.min(2.6, 0.9 + r() * 0.7 + Math.min(0.6, n * 0.025)).toFixed(1),
+    speed: n < 3 ? 'normal' : pick(['normal', 'normal', 'fast', n > 8 ? 'insane' : 'fast']), head: pick(MAKER.head), face: pick(MAKER.face), horns: pick(MAKER.horns), back: pick(MAKER.back),
+    hat: r() < 0.5 ? 'none' : pick(MAKER.hats), held: r() < 0.5 ? 'none' : pick(MAKER.held), orbit: r() < 0.55 ? 'none' : pick(MAKER.orbit),
+    eyes: pick([1, 2, 2, 6]), eyeSize: +(0.8 + r()).toFixed(1), flicker: r() < 0.3, extras: {} };
+  for (const [k] of MAKER.extras) if (r() < 0.18) d.extras[k] = true;
+  return d;
+}
+function registerGen(d) { // make a generated monster playable without saving it
+  const key = 'u_' + d.id;
+  if (!MONSTERS[key]) { registerCreation(d); MONSTERS[key].custom = false; MONSTERS[key].caption = `${d.name} got you.`; }
+  return key;
+}
+// a brand-new map design: 4 random areas blended into a 5x5 layout
+function genMap(r, id, n = 1) {
+  const pick = (a) => rngPick(r, a), sites = Array.from({ length: 4 }, () => ({ x: r() * 4, y: r() * 4, z: pick(MAKER_ZONES) }));
+  const layout = Array.from({ length: 5 }, (_, row) => Array.from({ length: 5 }, (_, c) => sites.reduce((b, s) => (Math.hypot(s.x - c, s.y - row) + r() * 0.8 < Math.hypot(b.x - c, b.y - row) + r() * 0.8 ? s : b)).z));
+  return { id, name: `${pick(GEN.PA)} ${pick(GEN.PB)}`, emoji: pick(MAKER.mapEmojis), tint: '#' + new THREE.Color().setHSL(r(), 0.6 + r() * 0.4, 0.5).getHexString(),
+    weather: pick(MAKER.weather)[0], light: pick(['dim', 'normal', 'normal', 'bright']), gravity: pick(['normal', 'normal', 'normal', 'low', 'moon']), speed: 'normal', big: false, layout, monsters: [] };
+}
+// Endless level n: always the same for the same n, and there is always an n+1
+function endlessLevel(n) {
+  const r = mulberry32(((n * 2654435761) ^ 0x9e3779b9) >>> 0);
+  const m = genMap(r, 'e' + n, n);
+  m.monsters = [0, 1, 2].map((i) => registerGen(genMonster(r, `e${n}_${i}`, n)));
+  m.big = n % 5 === 0;
+  const L = customLevel(m), mn = m.monsters.map((k) => MONSTERS[k].name);
+  L.endless = n; L.speedBonus = Math.min(16, 2 + n * 0.7);
+  L.blurb = `♾ Endless #${n}: ${mn.join(', ')} hunt you through ${m.name}.${m.big ? ' ⭐ BIG level!' : ''}`;
+  L.story = [`Endless night #${n}. ${m.name}.`, 'The only way out is the north gate.', 'Find 5 keys…', `${mn[0]} is waiting for you.`, 'There is always another night…'];
+  L.released = [`${mn[0]}, ${mn[1]} and ${mn[2]} are loose!`, 'RUN!'];
+  L.escape = `You escaped ${m.name}! Another night awaits…`;
+  return L;
+}
+
 // ---- the Create tab
 const maker = {
   mon: null, map: null, brush: 'city', prev: null,
@@ -8056,6 +8260,7 @@ const maker = {
     $('mkExtras').innerHTML = MAKER.extras.map(([k, t]) => `<label class="mkChk"><input type="checkbox" data-x="${k}"> ${t}</label>`).join('');
     $('mkExtras').querySelectorAll('input').forEach((c) => { c.onchange = () => { m().extras[c.dataset.x] = c.checked; this.refreshPreview(); }; });
     $('mkRandom').onclick = () => { this.randomMonster(); };
+    $('mkAuto').onclick = () => { const d = genMonster(mulberry32((Math.random() * 4294967296) >>> 0), Date.now().toString(36), 6 + Math.floor(Math.random() * 20)), hx = (v) => '#' + new THREE.Color(v).getHexString(); this.mon = { ...d, body: hx(d.body), eye: hx(d.eye) }; this.fillMonsterForm(); };
     $('mkSave').onclick = () => this.saveMonster();
     $('mkNew').onclick = () => { this.mon = this.newMonster(); this.fillMonsterForm(); };
     this.fillMonsterForm();
@@ -8108,6 +8313,11 @@ const maker = {
     $('mpmBrush').value = this.brush; $('mpmBrush').onchange = (e) => { this.brush = e.target.value; this.showBrush(); };
     $('mpmFill').onclick = () => { m().layout = m().layout.map((row) => row.map(() => this.brush)); this.drawGrid(); };
     $('mpmShuffle').onclick = () => { const z = () => MAKER_ZONES[Math.floor(Math.random() * MAKER_ZONES.length)], a = [z(), z(), z(), z(), z()]; m().layout = m().layout.map((row) => row.map(() => a[Math.floor(Math.random() * a.length)])); this.drawGrid(); };
+    $('mpmAuto').onclick = () => { // a whole map + 3 brand-new monsters for it, all made automatically
+      const r = mulberry32((Math.random() * 4294967296) >>> 0), id = Date.now().toString(36), d = genMap(r, id, 8);
+      d.monsters = [0, 1, 2].map((i) => { const md = genMonster(r, `${id}_${i}`, 8 + Math.floor(r() * 12)); creations().monsters.push(md); registerCreation(md); return 'u_' + md.id; });
+      writeSave(); this.map = d; this.fillMapForm(); this.renderLists(); toast(`🤖 Made ${d.name} with 3 new monsters`, '#7affd0');
+    };
     $('mpmSave').onclick = () => this.saveMap(false);
     $('mpmPlay').onclick = () => this.saveMap(true);
     $('mpmNew').onclick = () => { this.map = this.newMap(); this.fillMapForm(); };
@@ -8145,7 +8355,7 @@ const maker = {
   },
   play(d) {
     if (net.on) { toast('Your own maps are solo only for now', '#ff9a5a'); return; }
-    game.custom = customLevel(d);
+    game.endless = null; game.custom = customLevel(d);
     game.start(true);
   },
   renderLists() {
@@ -8202,8 +8412,15 @@ function showTab(t) {
 document.querySelectorAll('#lbTabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
 $('pickLevelBtn').addEventListener('click', () => showTab('levels'));
 
+function renderEndless() {
+  const next = (save.endless || 0) + 1, L = endlessLevel(next);
+  $('endlessInfo').innerHTML = `Cleared so far: <b>${save.endless || 0}</b> · Next up: <b>${L.emoji} ${escHtml(L.name)}</b> ${L.monsters.map((m) => MONSTERS[m].emoji).join(' ')}`;
+  $('endlessGo').textContent = `▶ Play Endless #${next}`;
+  $('endlessGo').onclick = () => game.playEndless(next);
+  $('endlessRandom').onclick = () => game.playEndless(6 + Math.floor(Math.random() * 90), true);
+}
 function renderMenu() {
-  renderLobby();
+  renderLobby(); renderEndless();
   const lv = $('levelSeg'); lv.innerHTML = '';
   LEVELS.forEach((L, k) => {
     const b = document.createElement('button');
@@ -8222,7 +8439,7 @@ function renderMenu() {
   $('levelBlurb').textContent = base.blurb;
   $('heroMonsters').innerHTML = (base.mix ? '<span class="mChip" style="border-color:#ff4ad0;color:#ff9af0">❓ 3 random monsters every round</span>' : '')
     + (base.mix ? '' : L.monsters.map((m) => `<span class="mChip" style="border-color:${MONSTERS[m].eyeCss};color:${MONSTERS[m].eyeCss}">${MONSTERS[m].emoji} ${MONSTERS[m].name}</span>`).join(''));
-  if (!base.mix) { const Q = questOf(base); $('heroMonsters').innerHTML += `<span class="mChip" style="border-color:${hex6(Q.col)};color:${hex6(Q.col)}">📜 Quest: ${Q.title}</span>` + (base.big ? '<span class="mChip" style="border-color:#ffd23a;color:#ffd23a">⭐ BIG LEVEL · 10 cutscenes</span>' : ''); }
+  if (!base.mix) { const Q = questOf(base); $('heroMonsters').innerHTML += `<span class="mChip" style="border-color:${hex6(Q.col)};color:${hex6(Q.col)}">📜 Quest: ${Q.title}</span>` + (base.big ? '<span class="mChip" style="border-color:#ffd23a;color:#ffd23a">⭐ BIG LEVEL · bigger quest</span>' : '') + '<span class="mChip" style="border-color:#ff9a3a;color:#ffb066">🎬 15 cutscenes · flips!</span>'; }
   const hb = save.levelBest && save.levelBest[game.level];
   $('heroBest').textContent = hb !== undefined ? `🏆 Your best: ${fmtTime(hb)}` : 'Not escaped yet';
   $('hdrCoins').textContent = save.coins; $('hdrName').textContent = save.name;
@@ -8252,7 +8469,7 @@ document.querySelectorAll('#diffSeg button').forEach((b) => b.addEventListener('
 document.querySelectorAll('#viewSeg button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v === 'fp', false)));
 $('playBtn').addEventListener('click', () => (net.isHost ? game.hostStart() : net.isClient ? null : game.start(false)));
 $('againBtn').addEventListener('click', () => (net.isHost ? game.hostStart() : game.start(true)));
-$('nextBtn').addEventListener('click', () => { game.setLevel(Math.min(LEVELS.length, game.level + 1)); if (net.isHost) game.hostStart(); else game.start(true); });
+$('nextBtn').addEventListener('click', () => { if (game.endless) { game.playEndless(game.endless + 1, game.practice); return; } game.setLevel(Math.min(LEVELS.length, game.level + 1)); if (net.isHost) game.hostStart(); else game.start(true); });
 // multiplayer menu
 $('mpName').value = save.name;
 $('mpName').addEventListener('change', () => { save.name = $('mpName').value.trim().slice(0, 12) || save.name; $('mpName').value = save.name; writeSave(); renderMenu(); });
@@ -8403,6 +8620,17 @@ if (demo) {
         const real = kinds.filter((k) => k !== 'death');
         console.log('BIGCINES', JSON.stringify({ big: !!LV().big, count: real.length, kinds: real, state: game.state, win: !!(game.result && game.result.win) }));
         return;
+      }
+      if (demo === 'flips') { // every new acrobatic scene must play through, and endless levels must build
+        const out = {}; CFG.catchRadius = 0; game.released = true;
+        for (const n of ['Backflip', 'FrontFlip', 'Rooftop', 'Storm', 'Combo']) {
+          game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); game['start' + n]();
+          let t = 0; for (; t < 60 * 25 && game.cine; t++) game.update(1 / 60);
+          out[n] = { secs: +(t / 60).toFixed(1), ended: !game.cine, rotX: +game.player.mesh.rotation.x.toFixed(2), y: +game.player.pos.y.toFixed(2) };
+        }
+        game.playEndless(7); out.endless = { name: game.custom.name, mons: game.custom.monsters, state: game.state };
+        for (let i = 0; i < 60 * 8; i++) game.update(1 / 60); out.endlessIntroDone = !game.cine;
+        console.log('FLIPS', JSON.stringify(out)); return;
       }
       if (demo === 'cines') { // every mid-game cutscene must play through and hand control back
         const out = {}, run = (name, fn, secs) => { fn(); out[name + 'Started'] = game.cine && game.cine.kind; for (let i = 0; i < 60 * secs; i++) game.update(1 / 60); out[name + 'Ended'] = !game.cine && game.state === 'play'; };
