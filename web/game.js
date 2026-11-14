@@ -6930,10 +6930,11 @@ const game = {
   // a cutscene made of camera shots: { d, cap, pos(u), look(u), tick(u, c, dt) }
   playShots(kind, shots, onEnd) {
     for (const h of this.hunters) h.vel.set(0, 0, 0);
-    this.beginCine(kind, { shots, idx: -1, local: 0, onEnd, freeze: true, fired: {} });
+    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, backflip: 1.8, frontflip: 1.8, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.6; // shorter scenes: play more!
+    this.beginCine(kind, { shots, idx: -1, local: 0, onEnd, freeze: true, fired: {}, speedUp });
   },
   updateShots(dt) {
-    const c = this.cine;
+    const c = this.cine; dt *= c.speedUp || 1;
     c.local += dt; c.t += dt;
     if (c.idx < 0 || c.local >= c.shots[c.idx].d) {
       c.idx++; c.local = 0;
@@ -7095,7 +7096,7 @@ const game = {
     const L = LV(), F = this.bigFired, p = this.player, rt = CFG.roundTime;
     if (net.on || this.cine || !this.released || p.state !== 'alive' || this.exitOpen || this.time < (this.sceneAt || 0) || p.pos.y > 4) return false;
     const due = (k, frac, prev) => this.keys >= k || this.elapsed >= frac * rt;
-    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 5; return !!this.cine; };
+    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 16; return !!this.cine; };
     if (!F.sighted && due(1, 0.07)) return go('sighted', () => this.startSighted());
     if (!F.backflip && F.sighted && due(1, 0.12)) return go('backflip', () => this.startBackflip());
     if (!F.chase && due(2, 0.19)) return go('chase', () => this.startRunScene('chase'));
