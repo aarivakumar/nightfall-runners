@@ -5831,6 +5831,18 @@ const sfx = {
   thud(v) { this.tone(48, 0.25, 'sine', 0.5 * v, 0, 30); this.noise(0.12, 0.15 * v, 200, 'lowpass'); },
   click() { this.tone(1800, 0.04, 'square', 0.05); },
   escape() { [523, 659, 784, 1046].forEach((f, i) => { this.tone(f, 0.8, 'triangle', 0.2, i * 0.12); this.tone(f * 1.5, 0.8, 'sine', 0.08, i * 0.12); }); },
+  // THE LOUDEST SOUND EVER: sub-bass drop, an air-horn chord, a screeching sweep and two thunder cracks (the volume is pushed up for a moment)
+  megaDab() {
+    if (!this.ctx) return;
+    const m = this.master, base = 0.55 * settings().vol, t = this.ctx.currentTime;
+    m.gain.cancelScheduledValues(t); m.gain.setValueAtTime(Math.min(1.5, base * 2.6), t); m.gain.linearRampToValueAtTime(base, t + 3.2);
+    this.tone(70, 1.8, 'sine', 1, 0, 22); this.tone(140, 1.2, 'sawtooth', 0.6, 0, 30);
+    this.noise(1.6, 1, 900, 'lowpass', 40); this.noise(0.5, 0.9, 6000, 'highpass', 800);
+    [440, 554, 659, 880].forEach((f) => this.tone(f, 1.5, 'square', 0.3, 0.03, f * 0.97));
+    this.tone(2200, 1.2, 'sawtooth', 0.35, 0.05, 200); this.tone(3300, 0.8, 'square', 0.2, 0.05, 400);
+    this.noise(1.2, 0.8, 1500, 'bandpass', 100, 0.45); this.tone(60, 1.2, 'sine', 0.8, 0.45, 20);
+    this.noise(1.8, 0.5, 700, 'lowpass', 60, 0.9);
+  },
   boom() { this.noise(0.8, 0.35, 600, 'lowpass', 80); this.tone(90, 0.5, 'sine', 0.3, 0, 40); },
   drone(on) {
     if (!this.ctx) return;
@@ -6986,7 +6998,7 @@ const game = {
     this.cine = { kind, t: 0, ...data };
     if (kind !== 'death' && kind !== 'dab' && this.state === 'play') {
       this.cineSeen = this.cineSeen || new Set(); this.cineSeen.add(kind);
-      const NM = { npc: 'A NEW FRIEND', signature: this.sigName || 'SIGNATURE SCENE', intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', vault: 'ONE-HAND VAULT', chase: 'THE CHASE', dualvault: 'DOUBLE VAULT', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
+      const NM = { npc: 'A NEW FRIEND', signature: this.sigName || 'SIGNATURE SCENE', signature2: this.sigName || 'SIGNATURE SCENE', intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', vault: 'ONE-HAND VAULT', chase: 'THE CHASE', dualvault: 'DOUBLE VAULT', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
       const b = $('cineBadge'); if (b) { b.textContent = `🎬 CUTSCENE ${Math.min(10, this.cineSeen.size)}/10 · ${NM[kind] || kind.toUpperCase()}`; b.style.opacity = 1; clearTimeout(this.badgeT); this.badgeT = setTimeout(() => { b.style.opacity = 0; }, 2600); }
     }
     const sc = $('storyCard'); if (sc) sc.style.opacity = 0;
@@ -7011,7 +7023,7 @@ const game = {
   // a cutscene made of camera shots: { d, cap, pos(u), look(u), tick(u, c, dt) }
   playShots(kind, shots, onEnd) {
     for (const h of this.hunters) h.vel.set(0, 0, 0);
-    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, vault: 1.5, npc: 1, signature: 1.25, dab: 1, dualvault: 1.7, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.5; // shorter scenes: play more!
+    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, vault: 1.5, npc: 1, signature: 1.25, signature2: 1.25, dab: 1, dualvault: 1.7, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.5; // shorter scenes: play more!
     this.beginCine(kind, { shots, idx: -1, local: 0, onEnd, freeze: true, fired: {}, speedUp });
   },
   updateShots(dt) {
@@ -7179,7 +7191,7 @@ const game = {
     const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 30; return !!this.cine; };
     if (!F.sighted && el >= rt * 0.06 && (this.keys >= 1 || el >= rt * 0.09)) return go('sighted', () => this.startSighted());
     if (!F.npc && el >= rt * 0.17) return go('npc', () => this.startNpcMeet());
-    if (!F.vault && el >= rt * 0.32) return go('vault', () => this.startVault());
+    if (!F.vault && el >= rt * 0.32) return go('vault', () => this.startSignature(1));
     if (!F.signature && el >= rt * 0.46) return go('signature', () => this.startSignature());
     if (!F.midnight && el >= rt * 0.61) return go('midnight', () => this.startMidnight());
     return false;
@@ -7282,12 +7294,14 @@ const game = {
   },
   // 'midnight': halfway through, the moon turns red and the monsters get faster
   startMidnight() {
-    const hs = this.hunters.filter((h) => h.active), half = world.half;
+    const hs = this.hunters.filter((h) => h.active), half = world.half, kit = this.sigKit(), pk = this.sigPick(kit.idx, 1, kit.FX.length, kit.CAMS.length), mfx = kit.FX[(pk.a + pk.b + 3) % kit.FX.length], mst = {};
+    this.sigName = `🌙 MIDNIGHT · ${mfx.n}`;
     this.playShots('midnight', [
       { d: 2.6, cap: 'Midnight.', pos: (u) => V(lerp(-half * 0.6, half * 0.6, u), 150, -half * 0.5), look: () => V(0, 0, 40), tick: (u, c) => { if (!c.fired.m && u > 0.5) { c.fired.m = true; moonMesh.material.color.set(0xff1a1a).multiplyScalar(2.4); moonMesh.scale.setScalar(Math.max(2, moonMesh.scale.x)); flash('#ff0020', 0.5); sfx.howl(); } } },
       { d: 2.2, cap: 'The moon turns red…', pos: (u) => V(0, 12 + u * 6, 0), look: () => moonMesh.position.clone() },
       ...hs.slice(0, 3).map((h, k) => ({ d: 1.3, cap: ['…and they grow stronger.', 'Faster.', 'Hungrier.'][k], ...this.faceCam(h, 4.5, 8), tick: (u, c) => this.roarShot(h, c, 'm' + k, u, 0.15) })),
-    ], () => { this.midnight = true; splash('MIDNIGHT', 'The monsters are FASTER now', '#ff3344'); });
+    ], () => { kit.restore.forEach((fn) => fn()); this.midnight = true; splash('MIDNIGHT', 'The monsters are FASTER now', '#ff3344'); });
+    const sh = this.cine.shots; sh.forEach((x, i) => { if (i < 2) { const t0 = x.tick; x.tick = (u, c, dt) => { if (t0) t0(u, c, dt); mfx.f(u, mst, dt); }; } });
   },
   // 'surge' (boss levels): the power is building
   startSurge() {
@@ -7518,16 +7532,37 @@ const game = {
   },
   clipCam(from, to) { const d = to.clone().sub(from), L = d.length(); d.divideScalar(Math.max(L, 1e-6)); return from.clone().addScaledVector(d, Math.max(2.2, Math.min(L, rayDistance(from, d, L) - 0.8))); },
   // a camera shot of the runner (and any friends) doing the EPIC DAB, with shockwaves
-  dabShot(cap, d = 2.2) {
-    const p = this.player, pm = p.mesh, P = () => p.pos.clone().add(V(0, 3.4, 0));
+  dabShot(cap, d = 3.8) {
+    const p = this.player, pm = p.mesh, P = () => p.pos.clone().add(V(0, 3.4, 0)), at = (r, ang, y) => { const a = camYaw + ang; return this.clipCam(P(), P().add(V(Math.sin(a) * r, y, Math.cos(a) * r))); };
+    // four camera angles with hard cuts: 1) low hero push-in  2) wide side orbit  3) extreme close-up on the face  4) crane up as the shockwave hits
+    const cams = [
+      { to: 0.26, pos: (k) => at(lerp(13, 7, k), lerp(-0.25, 0.1, k), lerp(-1.6, 0.4, k)), look: (k) => P().add(V(0, lerp(1.2, 0.4, k), 0)) },
+      { to: 0.52, pos: (k) => at(11, lerp(1.2, 2.2, k), 2.2), look: () => P() },
+      { to: 0.76, pos: (k) => at(lerp(8, 6, k), lerp(0.2, -0.15, k), 2.2), look: () => P().add(V(0, 1.4, 0)) },
+      { to: 1.01, pos: (k) => at(lerp(10, 28, smooth(k)), lerp(0.6, 1.8, k), lerp(3, 26, smooth(k))), look: () => P() },
+    ];
+    const pick = (u) => { let from = 0; for (const c of cams) { if (u < c.to) return [c, (u - from) / (c.to - from)]; from = c.to; } return [cams[3], 1]; };
     return { d, cap,
-      pos: (u) => { const a = camYaw + lerp(-0.8, 0.8, u); return this.clipCam(P(), P().add(V(Math.sin(a) * 9.5, 1.6, Math.cos(a) * 9.5))); }, look: () => P(),
+      pos: (u) => { const [c, k] = pick(u); return c.pos(k); }, look: (u) => { const [c, k] = pick(u); return c.look(k); },
       tick: (u, c, dt) => {
-        p.vel.set(0, 0, 0); p.pos.y = 0; pm.position.copy(p.pos); pm.rotation.y = camYaw; dabPose(pm); pm.rotation.x = 0.28;
+        p.vel.set(0, 0, 0); p.pos.y = 0; pm.position.copy(p.pos); pm.rotation.y = camYaw; dabPose(pm, u > 0.5 ? -1 : 1); pm.rotation.x = 0.28 + 0.12 * Math.sin(u * 40);
         const side = V(Math.cos(camYaw), 0, -Math.sin(camYaw));
-        this.companions.forEach((q, i) => { q.pos.copy(p.pos).addScaledVector(side, (i % 2 ? 1 : -1) * (4 + (i >> 1) * 3.5)); q.facing = camYaw; q.sync(); dabPose(q.mesh, -1); q.mesh.rotation.x = 0.28; });
-        if (!c.fired.a && u > 0.3) { c.fired.a = true; sfx.boom(); sfx.tone(180, 0.5, 'sawtooth', 0.12, 0, 60); flash('#ffffff', 0.45); this.shake = 1.2; shockwave(p.pos.x, p.pos.z, 0xffd257, 0.3, 45); burst(p.pos.clone().add(V(0, 3, 0)), 0xffd257, 50, 24, 1.2, 6, 3); }
-        if (!c.fired.b && u > 0.55) { c.fired.b = true; shockwave(p.pos.x, p.pos.z, 0x5fd8ff, 0.3, 45); shockwave(p.pos.x, p.pos.z, 0xff5aa8, 0.3, 30); burst(p.pos.clone().add(V(0, 3, 0)), 0x5fd8ff, 40, 20, 1, 4, 3); this.companions.forEach((q) => { if (!c.fired.q) { c.fired.q = true; q.say('cheer'); } }); }
+        this.companions.forEach((q, i) => { q.pos.copy(p.pos).addScaledVector(side, (i % 2 ? 1 : -1) * (4 + (i >> 1) * 3.5)); q.facing = camYaw; q.sync(); dabPose(q.mesh, u > 0.5 ? 1 : -1); q.mesh.rotation.x = 0.28; });
+        if (!c.fired.w && u > 0.08) { c.fired.w = true; sfx.charge(); } // the build-up
+        if (!c.fired.a && u > 0.3) { // THE DAB: the loudest sound ever
+          c.fired.a = true; sfx.megaDab(); flash('#ffffff', 0.9); this.shake = 3; shockwave(p.pos.x, p.pos.z, 0xffd257, 0.3, 70); burst(p.pos.clone().add(V(0, 3, 0)), 0xffd257, 80, 34, 1.4, 8, 3.5);
+          for (const h of this.hunters) if (h.active) { h.flare = 1.6; sfx.scream(h.typeKey); }
+        }
+        if (!c.fired.b && u > 0.5) { c.fired.b = true; this.shake = 2.4; flash('#5fd8ff', 0.6); shockwave(p.pos.x, p.pos.z, 0x5fd8ff, 0.3, 70); shockwave(p.pos.x, p.pos.z, 0xff5aa8, 0.3, 45); burst(p.pos.clone().add(V(0, 3, 0)), 0x5fd8ff, 60, 28, 1.2, 4, 3); this.companions.forEach((q) => q.say('cheer')); }
+        if (!c.fired.c && u > 0.76) { c.fired.c = true; shockwave(p.pos.x, p.pos.z, 0xffffff, 0.3, 90); sfx.boom(); this.shake = 1.6; }
+        // the monsters get SCARED: they flinch, cover up and get blown backwards
+        if (u > 0.3) for (const h of this.hunters) {
+          if (!h.active) continue;
+          const dx = h.pos.x - p.pos.x, dz = h.pos.z - p.pos.z, dd = Math.max(1, Math.hypot(dx, dz)), k = clamp((u - 0.3) / 0.35, 0, 1);
+          if (dd < 90) { h.pos.x += (dx / dd) * 16 * dt * (1 - k * 0.8); h.pos.z += (dz / dd) * 16 * dt * (1 - k * 0.8); }
+          h.mesh.rotation.x = -0.45 * Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.6) * (1 - clamp((u - 0.8) / 0.2, 0, 1));
+          const U = h.mesh.userData; if (U.armL && U.armL.sh) U.armL.sh.rotation.x = U.armR.sh.rotation.x = -2.4;
+        }
       } };
   },
   epicDab() { // G: freeze the night for a moment with an EPIC DAB (recharges)
@@ -7535,7 +7570,7 @@ const game = {
     if (this.state !== 'play' || this.cine || net.on || !p || p.state !== 'alive' || !p.onGround) return;
     if (this.time < this.dabReady) { toast(`🕺 Dab recharging (${Math.ceil(this.dabReady - this.time)}s)`, '#cdb8ff'); return; }
     this.dabReady = this.time + 60;
-    this.playShots('dab', [this.dabShot('🕺 EPIC DAB!', 2.4)], () => { p.mesh.rotation.x = 0; toast('🕺 Even the monsters stopped to stare…', '#ffd257'); });
+    this.playShots('dab', [this.dabShot('🕺 EPIC DAB!')], () => { p.mesh.rotation.x = 0; for (const h of this.hunters) if (h.active) { h.mesh.rotation.x = 0; h.stunT = 3; h.chasing = false; h.path = null; h.lastKnown = null; } toast('🕺 The monsters are TERRIFIED! (stunned 3s)', '#ffd257'); });
     this.cine.showPlayer = true;
   },
   // 4) a new friend: they hide, talk to you, and join you (and you dab together)
@@ -7551,12 +7586,12 @@ const game = {
       { d: 2.8, cap: `${c.name}: "${c.line('meet', 0)}"`, pos: () => head().addScaledVector(V(me().x - head().x, 0, me().z - head().z).normalize(), 7).add(V(0, 0.6, 0)), look: () => head(), tick: (u, c2) => { c.mesh.scale.y = lerp(0.85, 1, smooth(u * 3)); wave(c2.t); } },
       { d: 3.0, cap: `${c.name}: "${c.line('meet', 1)}"`, pos: () => { const m = me().lerp(head(), 0.5); return this.clipCam(m, m.clone().addScaledVector(side, -12).add(V(0, 2, 0))); }, look: () => me().lerp(head(), 0.5), tick: (u, c2) => { wave(c2.t * 0.4); } },
       { d: 2.8, cap: `${c.name}: "${c.line('meet', 2)}"`, pos: () => this.clipCam(head(), head().addScaledVector(side, 6).addScaledVector(f, -6).add(V(0, 1.5, 0))), look: () => head(), tick: (u, c2) => { c.pos.lerp(p.pos.clone().addScaledVector(side, -4), 0.02); c.facing = Math.atan2(p.pos.x - c.pos.x, p.pos.z - c.pos.z); c.sync(); U.armR.rotation.z = 0; } },
-      this.dabShot(`🤝 ${c.name} joins you. EPIC DAB!`, 2.6),
+      this.dabShot(`🤝 ${c.name} joins you. EPIC DAB!`),
     ], () => { U.armR.rotation.z = U.armL.rotation.z = 0; c.mesh.scale.y = 1; p.mesh.rotation.x = 0; toast(`🤝 ${c.name} is with you now! Press T to talk · G to dab`, '#7affd0'); });
     this.cine.showPlayer = true;
   },
   // 6) the SIGNATURE scene: its look (event, camera, move, words) comes from the level's number, so no two levels share one
-  startSignature() {
+  sigKit() {
     const g = this, L = LV(), idx = this.levelIdx(), h = this.nearestHunter(), p = this.player, pm = p.mesh;
     const col = L.keyColor || h.T.eye, mn = L.monsters.map((k) => MONSTERS[k].name), restore = [];
     const P = () => p.pos.clone().add(V(0, 3, 0)), rnd = Math.random;
@@ -7577,6 +7612,10 @@ const game = {
       { n: 'LAIR ERUPTION', cap: `${mn[0]}'s lair erupts in fire!`, f: (u, c, dt) => { g.shake = Math.max(g.shake, 0.6); c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.09; burst(V(h.pos.x, 2, h.pos.z), col, 14, 14, 1.3, 20, 2.4); } c.b = (c.b || 0) - dt; if (c.b <= 0) { c.b = 0.55; ring(h.pos.x, h.pos.z, col, 40); } c.fired = c.fired || {}; g.roarShot(h, c, 'e', u, 0.2); } },
       { n: 'AURORA', cap: 'Ghost-colored lights ripple across the sky.', f: (u, c, dt) => { if (!c.m) { c.m = true; for (let i = 0; i < 5; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: new THREE.Color(col).offsetHSL(i * 0.12, 0, 0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0 })), b = P(); sp.scale.set(170, 50, 1); addFx(sp, 7, (e, d, k) => { sp.position.set(b.x + (i - 2) * 55 + Math.sin(e.t + i) * 18, 95 + i * 6, b.z + 90); sp.material.opacity = Math.sin(k * Math.PI) * 0.6; }); } sfx.whisper(0.8); } } },
       { n: 'ASH STORM', cap: 'A howling storm of ash sweeps in!', f: (u, c, dt) => { if (!c.m) { c.m = true; const od = scene.fog.density; restore.push(() => { scene.fog.density = od; }); scene.fog.density = od * 1.8; sfx.noise(2.5, 0.2, 700, 'bandpass'); } for (let i = 0; i < 3; i++) burst(camera.position.clone().add(V((rnd() - 0.5) * 30, rnd() * 12, (rnd() - 0.5) * 30)), 0x8a8a90, 2, 10, 1.2, -1, 1.1); } },
+      { n: 'ECLIPSE', cap: 'The moon is swallowed. Total darkness.', f: (u, c, dt) => { if (!c.m) { c.m = true; const od = scene.fog.density; restore.push(() => { scene.fog.density = od; ui.fade.style.opacity = 0; }); c.od = od; sfx.tone(55, 3, 'sine', 0.4, 0, 30); } const k = Math.sin(Math.min(1, c.tt = (c.tt || 0) + dt / 5) * Math.PI); scene.fog.density = c.od * (1 + 1.5 * k); ui.fade.style.background = '#000'; ui.fade.style.opacity = (0.45 * k).toFixed(2); c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.8; ring(P().x, P().z, 0x6a5aff, 38); } } },
+      { n: 'FIREFLY TORNADO', cap: 'A tornado of glowing fireflies spirals up!', f: (u, c, dt) => { c.ang = (c.ang || 0) + dt * 5; c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.03; for (let i = 0; i < 3; i++) { const a = c.ang + i * 2.1, r = 6 + (c.h = ((c.h || 0) + 0.7) % 16) * 0.5; burst(V(P().x + Math.sin(a) * r, 0.5, P().z + Math.cos(a) * r), col, 2, 4, 1.8, 12, 1.2); } } } },
+      { n: 'GHOST PARADE', cap: 'A parade of ghosts drifts past, staring…', f: (u, c, dt) => { if (!c.m) { c.m = true; sfx.whisper(1); const base = P(), f = V(Math.sin(camYaw), 0, Math.cos(camYaw)), sd = V(f.z, 0, -f.x); for (let i = 0; i < 9; i++) { const gm = new THREE.Mesh(new THREE.CapsuleGeometry(1.3, 3.2, 3, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).lerp(new THREE.Color(0xffffff), 0.6), transparent: true, opacity: 0.4, fog: false })), off = (i - 4) * 6; addFx(gm, 6, (e, d, k) => { const t = -40 + 80 * k; gm.position.set(base.x + sd.x * t + f.x * (14 + off), 4 + Math.sin(e.t * 2 + i) * 1.2, base.z + sd.z * t + f.z * (14 + off)); gm.material.opacity = Math.sin(k * Math.PI) * 0.5; }); } } } },
+      { n: 'FIREWORKS', cap: 'Fireworks explode over the whole sky!', f: (u, c, dt) => { c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.22; burst(V(P().x + (rnd() - 0.5) * 120, 45 + rnd() * 40, P().z + 30 + rnd() * 60), [0x78ff8f, 0xffd257, 0xff5aa8, 0x5fd8ff, col][Math.floor(rnd() * 5)], 40, 22, 1.5, 0, 4); sfx.boom(); } } },
     ];
     const CAMS = [
       { pos: (u) => { const a = u * 2.2 + 0.3; return this.clipCam(P(), P().add(V(Math.sin(a) * 14, 5 + u * 3, Math.cos(a) * 14))); }, look: () => P() },
@@ -7584,13 +7623,27 @@ const game = {
       { pos: (u) => this.clipCam(P(), P().add(V(lerp(-14, 8, u), 3, lerp(11, 5, u)))), look: () => P() },
       { pos: (u) => { const a = u * 5, r = lerp(30, 10, u); return this.clipCam(P(), P().add(V(Math.sin(a) * r, lerp(40, 4, smooth(u)), Math.cos(a) * r))); }, look: () => P() },
       { pos: () => this.clipCam(P(), P().add(V(10, 2.5, 8))), look: (u) => h.pos.clone().add(V(0, 5 * Math.max(1, h.T.scale), 0)).lerp(P(), smooth(u * 1.4)) },
+      { pos: (u) => this.clipCam(P(), P().add(V(Math.sin(u * 1.2) * 6, lerp(-1.4, 0.6, u), 7))), look: (u) => P().add(V(0, 3 + u * 6, 0)) }, // very low hero angle
+      { pos: (u) => this.clipCam(P(), P().add(V(0.5, lerp(26, 52, u), 0.5))), look: () => P() }, // straight down
+      { pos: (u) => this.clipCam(P(), P().add(V(Math.sin(camYaw + 2.6) * lerp(7, 4, u), 2.8, Math.cos(camYaw + 2.6) * lerp(7, 4, u)))), look: () => P().add(V(0, 0.5, 0)).addScaledVector(V(Math.sin(camYaw), 0, Math.cos(camYaw)), 10) }, // over the shoulder
     ];
-    const ACTS = ['vault', 'leap', 'slide', 'dab', 'duck', 'sprint'];
-    const E = FX[idx % FX.length], Cm = CAMS[Math.floor(idx / 12) % CAMS.length];
-    let act = ACTS[(idx + Math.floor(idx / 60)) % ACTS.length];
+    return { g, L, idx, h, p, pm, col, mn, restore, P, rnd, FX, CAMS, ring };
+  },
+  // a different (event + event + 2 cameras + move) for every level, every Endless night and every custom map: the index is scrambled
+  // through a coprime step, so no two levels share one (61,440 per slot; slot 0 = standing moves, slot 1 = parkour moves)
+  sigPick(idx, slot, nFx, nCam) {
+    const N = nFx * (nFx - 1) * nCam * nCam * 4, s = ((idx + 1) * 7919 + (slot ? 31337 : 0)) % N;
+    const pr = s % (nFx * (nFx - 1)), cm = Math.floor(s / (nFx * (nFx - 1))) % (nCam * nCam), ac = Math.floor(s / (nFx * (nFx - 1) * nCam * nCam)) % 4;
+    const a = Math.floor(pr / (nFx - 1)); let b = pr % (nFx - 1); if (b >= a) b++;
+    return { a, b, c1: cm % nCam, c2: Math.floor(cm / nCam), act: (slot ? ['vault', 'slide', 'roll', 'spin'] : ['dab', 'duck', 'sprint', 'leap'])[ac] };
+  },
+  startSignature(slot = 0) {
+    const { g, L, idx, h, p, pm, col, mn, restore, P, rnd, FX, CAMS } = this.sigKit();
+    const pk = this.sigPick(idx, slot, FX.length, CAMS.length), E = FX[pk.a], E2 = FX[pk.b], Cm = CAMS[pk.c1], Cm2 = CAMS[pk.c2];
+    let act = pk.act;
     const A = act === 'dab' || act === 'duck' ? null : this.acroPrep(46, 15, [h], [16]);
-    if (!A && act !== 'dab' && act !== 'duck') act = 'dab';
-    const c0 = A && A.c0, K = A && A.K, fxc = {}, fxTick = (u, c, dt) => E.f(u, fxc, dt);
+    if (!A && act !== 'dab' && act !== 'duck') act = slot ? 'duck' : 'dab';
+    const c0 = A && A.c0, K = A && A.K, fxc = {}, fxc2 = {}, fxTick = (u, c, dt) => { E.f(u, fxc, dt); if (u > 0.2 || c.second) { c.second = true; E2.f(u, fxc2, dt); } };
     const nm = this.companions[0], words = [`${mn[0]} saw all of it. It is NOT amused.`, `${L.name} has never seen anything like that.`, `Somewhere out there, ${mn[1] || mn[0]} starts running…`, '"Show-off," whispers the night.', `The ${L.keyWord || 'key'}s hum a little louder.`, `${mn[2] || mn[0]} hates you a little more.`, 'The night will remember this.', 'You feel unstoppable. Mostly.'];
     const payoff = nm && idx % 2 ? `${nm.name}: "${nm.line('cheer')}"` : words[idx % words.length];
     const ACTSHOT = {
@@ -7598,15 +7651,17 @@ const game = {
       leap: () => this.flipShot(c0, 'THE LEAP!', K.aerial, { d: 2.2, hop: 16, pitch: 0, slow: 0.55, a: 0.1, b: 0.9, col, extra: fxTick }),
       slide: () => ({ d: 2.0, cap: 'SLIDE!', ...K.low, tick: (u, c, dt) => { this.runStep(c0, dt, u < 0.6 ? 0.35 : 1); if (u < 0.65) { pm.rotation.x = -1.1; const U = pm.userData; U.legL.rotation.x = -1.4; U.legR.rotation.x = -1.2; if (rnd() < 0.5) burst(V(p.pos.x, 0.4, p.pos.z), 0xffd257, 3, 6, 0.4, 2, 0.8); } else this.acroReset(); fxTick(u, c, dt); } }),
       sprint: () => ({ d: 2.0, cap: 'RUN!!', ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt, 1.1); fxTick(u, c, dt); } }),
-      dab: () => { const s0 = this.dabShot('🕺 EPIC DAB!', 2.4), t0 = s0.tick; s0.tick = (u, c, dt) => { t0(u, c, dt); fxTick(u, c, dt); }; return s0; },
+      dab: () => { const s0 = this.dabShot('🕺 EPIC DAB!'), t0 = s0.tick; s0.tick = (u, c, dt) => { t0(u, c, dt); fxTick(u, c, dt); }; return s0; },
+      roll: () => this.flipShot(c0, 'COMBAT ROLL!', K.low, { d: 1.8, hop: 2.4, pitch: 1, slow: 0.6, a: 0.2, b: 0.8, tuck: 1, extra: fxTick }),
+      spin: () => ({ d: 2.0, cap: 'SPIN!', ...K.orbit(10, 2, 0.8, 3.4), tick: (u, c, dt) => { this.runStep(c0, dt, 0.7, Math.sin(clamp(u, 0, 1) * Math.PI) * 5); pm.rotation.y += dt * 14; const U = pm.userData; U.armL.rotation.z = -1.5; U.armR.rotation.z = 1.5; if (u > 0.9) { U.armL.rotation.z = U.armR.rotation.z = 0; } fxTick(u, c, dt); } }),
       duck: () => ({ d: 2.0, cap: 'GET DOWN!', ...Cm, tick: (u, c, dt) => { pm.position.copy(p.pos); pm.rotation.x = 0.8 * Math.sin(clamp(u * 1.3, 0, 1) * Math.PI * 0.8); const U = pm.userData; U.armL.rotation.x = U.armR.rotation.x = -2.8; fxTick(u, c, dt); } }),
     };
-    this.sigName = `✨ ${E.n}`;
-    this.playShots('signature', [
+    this.sigName = `✨ ${E.n} + ${E2.n}`;
+    this.playShots(slot ? 'signature2' : 'signature', [
       { d: 2.4, cap: E.cap, ...Cm, tick: (u, c, dt) => { if (A) this.runStep(c0, dt, 0.3); fxTick(u, c, dt); } },
       ACTSHOT[act](),
-      { d: 2.2, cap: payoff, ...(A ? K.behind : Cm), tick: (u, c, dt) => { if (A) { this.runStep(c0, dt); this.acroReset(); } fxTick(u * 0.4, c, dt); this.roarShot(h, c, 'r', u, 0.3); } },
-    ], () => { restore.forEach((fn) => fn()); this.acroReset(); this.clearProps(); if (A) this.finishAcro(c0, [26], null, `✨ ${E.n}! Keep running!`); else toast(`✨ ${E.n}!`, '#ffd257'); });
+      { d: 2.4, cap: E2.cap, ...(A ? K.behind : Cm2), tick: (u, c, dt) => { if (A) { this.runStep(c0, dt); this.acroReset(); } fxTick(0.5 + u * 0.4, c, dt); this.roarShot(h, c, 'r', u, 0.3); } },
+    ], () => { restore.forEach((fn) => fn()); this.acroReset(); pm.rotation.y = camYaw; this.clearProps(); toast(payoff, '#cdb8ff'); if (A) this.finishAcro(c0, [26], null, `✨ ${E.n} + ${E2.n}!`); else toast(`✨ ${E.n} + ${E2.n}!`, '#ffd257'); });
     this.cine.showPlayer = true;
   },
 
@@ -8885,15 +8940,15 @@ if (demo) {
             game.playEndless(n); for (let i = 0; i < 30; i++) game.update(1 / 60); game.skipCine && game.cine && game.skipCine();
             game.released = true; game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); camYaw = 0;
             if (n === 1) { game.startNpcMeet(); let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60); out.npc = { secs: +(t / 60).toFixed(1), companions: game.companions.length }; for (let i = 0; i < 300; i++) game.update(1 / 60); out.follow = Math.round(Math.hypot(game.companions[0].pos.x - game.player.pos.x, game.companions[0].pos.z - game.player.pos.z)); game.dabReady = 0; game.player.onGround = true; game.epicDab(); t = 0; for (; t < 60 * 20 && game.cine; t++) game.update(1 / 60); out.dab = +(t / 60).toFixed(1); game.talk(); }
-            game.startSignature(); const nm = game.sigName; let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60);
+            game.startSignature(n % 2); const nm = game.sigName; let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60);
             out.kinds.push(nm.replace('✨ ', '') + ':' + +(t / 60).toFixed(1)); if (game.cine) out.bad.push([n, 'stuck']);
           } catch (e) { out.bad.push([n, String(e.message).slice(0, 90)]); }
         }
         console.log('SIGS', JSON.stringify(out)); return;
       }
       if (demo === 'flips') { // every new acrobatic scene must play through, and endless levels must build
-        const out = {}; CFG.catchRadius = 0; game.released = true;
-        for (const n of ['Vault', 'DualVault', 'Rooftop', 'Storm', 'Combo']) {
+        const out = {}; CFG.catchRadius = 0; game.released = true; game.startDab = () => { game.dabReady = 0; game.player.onGround = true; game.epicDab(); };
+        for (const n of ['Vault', 'DualVault', 'Rooftop', 'Storm', 'Combo', 'Dab']) {
           game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); camYaw = 0; game['start' + n]();
           const qs2 = new URLSearchParams(location.search), only = qs2.get('only'), T2 = +(qs2.get('t') || 0);
           if (only === n) { while (game.cine && game.cine.t < T2) game.update(1 / 60); game.update = () => {}; ui.hud.classList.add('hidden'); return; }
