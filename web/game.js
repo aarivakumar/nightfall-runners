@@ -6885,7 +6885,7 @@ const game = {
     this.hunters = [];
     for (let i = 0; i < CFG.maxHunters; i++) { const h = new Hunter(i, LV().monsters[i]); h.spawn(); this.hunters.push(h); }
     this.elapsed = 0; this.keys = 0; this.exitOpen = false; this.released = false; this.frenzy = false;
-    this.questGot = 0; this.questDone = false; this.questPerkT = 0; this.slowT = 0; this.revealKeys = false; this.bigFired = {}; this.midnight = false;
+    this.cineSeen = new Set(); this.questGot = 0; this.questDone = false; this.questPerkT = 0; this.slowT = 0; this.revealKeys = false; this.bigFired = {}; this.midnight = false;
     this.catcher = null; this.result = null; this.zone = world.zoneAt(spawn.x, spawn.z); this.lastAlert = -99;
     this.spectating = false;
     if (net.on) { net.makeRemotes(); net.overT = -1; net.sendT = 0; if (net.isHost) net.syncLobby(); }
@@ -6903,6 +6903,11 @@ const game = {
   // ---------------- cutscene framework ----------------
   beginCine(kind, data) {
     this.cine = { kind, t: 0, ...data };
+    if (kind !== 'death' && this.state === 'play') {
+      this.cineSeen = this.cineSeen || new Set(); this.cineSeen.add(kind);
+      const NM = { intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', backflip: 'BACKFLIP', chase: 'THE CHASE', frontflip: 'DOUBLE FRONT FLIP', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
+      const b = $('cineBadge'); if (b) { b.textContent = `🎬 CUTSCENE ${Math.min(15, this.cineSeen.size)}/15 · ${NM[kind] || kind.toUpperCase()}`; b.style.opacity = 1; clearTimeout(this.badgeT); this.badgeT = setTimeout(() => { b.style.opacity = 0; }, 2600); }
+    }
     const sc = $('storyCard'); if (sc) sc.style.opacity = 0;
     document.body.classList.add('cine');
     ui.skip.classList.remove('hidden');
@@ -7090,17 +7095,17 @@ const game = {
     const L = LV(), F = this.bigFired, p = this.player, rt = CFG.roundTime;
     if (net.on || this.cine || !this.released || p.state !== 'alive' || this.exitOpen || this.time < (this.sceneAt || 0) || p.pos.y > 4) return false;
     const due = (k, frac, prev) => this.keys >= k || this.elapsed >= frac * rt;
-    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 7; return !!this.cine; };
-    if (!F.sighted && due(1, 0.1)) return go('sighted', () => this.startSighted());
-    if (!F.backflip && F.sighted && due(1, 0.18)) return go('backflip', () => this.startBackflip());
-    if (!F.chase && due(2, 0.28)) return go('chase', () => this.startRunScene('chase'));
-    if (!F.frontflip && F.chase && due(2, 0.36)) return go('frontflip', () => this.startFrontFlip());
+    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 5; return !!this.cine; };
+    if (!F.sighted && due(1, 0.07)) return go('sighted', () => this.startSighted());
+    if (!F.backflip && F.sighted && due(1, 0.12)) return go('backflip', () => this.startBackflip());
+    if (!F.chase && due(2, 0.19)) return go('chase', () => this.startRunScene('chase'));
+    if (!F.frontflip && F.chase && due(2, 0.26)) return go('frontflip', () => this.startFrontFlip());
     if (!F.surge && L.battle && this.keys >= 3) return go('surge', () => this.startSurge());
-    if (!F.midnight && (this.elapsed >= rt / 2 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
-    if (!F.rooftop && F.midnight && due(3, 0.56)) return go('rooftop', () => this.startRooftop());
-    if (!F.storm && F.rooftop && due(3, 0.64)) return go('storm', () => this.startStorm());
-    if (!F.ambush && due(4, 0.72)) return go('ambush', () => this.startAmbush());
-    if (!F.combo && F.ambush && due(4, 0.78)) return go('combo', () => this.startCombo());
+    if (!F.midnight && (this.elapsed >= rt * 0.33 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
+    if (!F.rooftop && F.midnight && due(3, 0.4)) return go('rooftop', () => this.startRooftop());
+    if (!F.storm && F.rooftop && due(3, 0.5)) return go('storm', () => this.startStorm());
+    if (!F.ambush && due(4, 0.6)) return go('ambush', () => this.startAmbush());
+    if (!F.combo && F.ambush && due(4, 0.68)) return go('combo', () => this.startCombo());
     return false;
   },
   // a running route along the monsters' paths: at(d) gives the point d units along it and the direction there
@@ -7806,6 +7811,7 @@ const game = {
     if (this.player && this.player.moves) rows.push([`🤸 Parkour moves (${this.player.moves})`, Math.min(40, this.player.moves * 2)]);
     if (this.result.win) {
       rows.push(['Escaped!', CFG.rewards.escape]);
+      if (this.endless) rows.push([`♾ Endless #${this.endless} bonus`, 10 + this.endless * 3]);
       rows.push(['Time bonus', Math.floor((CFG.roundTime - this.elapsed) / 4)]);
     }
     let total = rows.reduce((a, r) => a + r[1], 0);
@@ -8185,9 +8191,12 @@ function endlessLevel(n) {
   const m = genMap(r, 'e' + n, n);
   m.monsters = [0, 1, 2].map((i) => registerGen(genMonster(r, `e${n}_${i}`, n)));
   m.big = n % 5 === 0;
+  const MUT = [['🌑 Blackout', (x) => { x.light = 'dim'; }], ['🪶 Feather gravity', (x) => { x.gravity = 'low'; }], ['🌕 Moon jumps', (x) => { x.gravity = 'moon'; }],
+    ['⚡ Hyper night', (x) => { x.speed = 'fast'; }], ['🌧 Stormy', (x) => { x.weather = 'rain'; }], ['❄ Blizzard', (x) => { x.weather = 'snow'; }], ['🔥 Ember night', (x) => { x.weather = 'embers'; }], ['💨 Insane monsters', (x) => { x.speed = 'insane'; }]];
+  const mutNames = []; for (let i = 0; i < (n >= 15 ? 2 : n >= 3 ? 1 : 0); i++) { const [nm, fn] = rngPick(r, MUT); if (!mutNames.includes(nm)) { mutNames.push(nm); fn(m); } }
   const L = customLevel(m), mn = m.monsters.map((k) => MONSTERS[k].name);
-  L.endless = n; L.speedBonus = Math.min(16, 2 + n * 0.7);
-  L.blurb = `♾ Endless #${n}: ${mn.join(', ')} hunt you through ${m.name}.${m.big ? ' ⭐ BIG level!' : ''}`;
+  L.endless = n; L.mutators = mutNames; L.speedBonus = Math.min(18, 2 + n * 0.7 + ({ fast: 3, insane: 6 }[m.speed] || 0));
+  L.blurb = `♾ Endless #${n}: ${mn.join(', ')} hunt you through ${m.name}.${m.big ? ' ⭐ BIG level!' : ''}${mutNames.length ? ' Twist: ' + mutNames.join(' + ') : ''}`;
   L.story = [`Endless night #${n}. ${m.name}.`, 'The only way out is the north gate.', 'Find 5 keys…', `${mn[0]} is waiting for you.`, 'There is always another night…'];
   L.released = [`${mn[0]}, ${mn[1]} and ${mn[2]} are loose!`, 'RUN!'];
   L.escape = `You escaped ${m.name}! Another night awaits…`;
@@ -8413,11 +8422,16 @@ document.querySelectorAll('#lbTabs button').forEach((b) => b.addEventListener('c
 $('pickLevelBtn').addEventListener('click', () => showTab('levels'));
 
 function renderEndless() {
-  const next = (save.endless || 0) + 1, L = endlessLevel(next);
-  $('endlessInfo').innerHTML = `Cleared so far: <b>${save.endless || 0}</b> · Next up: <b>${L.emoji} ${escHtml(L.name)}</b> ${L.monsters.map((m) => MONSTERS[m].emoji).join(' ')}`;
+  const done = save.endless || 0, next = done + 1, L = endlessLevel(next), pick = $('endlessN');
+  $('endlessInfo').innerHTML = `<div class="enBig">♾ Cleared: <b>${done}</b></div><div>Next up: <b>${L.emoji} ${escHtml(L.name)}</b> ${L.monsters.map((m) => `<span class="mChip" style="border-color:${MONSTERS[m].eyeCss};color:${MONSTERS[m].eyeCss}">${MONSTERS[m].emoji} ${escHtml(MONSTERS[m].name)}</span>`).join(' ')}</div>`
+    + (L.mutators.length ? `<div>Twist: ${L.mutators.map((t) => `<span class="mChip">${t}</span>`).join(' ')}</div>` : '') + (L.big ? '<div><span class="mChip" style="border-color:#ffd23a;color:#ffd23a">⭐ BIG LEVEL</span></div>' : '')
+    + `<div class="enSub">Every level has 15 cutscenes · bonus coins grow every level · there is no last level</div>`;
   $('endlessGo').textContent = `▶ Play Endless #${next}`;
   $('endlessGo').onclick = () => game.playEndless(next);
   $('endlessRandom').onclick = () => game.playEndless(6 + Math.floor(Math.random() * 90), true);
+  pick.max = done + 1; pick.value = pick.value || next;
+  $('endlessPick').onclick = () => game.playEndless(clamp(parseInt(pick.value, 10) || 1, 1, done + 1));
+  $('playEndlessMini').textContent = `♾ ENDLESS #${next}`; $('playEndlessMini').onclick = () => game.playEndless(next);
 }
 function renderMenu() {
   renderLobby(); renderEndless();
@@ -8619,6 +8633,13 @@ if (demo) {
         } catch (e) { if (e.message === 'STOP') return; throw e; }
         const real = kinds.filter((k) => k !== 'death');
         console.log('BIGCINES', JSON.stringify({ big: !!LV().big, count: real.length, kinds: real, state: game.state, win: !!(game.result && game.result.win) }));
+        return;
+      }
+      if (demo === 'endless') { // build many endless levels and click the real button
+        const bad = [];
+        for (let n = 1; n <= 40; n++) { try { game.playEndless(n); for (let i = 0; i < 120; i++) game.update(1 / 60); } catch (e) { bad.push([n, String(e.message).slice(0, 80)]); } }
+        game.showMenu(); $('endlessGo').click(); for (let i = 0; i < 120; i++) game.update(1 / 60);
+        console.log('ENDLESS', JSON.stringify({ bad, state: game.state, endless: game.endless }));
         return;
       }
       if (demo === 'flips') { // every new acrobatic scene must play through, and endless levels must build

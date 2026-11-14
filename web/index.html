@@ -272,6 +272,7 @@
   .lobby .shopItem { border-radius: 0; background: rgba(14,14,26,0.88); border-left: 4px solid var(--gold); }
   .lobby .shopItem button, .lobby #mpBox button { border-radius: 0; transform: skewX(-8deg); font-family: 'Russo One', Fredoka, sans-serif; }
   .lobby #mpBox input { border-radius: 0; }
+  .enBig { font: 28px "Russo One", sans-serif; color: var(--gold); } .enSub { opacity: .7; font-size: 13px; margin: 4px 0 8px; } #endlessInfo > div { margin: 6px 0; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="importmap">
@@ -305,6 +306,7 @@
   <button class="tbtn" id="tPause">❚❚</button>
 </div>
 
+<div id="cineBadge" style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(0,0,0,.65);color:#ffb066;font:700 15px Russo One,sans-serif;letter-spacing:2px;padding:7px 16px;border:2px solid #ff9a3a;opacity:0;transition:opacity .4s;pointer-events:none"></div>
 <div id="hud" class="hidden">
   <div id="crosshair"></div>
   <div id="topbar"><div id="phase">FIND THE KEYS</div><div id="timer">4:00</div></div>
@@ -326,6 +328,7 @@
     <nav class="lbTabs" id="lbTabs">
       <button data-tab="play" class="on">▶ Play</button>
       <button data-tab="levels">🗺 Levels</button>
+      <button data-tab="endless">♾ Endless</button>
       <button data-tab="create">🛠 Create</button>
       <button data-tab="squad">👥 Squad</button>
       <button data-tab="shop">🛒 Shop</button>
@@ -354,14 +357,21 @@
         </div>
         <div class="lbBox lbSquadMini" id="squadMini"></div>
         <button id="playBtn">▶ PLAY</button>
+        <button id="playEndlessMini" class="mkGo" style="margin-top:8px;width:100%"></button>
       </div>
     </div>
   </section>
 
   <section class="lbPanel" data-panel="levels">
     <div class="lbTitle">Choose a level <small>all unlocked · click one to select it</small></div>
-    <div class="lbBox" id="endlessBox"><div class="lbLabel">♾ ENDLESS MODE <small>auto-made maps &amp; monsters · it never runs out</small></div><div id="endlessInfo"></div><div class="mkBtns"><button id="endlessGo" class="mkGo">▶ Play</button><button id="endlessRandom">🎲 Surprise me</button></div></div>
     <div class="levels" id="levelSeg"></div>
+  </section>
+
+    <section class="lbPanel" data-panel="endless">
+    <div class="lbTitle">♾ Endless <small>new maps and monsters are made for you every level · it never runs out</small></div>
+    <div class="lbBox" id="endlessBox"><div id="endlessInfo"></div>
+      <div class="mkBtns"><button id="endlessGo" class="mkGo">▶ Play</button><button id="endlessRandom">🎲 Surprise me</button></div>
+      <div class="mkRow"><label>Replay level # <input id="endlessN" type="number" min="1" value="1" style="width:80px"></label><button id="endlessPick">▶ Go</button></div></div>
   </section>
 
   <section class="lbPanel" data-panel="create">
