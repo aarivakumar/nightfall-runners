@@ -886,6 +886,19 @@ function textSprite(text, color) {
 // Particles
 // ---------------------------------------------------------------------------
 const particles = [];
+const waves = [], fxList = [];
+// an expanding ring on the ground
+function shockwave(x, z, color, y = 0.3, max = 40) {
+  const m = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(3), transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false, fog: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); scene.add(m); waves.push({ m, t: 0, max });
+}
+// a temporary object that updates itself: fn(entry, dt, 0..1)
+function addFx(mesh, life, fn) { scene.add(mesh); fxList.push({ m: mesh, t: 0, life, fn }); }
+function dabPose(pm, side = 1) { // the EPIC DAB: one arm up and out, the other tucked across the face
+  const u = pm.userData, a = side > 0 ? u.armR : u.armL, b = side > 0 ? u.armL : u.armR;
+  a.rotation.x = 0; a.rotation.z = 2.4 * side; b.rotation.x = -2.0; b.rotation.z = 0.9 * side;
+  u.legL.rotation.x = -0.35; u.legR.rotation.x = 0.25;
+}
 const PGEO = new THREE.SphereGeometry(0.3, 6, 4);
 function burst(pos, color, n = 24, speed = 12, life = 0.9, up = 6, size = 1) {
   const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(3), transparent: true });
@@ -901,6 +914,14 @@ function burst(pos, color, n = 24, speed = 12, life = 0.9, up = 6, size = 1) {
   }
 }
 function updateParticles(dt) {
+  for (let i = waves.length - 1; i >= 0; i--) {
+    const w = waves[i]; w.t += dt / 0.9; w.m.scale.setScalar(1 + w.t * w.max); w.m.material.opacity = Math.max(0, 1 - w.t);
+    if (w.t >= 1) { scene.remove(w.m); w.m.geometry.dispose(); w.m.material.dispose(); waves.splice(i, 1); }
+  }
+  for (let i = fxList.length - 1; i >= 0; i--) {
+    const e = fxList[i]; e.t += dt; if (e.fn) e.fn(e, dt, Math.min(1, e.t / e.life));
+    if (e.t >= e.life) { scene.remove(e.m); if (e.m.geometry) e.m.geometry.dispose(); if (e.m.material) e.m.material.dispose(); fxList.splice(i, 1); }
+  }
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.life -= dt;
@@ -5927,6 +5948,8 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyF') toggleFlashlight();
     if (e.code === 'KeyQ') game.useGhost();
     if (e.code === 'KeyE') game.useBomb();
+    if (e.code === 'KeyG') game.epicDab();
+    if (e.code === 'KeyT') game.talk();
     if (e.code === 'KeyM') { showMap = !showMap; ui.minimap.classList.toggle('hidden', !showMap); }
   }
   keys[e.code] = true;
@@ -6242,8 +6265,65 @@ class Player {
     if (this.slideT > 0) { u.legL.rotation.x = -1.4; u.legR.rotation.x = -1.2; u.armL.rotation.x = -0.6; u.armR.rotation.x = 0.4; }
     else if (!this.onGround) { u.legL.rotation.x = 0.6; u.legR.rotation.x = -0.4; u.armL.rotation.x = -2.4; u.armR.rotation.x = -2.4; }
     else { u.legL.rotation.x = sw; u.legR.rotation.x = -sw; u.armL.rotation.x = -sw * 0.9; u.armR.rotation.x = sw * 0.9; }
+    if (u.armL.rotation.z || u.armR.rotation.z) { u.armL.rotation.z = 0; u.armR.rotation.z = 0; }
   }
   dispose() { scene.remove(this.mesh); if (this.hiddenBush && this.hiddenBush.mesh) this.hiddenBush.mesh.material.opacity = 1; }
+}
+
+// ---------------------------------------------------------------------------
+// Friendly NPCs: they talk to you, follow you, and dab with you
+// ---------------------------------------------------------------------------
+const NPC = {
+  names: ['Pip', 'Mia', 'Jax', 'Rook', 'Nova', 'Dex', 'Lulu', 'Otto', 'Zed', 'Bea', 'Finn', 'Ivy', 'Kai', 'Moss', 'Tess', 'Ravi', 'Juno', 'Cleo', 'Bram', 'Wren'],
+  voices: [
+    { id: 'brave', meet: ["Psst! Over here! I'm {n}. Stay low.", '{m0} took everyone else in {L}. Not me. Not you.', "I know the way out. I'm coming with you."],
+      chat: ["I've fought worse than {m1}. Okay, no I haven't.", "Keep moving, I'll watch your back.", 'We are getting out of {L} tonight.'], warn: ['Behind us! RUN!', "It's coming! Go go go!", '{m0} is right there!'],
+      key: ['Got one! Nice!', "That's the way!", 'Keep them coming!'], gate: ['THE GATE! Go!', "It's open! MOVE!"], cheer: ['Did you SEE that?!', 'LEGEND!'] },
+    { id: 'nervous', meet: ["P-please don't scream! I'm {n}.", '{m0} is out there… I heard it.', 'Can I come with you? Please?'],
+      chat: ["I don't like this. I REALLY don't like this.", 'Did you hear that?', 'Mom said never go to {L}…'], warn: ['AAAAH! BEHIND US!', "It's following us!!", 'RUN RUN RUN!'],
+      key: ['Oh thank goodness!', 'One more! One more!', "You're amazing!"], gate: ['The gate! The GATE!', "We're gonna make it!"], cheer: ["I'm shaking! That was AMAZING!", 'Please never do that again. Do it again.'] },
+    { id: 'joker', meet: ["Hey! Psst! I'm {n}. Great night for a stroll, huh?", '{m0} chased me for an hour. I am basically a pro.', 'Mind if I tag along? I bring snacks. Lies. No snacks.'],
+      chat: ["If we survive I'm telling everyone about {L}.", '{m1} has terrible manners.', 'Do you think monsters dab? Asking for a friend.'], warn: ['Plot twist! It is right behind us!', 'Surprise! Monster!', 'Cardio time!'],
+      key: ['Ka-ching! Key get!', 'Look at you, a professional!', 'Another one!'], gate: ["Gate's open! Last one out is monster food!", "Door's open, door's open!"], cheer: ['10 out of 10, no notes!', 'Put that on a poster!'] },
+    { id: 'wise', meet: ['Quiet now. I am {n}. I have watched {m0} for three nights.', 'It hunts by sound and sight. Stay low.', 'Come. I will walk with you.'],
+      chat: ['Hide in bushes when it loses you.', '{L} is old. It remembers every runner.', 'Patience wins over speed.'], warn: ['It is close. Move.', 'Do not look back.', '{m1} has found us.'],
+      key: ['Good. The way opens.', 'Well found.', 'Only a few more.'], gate: ['The way out is open. Go.', 'Now. Run for the gate.'], cheer: ['Hm. Impressive.', 'The night noticed that.'] },
+  ],
+};
+class Companion {
+  constructor(def, pos, slot = 0) {
+    this.def = def; this.slot = slot; this.name = def.name;
+    this.mesh = buildRunner(def.color); scene.add(this.mesh);
+    this.tag = textSprite(def.name, '#7affd0'); this.tag.scale.set(8, 2.5, 1); this.tag.position.y = 8.2; this.mesh.add(this.tag);
+    this.pos = pos.clone(); this.facing = 0; this.anim = 0; this.talkT = 14 + Math.random() * 10; this.warnT = 0; this.stuckT = 0; this.sp = 0;
+    this.sync();
+  }
+  sync() { this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.facing; }
+  fmt(t) { const d = this.def; return t.replace('{n}', d.name).replace('{m0}', d.mons[0]).replace('{m1}', d.mons[1] || d.mons[0]).replace('{L}', d.place); }
+  line(kind, i = null) { const a = this.def.voice[kind]; return this.fmt(i === null ? a[Math.floor(Math.random() * a.length)] : a[i % a.length]); }
+  say(kind, i = null) { toast(`💬 ${this.name}: "${this.line(kind, i)}"`, '#7affd0'); sfx.tone(520 + this.slot * 120, 0.12, 'triangle', 0.1, 0, 760); }
+  teleportNear(p) {
+    const f = V(Math.sin(camYaw), 0, Math.cos(camYaw)), side = V(f.z, 0, -f.x);
+    this.pos.copy(p.pos).addScaledVector(f, -7).addScaledVector(side, (this.slot % 2 ? 1 : -1) * 3); collide(this.pos, 1.0); this.pos.y = groundAt(this.pos.x, this.pos.z, 1.0, 0); this.stuckT = 0;
+  }
+  update(dt, p) {
+    const dx = p.pos.x - this.pos.x, dz = p.pos.z - this.pos.z, d = Math.hypot(dx, dz), want = 6 + this.slot * 3;
+    if (d > 80) this.teleportNear(p);
+    this.sp = 0;
+    if (d > want) {
+      const nx = dx / d, nz = dz / d, sp = Math.min(p.sprintSpeed * 1.1, 8 + (d - want) * 1.8), ox = this.pos.x, oz = this.pos.z;
+      this.pos.x += nx * sp * dt; this.pos.z += nz * sp * dt; collide(this.pos, 1.0);
+      this.sp = Math.hypot(this.pos.x - ox, this.pos.z - oz) / Math.max(dt, 1e-4); this.facing = Math.atan2(nx, nz);
+      this.stuckT = this.sp < sp * 0.3 ? this.stuckT + dt : 0; if (this.stuckT > 2.5) this.teleportNear(p);
+    } else this.facing = Math.atan2(dx, dz);
+    this.pos.y = groundAt(this.pos.x, this.pos.z, 1.0, 0);
+    this.anim += dt * (4 + this.sp * 0.45);
+    const sw = Math.sin(this.anim) * 0.9 * Math.min(1, this.sp / 14), u = this.mesh.userData;
+    u.legL.rotation.x = sw; u.legR.rotation.x = -sw; u.armL.rotation.x = -sw * 0.9; u.armR.rotation.x = sw * 0.9; u.armL.rotation.z = u.armR.rotation.z = 0;
+    let dy = this.facing - this.mesh.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); this.mesh.rotation.y += dy * Math.min(1, dt * 12);
+    this.mesh.position.copy(this.pos);
+  }
+  dispose() { scene.remove(this.mesh); this.tag.material.map.dispose(); this.tag.material.dispose(); }
 }
 
 // ---------------------------------------------------------------------------
@@ -6822,13 +6902,14 @@ const game = {
   state: 'loading', paused: false, diff: save.diff in DIFF ? save.diff : 'normal',
   player: null, hunters: [], elapsed: 0, keys: 0, exitOpen: false, released: false, frenzy: false,
   nextExtra: 0, catcher: null, result: null, beatT: 0, time: 0, menuAngle: 0,
-  cine: null, shake: 0, fovKick: 0, danger: 0, zone: 'city', whisperT: 4, flickT: 0, lastAlert: -99,
+  companions: [], cine: null, shake: 0, fovKick: 0, danger: 0, zone: 'city', whisperT: 4, flickT: 0, lastAlert: -99,
   level: clamp(save.level | 0, 1, LEVELS.length) || 1,
 
   newWorld(seed = (Math.random() * 1e9) | 0, Lres = null) {
     net.clearRemotes();
     if (this.player) { this.player.dispose(); this.player = null; }
     this.hunters.forEach((h) => h.dispose()); this.hunters = [];
+    this.companions.forEach((c) => c.dispose()); this.companions = [];
     disposeWorld(world);
     const L = this.L = Lres || this.custom || resolveLevel(LEVELS[this.level - 1]);
     world = buildWorld(seed, L);
@@ -6885,7 +6966,7 @@ const game = {
     this.hunters = [];
     for (let i = 0; i < CFG.maxHunters; i++) { const h = new Hunter(i, LV().monsters[i]); h.spawn(); this.hunters.push(h); }
     this.elapsed = 0; this.keys = 0; this.exitOpen = false; this.released = false; this.frenzy = false;
-    this.cineSeen = new Set(); this.questGot = 0; this.questDone = false; this.questPerkT = 0; this.slowT = 0; this.revealKeys = false; this.bigFired = {}; this.midnight = false;
+    this.cineSeen = new Set(); this.dabReady = 0; this.chatT = 25; this.warnCD = 0; this.questGot = 0; this.questDone = false; this.questPerkT = 0; this.slowT = 0; this.revealKeys = false; this.bigFired = {}; this.midnight = false;
     this.catcher = null; this.result = null; this.zone = world.zoneAt(spawn.x, spawn.z); this.lastAlert = -99;
     this.spectating = false;
     if (net.on) { net.makeRemotes(); net.overT = -1; net.sendT = 0; if (net.isHost) net.syncLobby(); }
@@ -6903,10 +6984,10 @@ const game = {
   // ---------------- cutscene framework ----------------
   beginCine(kind, data) {
     this.cine = { kind, t: 0, ...data };
-    if (kind !== 'death' && this.state === 'play') {
+    if (kind !== 'death' && kind !== 'dab' && this.state === 'play') {
       this.cineSeen = this.cineSeen || new Set(); this.cineSeen.add(kind);
-      const NM = { intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', vault: 'ONE-HAND VAULT', chase: 'THE CHASE', dualvault: 'DOUBLE VAULT', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
-      const b = $('cineBadge'); if (b) { b.textContent = `🎬 CUTSCENE ${Math.min(15, this.cineSeen.size)}/15 · ${NM[kind] || kind.toUpperCase()}`; b.style.opacity = 1; clearTimeout(this.badgeT); this.badgeT = setTimeout(() => { b.style.opacity = 0; }, 2600); }
+      const NM = { npc: 'A NEW FRIEND', signature: this.sigName || 'SIGNATURE SCENE', intro: 'THE NIGHT BEGINS', release: 'THEY ARE LOOSE', sighted: 'IT SMELLS YOU', vault: 'ONE-HAND VAULT', chase: 'THE CHASE', dualvault: 'DOUBLE VAULT', midnight: 'MIDNIGHT', rooftop: 'ROOFTOP LEAP', storm: 'LIGHTNING STORM', ambush: 'AMBUSH', combo: 'FLIP COMBO', exit: 'THE GATE OPENS', finalrun: 'FINAL SPRINT', frenzy: 'FRENZY', escape: 'ESCAPE', surge: 'POWER SURGE', battle: 'TITAN BATTLE', victory: 'VICTORY' };
+      const b = $('cineBadge'); if (b) { b.textContent = `🎬 CUTSCENE ${Math.min(10, this.cineSeen.size)}/10 · ${NM[kind] || kind.toUpperCase()}`; b.style.opacity = 1; clearTimeout(this.badgeT); this.badgeT = setTimeout(() => { b.style.opacity = 0; }, 2600); }
     }
     const sc = $('storyCard'); if (sc) sc.style.opacity = 0;
     document.body.classList.add('cine');
@@ -6930,7 +7011,7 @@ const game = {
   // a cutscene made of camera shots: { d, cap, pos(u), look(u), tick(u, c, dt) }
   playShots(kind, shots, onEnd) {
     for (const h of this.hunters) h.vel.set(0, 0, 0);
-    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, vault: 1.7, dualvault: 1.7, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.6; // shorter scenes: play more!
+    const speedUp = { battle: 1, victory: 1, intro: 1.4, release: 1.3, vault: 1.5, npc: 1, signature: 1.25, dab: 1, dualvault: 1.7, rooftop: 1.8, storm: 1.8, combo: 1.7 }[kind] ?? 1.5; // shorter scenes: play more!
     this.beginCine(kind, { shots, idx: -1, local: 0, onEnd, freeze: true, fired: {}, speedUp });
   },
   updateShots(dt) {
@@ -7090,23 +7171,17 @@ const game = {
     ], () => { splash('FRENZY!', 'Hide or run!', '#ff3344'); if (then) then(); });
   },
 
-  // ---------------- 15 cutscenes on EVERY level: intro, release, sighted, backflip, chase, front flip, midnight, rooftop leap,
-  // storm, ambush, flip combo, exit, final run, frenzy, and the escape / eaten ending (boss levels add 'surge' + the battle) ----------------
+  // ---------------- 10 cutscenes on EVERY level, spread far apart: intro, release, sighted, a new friend (NPC), a parkour vault,
+  // the level's own SIGNATURE scene (different on every level), midnight, the exit opening, the final sprint, and the escape (or the eaten ending) ----------------
   checkBigScenes() {
-    const L = LV(), F = this.bigFired, p = this.player, rt = CFG.roundTime;
+    const F = this.bigFired, p = this.player, rt = CFG.roundTime, el = this.elapsed;
     if (net.on || this.cine || !this.released || p.state !== 'alive' || this.exitOpen || this.time < (this.sceneAt || 0) || p.pos.y > 4) return false;
-    const due = (k, frac, prev) => this.keys >= k || this.elapsed >= frac * rt;
-    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 16; return !!this.cine; };
-    if (!F.sighted && due(1, 0.07)) return go('sighted', () => this.startSighted());
-    if (!F.vault && F.sighted && due(1, 0.12)) return go('vault', () => this.startVault());
-    if (!F.chase && due(2, 0.19)) return go('chase', () => this.startRunScene('chase'));
-    if (!F.dualvault && F.chase && due(2, 0.26)) return go('dualvault', () => this.startDualVault());
-    if (!F.surge && L.battle && this.keys >= 3) return go('surge', () => this.startSurge());
-    if (!F.midnight && (this.elapsed >= rt * 0.33 || this.keys >= 3)) return go('midnight', () => this.startMidnight());
-    if (!F.rooftop && F.midnight && due(3, 0.4)) return go('rooftop', () => this.startRooftop());
-    if (!F.storm && F.rooftop && due(3, 0.5)) return go('storm', () => this.startStorm());
-    if (!F.ambush && due(4, 0.6)) return go('ambush', () => this.startAmbush());
-    if (!F.combo && F.ambush && due(4, 0.68)) return go('combo', () => this.startCombo());
+    const go = (key, fn) => { F[key] = true; fn(); this.sceneAt = this.time + 30; return !!this.cine; };
+    if (!F.sighted && el >= rt * 0.06 && (this.keys >= 1 || el >= rt * 0.09)) return go('sighted', () => this.startSighted());
+    if (!F.npc && el >= rt * 0.17) return go('npc', () => this.startNpcMeet());
+    if (!F.vault && el >= rt * 0.32) return go('vault', () => this.startVault());
+    if (!F.signature && el >= rt * 0.46) return go('signature', () => this.startSignature());
+    if (!F.midnight && el >= rt * 0.61) return go('midnight', () => this.startMidnight());
     return false;
   },
   // a running route along the monsters' paths: at(d) gives the point d units along it and the direction there
@@ -7402,6 +7477,139 @@ const game = {
     this.cine.showPlayer = true;
   },
 
+  // ---------------- NPC friends, the epic dab, and each level's own signature scene ----------------
+  levelIdx() { // a number that is different for every level, every Endless level and every custom map
+    const L = LV();
+    if (L.endless) return 100 + L.endless;
+    if (this.custom) { let h = 7; for (const ch of L.name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 100 + (h % 900); }
+    return this.level - 1;
+  },
+  npcDef(i) {
+    const idx = this.levelIdx(), L = LV();
+    return { name: NPC.names[(idx * 3 + i * 7) % NPC.names.length], color: new THREE.Color().setHSL(((idx * 0.137 + i * 0.41) % 1), 0.7, 0.55).getHex(),
+      voice: NPC.voices[(idx + i) % 4], mons: L.monsters.map((k) => MONSTERS[k].name), place: L.name };
+  },
+  recruit(i, pos) { const c = new Companion(this.npcDef(i), pos, i); this.companions.push(c); return c; },
+  updateCompanions(dt) {
+    if (net.on || !world) return;
+    const p = this.player;
+    if (this.keys >= 3 && this.companions.length === 1 && !this.second) { // a second friend catches up with you
+      this.second = true; const c = this.recruit(1, p.pos); c.teleportNear(p); toast(`🤝 ${c.name} caught up: "${c.line('meet', 0)}"`, '#7affd0');
+    }
+    for (const c of this.companions) c.update(dt, p);
+    if (!this.companions.length) return;
+    this.warnCD -= dt; this.chatT -= dt;
+    const near = this.hunters.some((h) => h.active && h.chasing && Math.hypot(h.pos.x - p.pos.x, h.pos.z - p.pos.z) < 42 * Math.max(1, h.T.scale * 0.6));
+    if (near && this.warnCD <= 0) { this.companions[Math.floor(Math.random() * this.companions.length)].say('warn'); this.warnCD = 18; this.chatT = Math.max(this.chatT, 10); }
+    else if (this.chatT <= 0 && !near) { this.companions[Math.floor(Math.random() * this.companions.length)].say('chat'); this.chatT = 32 + Math.random() * 25; }
+  },
+  talk() { // T: chat with your friend; they point you to the nearest key
+    const p = this.player;
+    if (this.state !== 'play' || this.cine || !p || p.state !== 'alive' || net.on) return;
+    if (!this.companions.length) { toast('Nobody to talk to yet… a friend will find you soon.', '#cdb8ff'); return; }
+    const c = this.companions.reduce((a, b) => (Math.hypot(b.pos.x - p.pos.x, b.pos.z - p.pos.z) < Math.hypot(a.pos.x - p.pos.x, a.pos.z - p.pos.z) ? b : a));
+    c.say('chat');
+    const k = world.keys.filter((q) => !q.taken).sort((a, b) => Math.hypot(a.x - p.pos.x, a.z - p.pos.z) - Math.hypot(b.x - p.pos.x, b.z - p.pos.z))[0];
+    if (!k || this.exitOpen) return;
+    const f = V(Math.sin(camYaw), 0, Math.cos(camYaw)), dx = k.x - p.pos.x, dz = k.z - p.pos.z, ah = dx * f.x + dz * f.z, rt = dx * -f.z + dz * f.x, w = LV().keyWord || 'key';
+    const dir = (Math.abs(ah) > Math.abs(rt) * 1.6 ? (ah > 0 ? 'straight ahead' : 'behind us') : Math.abs(rt) > Math.abs(ah) * 1.6 ? (rt > 0 ? 'to the right' : 'to the left') : `${ah > 0 ? 'ahead' : 'behind'} and ${rt > 0 ? 'right' : 'left'}`);
+    setTimeout(() => toast(`🧭 ${c.name}: "The nearest ${w} is ${dir}, about ${Math.round(Math.hypot(dx, dz))} steps."`, '#ffd257'), 700);
+    burst(V(k.x, 4, k.z), 0xffd257, 20, 8, 1, 10, 2); this.chatT = 30;
+  },
+  clipCam(from, to) { const d = to.clone().sub(from), L = d.length(); d.divideScalar(Math.max(L, 1e-6)); return from.clone().addScaledVector(d, Math.max(2.2, Math.min(L, rayDistance(from, d, L) - 0.8))); },
+  // a camera shot of the runner (and any friends) doing the EPIC DAB, with shockwaves
+  dabShot(cap, d = 2.2) {
+    const p = this.player, pm = p.mesh, P = () => p.pos.clone().add(V(0, 3.4, 0));
+    return { d, cap,
+      pos: (u) => { const a = camYaw + lerp(-0.8, 0.8, u); return this.clipCam(P(), P().add(V(Math.sin(a) * 9.5, 1.6, Math.cos(a) * 9.5))); }, look: () => P(),
+      tick: (u, c, dt) => {
+        p.vel.set(0, 0, 0); p.pos.y = 0; pm.position.copy(p.pos); pm.rotation.y = camYaw; dabPose(pm); pm.rotation.x = 0.28;
+        const side = V(Math.cos(camYaw), 0, -Math.sin(camYaw));
+        this.companions.forEach((q, i) => { q.pos.copy(p.pos).addScaledVector(side, (i % 2 ? 1 : -1) * (4 + (i >> 1) * 3.5)); q.facing = camYaw; q.sync(); dabPose(q.mesh, -1); q.mesh.rotation.x = 0.28; });
+        if (!c.fired.a && u > 0.3) { c.fired.a = true; sfx.boom(); sfx.tone(180, 0.5, 'sawtooth', 0.12, 0, 60); flash('#ffffff', 0.45); this.shake = 1.2; shockwave(p.pos.x, p.pos.z, 0xffd257, 0.3, 45); burst(p.pos.clone().add(V(0, 3, 0)), 0xffd257, 50, 24, 1.2, 6, 3); }
+        if (!c.fired.b && u > 0.55) { c.fired.b = true; shockwave(p.pos.x, p.pos.z, 0x5fd8ff, 0.3, 45); shockwave(p.pos.x, p.pos.z, 0xff5aa8, 0.3, 30); burst(p.pos.clone().add(V(0, 3, 0)), 0x5fd8ff, 40, 20, 1, 4, 3); this.companions.forEach((q) => { if (!c.fired.q) { c.fired.q = true; q.say('cheer'); } }); }
+      } };
+  },
+  epicDab() { // G: freeze the night for a moment with an EPIC DAB (recharges)
+    const p = this.player;
+    if (this.state !== 'play' || this.cine || net.on || !p || p.state !== 'alive' || !p.onGround) return;
+    if (this.time < this.dabReady) { toast(`🕺 Dab recharging (${Math.ceil(this.dabReady - this.time)}s)`, '#cdb8ff'); return; }
+    this.dabReady = this.time + 60;
+    this.playShots('dab', [this.dabShot('🕺 EPIC DAB!', 2.4)], () => { p.mesh.rotation.x = 0; toast('🕺 Even the monsters stopped to stare…', '#ffd257'); });
+    this.cine.showPlayer = true;
+  },
+  // 4) a new friend: they hide, talk to you, and join you (and you dab together)
+  startNpcMeet() {
+    const p = this.player, def = this.npcDef(0), f = V(Math.sin(camYaw), 0, Math.cos(camYaw)), side = V(f.z, 0, -f.x);
+    const pos = p.pos.clone().addScaledVector(f, 12).addScaledVector(side, 4); collide(pos, 1.0); pos.y = groundAt(pos.x, pos.z, 1.0, 0);
+    const c = this.recruit(0, pos); c.facing = Math.atan2(p.pos.x - pos.x, p.pos.z - pos.z); c.sync();
+    const U = c.mesh.userData, head = () => c.pos.clone().add(V(0, 4.2, 0)), me = () => p.pos.clone().add(V(0, 3.4, 0));
+    const wave = (t) => { U.armR.rotation.z = 2.5 + Math.sin(t * 11) * 0.35; U.armR.rotation.x = 0; };
+    p.mesh.rotation.y = camYaw;
+    this.playShots('npc', [
+      { d: 2.2, cap: 'Something is hiding behind the wreckage…', pos: () => this.clipCam(me(), me().addScaledVector(f, -6).add(V(0, 2, 0))), look: () => head(), tick: (u, c2, dt) => { c.mesh.scale.y = 0.85; } },
+      { d: 2.8, cap: `${c.name}: "${c.line('meet', 0)}"`, pos: () => head().addScaledVector(V(me().x - head().x, 0, me().z - head().z).normalize(), 7).add(V(0, 0.6, 0)), look: () => head(), tick: (u, c2) => { c.mesh.scale.y = lerp(0.85, 1, smooth(u * 3)); wave(c2.t); } },
+      { d: 3.0, cap: `${c.name}: "${c.line('meet', 1)}"`, pos: () => { const m = me().lerp(head(), 0.5); return this.clipCam(m, m.clone().addScaledVector(side, -12).add(V(0, 2, 0))); }, look: () => me().lerp(head(), 0.5), tick: (u, c2) => { wave(c2.t * 0.4); } },
+      { d: 2.8, cap: `${c.name}: "${c.line('meet', 2)}"`, pos: () => this.clipCam(head(), head().addScaledVector(side, 6).addScaledVector(f, -6).add(V(0, 1.5, 0))), look: () => head(), tick: (u, c2) => { c.pos.lerp(p.pos.clone().addScaledVector(side, -4), 0.02); c.facing = Math.atan2(p.pos.x - c.pos.x, p.pos.z - c.pos.z); c.sync(); U.armR.rotation.z = 0; } },
+      this.dabShot(`🤝 ${c.name} joins you. EPIC DAB!`, 2.6),
+    ], () => { U.armR.rotation.z = U.armL.rotation.z = 0; c.mesh.scale.y = 1; p.mesh.rotation.x = 0; toast(`🤝 ${c.name} is with you now! Press T to talk · G to dab`, '#7affd0'); });
+    this.cine.showPlayer = true;
+  },
+  // 6) the SIGNATURE scene: its look (event, camera, move, words) comes from the level's number, so no two levels share one
+  startSignature() {
+    const g = this, L = LV(), idx = this.levelIdx(), h = this.nearestHunter(), p = this.player, pm = p.mesh;
+    const col = L.keyColor || h.T.eye, mn = L.monsters.map((k) => MONSTERS[k].name), restore = [];
+    const P = () => p.pos.clone().add(V(0, 3, 0)), rnd = Math.random;
+    const ring = (x, z, c, m) => shockwave(x, z, c, 0.3, m);
+    const FX = [
+      { n: 'METEOR SHOWER', cap: `Burning rocks rain down on ${L.name}!`, f: (u, c, dt) => { c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.16; const a = rnd() * 6.28, r = 12 + rnd() * 34, tx = P().x + Math.sin(a) * r, tz = P().z + Math.cos(a) * r, m = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 6), neon(0xffa040, 3));
+        addFx(m, 0.55, (e, d, k) => { m.position.set(tx + 30 * (1 - k), 130 * (1 - k) + 1, tz + 20 * (1 - k)); if (k > 0.97 && !e.hit) { e.hit = true; burst(V(tx, 1, tz), 0xffa040, 24, 18, 0.8, 8, 2); ring(tx, tz, 0xffa040, 14); g.shake = Math.max(g.shake, 0.7); sfx.noise(0.35, 0.25, 500, 'lowpass'); } }); } } },
+      { n: 'LIGHTNING', cap: `The sky over ${L.name} cracks open!`, f: (u, c, dt) => { c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.7; g.strike(P().x + (rnd() - 0.5) * 44, P().z + (rnd() - 0.5) * 44); } } },
+      { n: 'EARTHQUAKE', cap: `${L.name} is shaking apart!`, f: (u, c, dt) => { g.shake = Math.max(g.shake, 0.9); c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.1; burst(V(P().x + (rnd() - 0.5) * 60, 0.5, P().z + (rnd() - 0.5) * 60), 0x9a8a7a, 16, 12, 1, 6, 2); } c.b = (c.b || 0) - dt; if (c.b <= 0) { c.b = 0.7; ring(P().x, P().z, 0x9a8a7a, 36); sfx.noise(0.5, 0.3, 200, 'lowpass'); } } },
+      { n: 'WISP LIGHTS', cap: 'Ghostly lights rise out of the ground…', f: (u, c, dt) => { c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.07; const a = rnd() * 6.28, r = 5 + rnd() * 16; burst(V(P().x + Math.sin(a) * r, 0.5, P().z + Math.cos(a) * r), col, 5, 3, 2, 5, 1.4); } } },
+      { n: 'BLOOD MOON', cap: 'The moon swells… and bleeds.', f: (u, c, dt) => { if (!c.m) { c.m = true; const oc = moonMesh.material.color.clone(), os = moonMesh.scale.x; moonMesh.material.color.set(0xff1a1a).multiplyScalar(2.4); moonMesh.scale.setScalar(Math.max(2.2, os * 2)); flash('#ff0020', 0.5); sfx.howl(); restore.push(() => { moonMesh.material.color.copy(oc); moonMesh.scale.setScalar(os); }); } c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.6; ring(P().x, P().z, 0xff2030, 42); } } },
+      { n: 'SKY BEAM', cap: 'A column of light slams down from the sky!', f: (u, c, dt) => { if (!c.m) { c.m = true; const q = P().addScaledVector(V(Math.sin(camYaw), 0, Math.cos(camYaw)), 34), m = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 240, 20, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(2), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); m.position.set(q.x, 120, q.z); c.q = q; sfx.charge(); addFx(m, 6, (e, d, k) => { m.material.opacity = 0.25 + 0.2 * Math.sin(e.t * 9); m.scale.x = m.scale.z = 1 + 0.15 * Math.sin(e.t * 6); }); }
+        c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.12; burst(V(c.q.x, 1, c.q.z), col, 12, 14, 1, 10, 2); } } },
+      { n: 'FOG SURGE', cap: 'A thick fog rolls in from nowhere…', f: (u, c, dt) => { if (!c.m) { c.m = true; const od = scene.fog.density; restore.push(() => { scene.fog.density = od; }); sfx.whisper(1); c.od = od; } scene.fog.density = c.od * (1 + 2.2 * Math.sin(Math.min(1, c.tt = (c.tt || 0) + dt / 6) * Math.PI)); c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.2; burst(V(P().x + (rnd() - 0.5) * 30, 1, P().z + (rnd() - 0.5) * 30), 0xcfd0ff, 6, 3, 2, 2, 2.4); } } },
+      { n: 'BAT SWARM', cap: 'The sky goes black with wings!', f: (u, c, dt) => { if (!c.m) { c.m = true; sfx.screech(); const base = P(); for (let i = 0; i < 26; i++) { const b = new THREE.Mesh(BOX(1.8, 0.2, 0.7), new THREE.MeshBasicMaterial({ color: 0x120a18 })), a0 = rnd() * 6.28, r = 10 + rnd() * 16, sp = 0.8 + rnd() * 1.2, hy = 6 + rnd() * 14; addFx(b, 5.5, (e) => { const a = a0 + e.t * sp; b.position.set(base.x + Math.cos(a) * r, hy + Math.sin(e.t * 3 + i) * 2, base.z + Math.sin(a) * r); b.rotation.y = -a; b.scale.y = 1 + Math.sin(e.t * 18 + i) * 2; }); } } } },
+      { n: 'COMET', cap: 'A comet blazes across the sky…', f: (u, c, dt) => { if (!c.m) { c.m = true; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })), b = P(); sp.scale.setScalar(50); sfx.charge();
+        addFx(sp, 4.5, (e, d, k) => { sp.position.set(b.x - 200 + 400 * k, 150 - 90 * k, b.z + 160); if (e.t > 0.2) burst(sp.position.clone(), col, 3, 6, 1.2, 0, 3); if (k > 0.98 && !e.boom) { e.boom = true; flash('#ffffff', 0.4); sfx.boom(); } }); } } },
+      { n: 'LAIR ERUPTION', cap: `${mn[0]}'s lair erupts in fire!`, f: (u, c, dt) => { g.shake = Math.max(g.shake, 0.6); c.a = (c.a || 0) - dt; if (c.a <= 0) { c.a = 0.09; burst(V(h.pos.x, 2, h.pos.z), col, 14, 14, 1.3, 20, 2.4); } c.b = (c.b || 0) - dt; if (c.b <= 0) { c.b = 0.55; ring(h.pos.x, h.pos.z, col, 40); } c.fired = c.fired || {}; g.roarShot(h, c, 'e', u, 0.2); } },
+      { n: 'AURORA', cap: 'Ghost-colored lights ripple across the sky.', f: (u, c, dt) => { if (!c.m) { c.m = true; for (let i = 0; i < 5; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: new THREE.Color(col).offsetHSL(i * 0.12, 0, 0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0 })), b = P(); sp.scale.set(170, 50, 1); addFx(sp, 7, (e, d, k) => { sp.position.set(b.x + (i - 2) * 55 + Math.sin(e.t + i) * 18, 95 + i * 6, b.z + 90); sp.material.opacity = Math.sin(k * Math.PI) * 0.6; }); } sfx.whisper(0.8); } } },
+      { n: 'ASH STORM', cap: 'A howling storm of ash sweeps in!', f: (u, c, dt) => { if (!c.m) { c.m = true; const od = scene.fog.density; restore.push(() => { scene.fog.density = od; }); scene.fog.density = od * 1.8; sfx.noise(2.5, 0.2, 700, 'bandpass'); } for (let i = 0; i < 3; i++) burst(camera.position.clone().add(V((rnd() - 0.5) * 30, rnd() * 12, (rnd() - 0.5) * 30)), 0x8a8a90, 2, 10, 1.2, -1, 1.1); } },
+    ];
+    const CAMS = [
+      { pos: (u) => { const a = u * 2.2 + 0.3; return this.clipCam(P(), P().add(V(Math.sin(a) * 14, 5 + u * 3, Math.cos(a) * 14))); }, look: () => P() },
+      { pos: (u) => this.clipCam(P(), P().add(V(-6, lerp(1, 55, smooth(u)), -12 - u * 10))), look: (u) => P().add(V(0, u * 6, 0)) },
+      { pos: (u) => this.clipCam(P(), P().add(V(lerp(-14, 8, u), 3, lerp(11, 5, u)))), look: () => P() },
+      { pos: (u) => { const a = u * 5, r = lerp(30, 10, u); return this.clipCam(P(), P().add(V(Math.sin(a) * r, lerp(40, 4, smooth(u)), Math.cos(a) * r))); }, look: () => P() },
+      { pos: () => this.clipCam(P(), P().add(V(10, 2.5, 8))), look: (u) => h.pos.clone().add(V(0, 5 * Math.max(1, h.T.scale), 0)).lerp(P(), smooth(u * 1.4)) },
+    ];
+    const ACTS = ['vault', 'leap', 'slide', 'dab', 'duck', 'sprint'];
+    const E = FX[idx % FX.length], Cm = CAMS[Math.floor(idx / 12) % CAMS.length];
+    let act = ACTS[(idx + Math.floor(idx / 60)) % ACTS.length];
+    const A = act === 'dab' || act === 'duck' ? null : this.acroPrep(46, 15, [h], [16]);
+    if (!A && act !== 'dab' && act !== 'duck') act = 'dab';
+    const c0 = A && A.c0, K = A && A.K, fxc = {}, fxTick = (u, c, dt) => E.f(u, fxc, dt);
+    const nm = this.companions[0], words = [`${mn[0]} saw all of it. It is NOT amused.`, `${L.name} has never seen anything like that.`, `Somewhere out there, ${mn[1] || mn[0]} starts running…`, '"Show-off," whispers the night.', `The ${L.keyWord || 'key'}s hum a little louder.`, `${mn[2] || mn[0]} hates you a little more.`, 'The night will remember this.', 'You feel unstoppable. Mostly.'];
+    const payoff = nm && idx % 2 ? `${nm.name}: "${nm.line('cheer')}"` : words[idx % words.length];
+    const ACTSHOT = {
+      vault: () => this.flipShot(c0, 'ONE-HAND VAULT!', K.orbit(10, 1.2, 1.5, 2.6), { d: 2.0, hop: 4.6, vault: 1.0, prop: 3, slow: 0.6, a: 0.2, b: 0.8, extra: fxTick }),
+      leap: () => this.flipShot(c0, 'THE LEAP!', K.aerial, { d: 2.2, hop: 16, pitch: 0, slow: 0.55, a: 0.1, b: 0.9, col, extra: fxTick }),
+      slide: () => ({ d: 2.0, cap: 'SLIDE!', ...K.low, tick: (u, c, dt) => { this.runStep(c0, dt, u < 0.6 ? 0.35 : 1); if (u < 0.65) { pm.rotation.x = -1.1; const U = pm.userData; U.legL.rotation.x = -1.4; U.legR.rotation.x = -1.2; if (rnd() < 0.5) burst(V(p.pos.x, 0.4, p.pos.z), 0xffd257, 3, 6, 0.4, 2, 0.8); } else this.acroReset(); fxTick(u, c, dt); } }),
+      sprint: () => ({ d: 2.0, cap: 'RUN!!', ...K.front, tick: (u, c, dt) => { this.runStep(c0, dt, 1.1); fxTick(u, c, dt); } }),
+      dab: () => { const s0 = this.dabShot('🕺 EPIC DAB!', 2.4), t0 = s0.tick; s0.tick = (u, c, dt) => { t0(u, c, dt); fxTick(u, c, dt); }; return s0; },
+      duck: () => ({ d: 2.0, cap: 'GET DOWN!', ...Cm, tick: (u, c, dt) => { pm.position.copy(p.pos); pm.rotation.x = 0.8 * Math.sin(clamp(u * 1.3, 0, 1) * Math.PI * 0.8); const U = pm.userData; U.armL.rotation.x = U.armR.rotation.x = -2.8; fxTick(u, c, dt); } }),
+    };
+    this.sigName = `✨ ${E.n}`;
+    this.playShots('signature', [
+      { d: 2.4, cap: E.cap, ...Cm, tick: (u, c, dt) => { if (A) this.runStep(c0, dt, 0.3); fxTick(u, c, dt); } },
+      ACTSHOT[act](),
+      { d: 2.2, cap: payoff, ...(A ? K.behind : Cm), tick: (u, c, dt) => { if (A) { this.runStep(c0, dt); this.acroReset(); } fxTick(u * 0.4, c, dt); this.roarShot(h, c, 'r', u, 0.3); } },
+    ], () => { restore.forEach((fn) => fn()); this.acroReset(); this.clearProps(); if (A) this.finishAcro(c0, [26], null, `✨ ${E.n}! Keep running!`); else toast(`✨ ${E.n}!`, '#ffd257'); });
+    this.cine.showPlayer = true;
+  },
+
   // ---------------- multiplayer ----------------
   hostStart() {
     sfx.init();
@@ -7535,7 +7743,7 @@ const game = {
     splash('RUN!', `${this.endless ? '♾ Endless ' + this.endless : this.custom ? '🛠 Your map' : 'Level ' + this.level}: ${LV().name}. ` + (LV().battle ? `Collect ${CFG.keysNeeded} ${LV().keyWord}s to grow GIANT` : `Find ${CFG.keysNeeded} keys and escape`), '#ffd257');
     { const Q = world.quest.q; setTimeout(() => storyCard(`${Q.icon} STORY QUEST: ${Q.title}`, `Find ${world.quest.items.length} ${Q.item}s (${Q.icon} on your map). ${LV().big ? '⭐ BIG LEVEL: bigger quest, bigger reward!' : ''}`, hex6(Q.col)), 2600); }
     if (isTouch) toast('Left side: move · Right side: look', '#cdb8ff');
-    else toast('Click the game to lock your mouse · V camera · F flashlight', '#cdb8ff');
+    else toast('Click the game to lock your mouse · V camera · F flashlight · G epic dab · T talk', '#cdb8ff');
   },
 
   startDeath(hunter) {
@@ -7633,11 +7841,24 @@ const game = {
   updateEscape(dt) {
     const c = this.cine; if (c.big && c.t < 2.2) dt *= 0.45;
     const t = (c.t += dt), p = this.player, ex = world.exit.x, half = world.half;
-    p.pos.x = lerp(p.pos.x, ex, 1 - Math.exp(-3 * dt));
-    p.pos.z += 17 * dt; p.pos.y = Math.max(0, p.pos.y - 20 * dt);
-    p.vel.set(0, 0, 17); p.onGround = true; p.sprinting = true;
+    if (!c.dabAt) {
+      p.pos.x = lerp(p.pos.x, ex, 1 - Math.exp(-3 * dt));
+      p.pos.z += 17 * dt; p.pos.y = Math.max(0, p.pos.y - 20 * dt);
+      p.vel.set(0, 0, 17); p.onGround = true; p.sprinting = true;
+    } else p.vel.set(0, 0, 0);
     p.mesh.visible = true;
-    p.animate(dt, 17);
+    p.animate(dt, c.dabAt ? 0 : 17);
+    this.companions.forEach((q, i) => { // your new friends run with you… and dab with you
+      const tx = p.pos.x + (i % 2 ? 4 : -4) * (1 + (i >> 1) * 0.6), tz = p.pos.z - 3 - i * 2;
+      q.pos.set(lerp(q.pos.x || tx, tx, 1 - Math.exp(-8 * dt)), 0, lerp(q.pos.z || tz, tz, 1 - Math.exp(-8 * dt))); q.facing = 0; q.sync();
+      const U = q.mesh.userData, sw = Math.sin(t * 14) * 0.9; if (c.dabAt) dabPose(q.mesh, -1); else { U.legL.rotation.x = sw; U.legR.rotation.x = -sw; U.armL.rotation.x = -sw; U.armR.rotation.x = sw; U.armL.rotation.z = U.armR.rotation.z = 0; }
+    });
+    if (!c.dabAt && p.pos.z > half + 16) { // the EPIC DAB
+      c.dabAt = t; p.pos.z = half + 16; sfx.boom(); flash('#ffffff', 0.5); this.shake = 1.4;
+      shockwave(p.pos.x, p.pos.z, 0xffd257, 0.3, 50); setTimeout(() => shockwave(p.pos.x, p.pos.z, 0x5fd8ff, 0.3, 50), 250);
+      burst(p.pos.clone().add(V(0, 3, 0)), 0xffd257, 60, 26, 1.2, 6, 3); this.companions.forEach((q) => q.say('cheer'));
+    }
+    if (c.dabAt) { dabPose(p.mesh); p.mesh.rotation.x = 0.28; p.mesh.rotation.y = lerp(p.mesh.rotation.y, 0, 0.2); }
     const h = c.chaser, e = world.exit;
     if (h) { // it chases you right up to the gate… and the gate slams shut in its face
       const stopZ = half - 2 * Math.max(1, h.T.scale * 0.6);
@@ -7656,7 +7877,7 @@ const game = {
       sfx.boom();
     }
     ui.fade.style.background = '#fff';
-    const T0 = c.big ? 3.6 : 2.8;
+    const T0 = c.dabAt ? c.dabAt + 2.4 : 6;
     ui.fade.style.opacity = clamp((t - T0) / 0.7, 0, 1).toFixed(3);
     if (t > T0 + 0.8) { this.endCine(); ui.fade.style.background = '#000'; this.endMine(); }
   },
@@ -7685,6 +7906,7 @@ const game = {
     for (const h of this.hunters) { h.chasing = false; h.flare = 0; }
   },
   takeKey(k) {
+    if (this.companions.length && !net.on) this.companions[0].say('key');
     k.taken = true; k.mesh.visible = false; k.beam.visible = false; k.decal.visible = false;
     sfx.key(); flash('#ffd257', 0.25); bump(ui.keysPill);
     burst(V(k.x, 3, k.z), 0xffc83c, 30, 12, 0.9);
@@ -7777,6 +7999,7 @@ const game = {
   },
   openExit() {
     this.exitOpen = true;
+    if (this.companions.length && !net.on) this.companions[0].say('gate');
     const e = world.exit;
     if (world.obstacles.includes(e.gateObs)) world.obstacles.splice(world.obstacles.indexOf(e.gateObs), 1);
     for (const h of this.hunters) h.enraged = true;
@@ -7786,7 +8009,7 @@ const game = {
       { d: 2.8, cap: 'The gate is unlocking…', pos: (u) => V(e.x + lerp(-20, 20, u), lerp(9, 14, u), world.half - lerp(46, 36, u)), look: () => V(e.x, 10, e.z),
         tick: (u, c) => { if (!c.fired.g && u > 0.4) { c.fired.g = true; this.showGateOpen(); } } },
       { d: 2.4, cap: `…and ${h.T.name} heard it.`, ...this.faceCam(h, 5, 10), tick: (u, c) => this.roarShot(h, c, 'e', u, 0.25) },
-    ], () => { this.showGateOpen(); h.chasing = false; splash('THE EXIT IS OPEN!', 'Get to the gate. The monsters are enraged!', '#78ff8f'); const enrage = () => { if (!this.frenzy) this.startFrenzy(); }; if (!this.bigFired.finalrun) { this.bigFired.finalrun = true; this.startRunScene('finalrun', enrage); } else enrage(); });
+    ], () => { this.showGateOpen(); h.chasing = false; splash('THE EXIT IS OPEN!', 'Get to the gate. The monsters are enraged!', '#78ff8f'); const enrage = () => { if (!this.frenzy) this.quickFrenzy(); }; if (!this.bigFired.finalrun) { this.bigFired.finalrun = true; this.startRunScene('finalrun', enrage); } else enrage(); });
   },
   caught(hunter) {
     if (this.player.state !== 'alive') return;
@@ -7930,13 +8153,14 @@ const game = {
 
     if (!net.isClient) { // the host (or solo player) runs the clock
       if (!this.released && this.elapsed >= CFG.headStart) { if (net.on) this.release(); else { this.startRelease(); return; } }
-      if (!this.frenzy && timeLeft <= CFG.frenzyTime) { if (net.on) this.quickFrenzy(); else { this.startFrenzy(); return; } }
+      if (!this.frenzy && timeLeft <= CFG.frenzyTime) { this.quickFrenzy(); }
     }
 
     const alive = p.state === 'alive';
     if (alive) p.update(dt, now, !this.paused); else p.mesh.visible = false;
     this.stepHunters(dt, now, D);
     if (this.cine) return; // caught this frame
+    this.updateCompanions(dt);
 
     if (!alive) { // spectating your team
       ui.vignette.style.opacity = 0; ui.static.style.opacity = 0; sfx.tension(0); this.danger = 0;
@@ -8638,9 +8862,8 @@ if (demo) {
         try {
         game.startRelease(); settle();
         for (let k = 0; k < CFG.keysNeeded && game.state === 'play'; k++) {
-          if (k === 4 && !new URLSearchParams(location.search).get('fast')) { game.frenzy = false; game.startFrenzy(); settle(); }
           const key = world.keys.find((q) => !q.taken); p.pos.set(key.x, 0, key.z); game.update(1 / 60); settle(60);
-          if (k === 2 && !new URLSearchParams(location.search).get('fast')) { game.elapsed = CFG.roundTime / 2; game.update(1 / 60); settle(); }
+          game.elapsed = CFG.roundTime * [0.1, 0.2, 0.34, 0.5, 0.64][k]; game.sceneAt = 0; game.update(1 / 60); settle(40);
         }
         if (game.state === 'play' && !LV().battle) { p.pos.set(world.exit.x, 0, world.half + 4); game.update(1 / 60); settle(12); }
         } catch (e) { if (e.message === 'STOP') return; throw e; }
@@ -8654,6 +8877,19 @@ if (demo) {
         game.showMenu(); $('endlessGo').click(); for (let i = 0; i < 120; i++) game.update(1 / 60);
         console.log('ENDLESS', JSON.stringify({ bad, state: game.state, endless: game.endless }));
         return;
+      }
+      if (demo === 'sigs') { // npc meet, epic dab, and 36 different signature scenes
+        const out = { bad: [], kinds: [] }; CFG.catchRadius = 0;
+        for (let n = +(new URLSearchParams(location.search).get('from') || 1); n <= +(new URLSearchParams(location.search).get('to') || 12); n++) {
+          try {
+            game.playEndless(n); for (let i = 0; i < 30; i++) game.update(1 / 60); game.skipCine && game.cine && game.skipCine();
+            game.released = true; game.player.pos.set(world.spawns[0].x, 0, world.spawns[0].z); camYaw = 0;
+            if (n === 1) { game.startNpcMeet(); let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60); out.npc = { secs: +(t / 60).toFixed(1), companions: game.companions.length }; for (let i = 0; i < 300; i++) game.update(1 / 60); out.follow = Math.round(Math.hypot(game.companions[0].pos.x - game.player.pos.x, game.companions[0].pos.z - game.player.pos.z)); game.dabReady = 0; game.player.onGround = true; game.epicDab(); t = 0; for (; t < 60 * 20 && game.cine; t++) game.update(1 / 60); out.dab = +(t / 60).toFixed(1); game.talk(); }
+            game.startSignature(); const nm = game.sigName; let t = 0; for (; t < 60 * 30 && game.cine; t++) game.update(1 / 60);
+            out.kinds.push(nm.replace('✨ ', '') + ':' + +(t / 60).toFixed(1)); if (game.cine) out.bad.push([n, 'stuck']);
+          } catch (e) { out.bad.push([n, String(e.message).slice(0, 90)]); }
+        }
+        console.log('SIGS', JSON.stringify(out)); return;
       }
       if (demo === 'flips') { // every new acrobatic scene must play through, and endless levels must build
         const out = {}; CFG.catchRadius = 0; game.released = true;
